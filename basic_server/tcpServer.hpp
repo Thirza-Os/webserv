@@ -20,8 +20,8 @@ public:
 private:
     std::string     _ip_add;
     int             _port;
-    int             _m_socket;
-    int             _m_newSocket;
+    int             _socket;
+    int             _newSocket;
     long            _incomingMessage;
 
     struct          sockaddr_in _socketAddr;

@@ -6,7 +6,7 @@
 
 const int BUFFER_SIZE = 30720;
 
-tcpServer::tcpServer(std::string ip_add, int port):_ip_add(ip_add), _port(port), _m_socket(), _m_newSocket(), _incomingMessage(), _socketAddr(), _socketAddrLen(sizeof(_socketAddr))
+tcpServer::tcpServer(std::string ip_add, int port):_ip_add(ip_add), _port(port), _socket(), _newSocket(), _incomingMessage(), _socketAddr(), _socketAddrLen(sizeof(_socketAddr))
 {
 
     _socketAddr.sin_family = AF_INET;
@@ -37,16 +37,16 @@ int tcpServer::startServer()
     // making the socket
             printf("Starting sockert\n");
 
-    _m_socket = socket(AF_INET, SOCK_STREAM, 0);
+    _socket = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (_m_socket < 0)
+    if (_socket < 0)
     {
         exitError("Socket failed!");
         return 1;
     }
 
 // binding the socket
-    if (bind(_m_socket, (sockaddr *)&_socketAddr, _socketAddrLen) < 0)
+    if (bind(_socket, (sockaddr *)&_socketAddr, _socketAddrLen) < 0)
     {
         exitError("Cannot connect socket to address");
         return 1;
@@ -58,14 +58,14 @@ int tcpServer::startServer()
 
 void    tcpServer::closeServer()
 {
-    close(_m_socket);
-    close(_m_newSocket);
+    close(_socket);
+    close(_newSocket);
     exit(0);
 }
 
 void tcpServer::startListen()
 {
-    if (listen(_m_socket, 20) < 0)
+    if (listen(_socket, 20) < 0)
     {
         exitError("Socket listen failed");
     }
@@ -81,11 +81,11 @@ void tcpServer::startListen()
             while (true)
         {
             log("====== Waiting for a new connection ======\n\n\n");
-            acceptConnection(_m_newSocket);
-            printf("socket: %i\n socket: %i\n", _m_socket, _m_newSocket);
+            acceptConnection(_newSocket);
+            printf("socket: %i\n socket: %i\n", _socket, _newSocket);
 
             char buffer[BUFFER_SIZE] = {0};
-            bytesReceived = read(_m_newSocket, buffer, BUFFER_SIZE);
+            bytesReceived = read(_newSocket, buffer, BUFFER_SIZE);
             printf("This int: %i \n", bytesReceived);
             if (bytesReceived < 0)
             {
@@ -98,7 +98,7 @@ void tcpServer::startListen()
 
             sendResponse();
 
-            close(_m_newSocket);
+            close(_newSocket);
         }
 
 }
@@ -106,13 +106,13 @@ void tcpServer::startListen()
 void tcpServer::acceptConnection(int &new_socket)
 {
         printf("socket 1: %i\n", new_socket);
-        printf("socket old: %i\n", _m_socket);
+        printf("socket old: %i\n", _socket);
         printf("socket old  len: %i\n", _socketAddrLen);
 
-        new_socket = accept(_m_socket, (sockaddr *)&_socketAddr, 
+        new_socket = accept(_socket, (sockaddr *)&_socketAddr, 
                         &_socketAddrLen);
 
-        printf("socket new: %i\n", _m_socket);
+        printf("socket new: %i\n", _socket);
         printf("socket new  len: %i\n", _socketAddrLen);
         printf("socket 2: %i\n", new_socket);
     if (new_socket < 0)
@@ -142,7 +142,7 @@ void tcpServer::sendResponse()
 
     std::string _serverMessage = buildResponse();
 
-    bytesSent = write(_m_newSocket, _serverMessage.c_str(), _serverMessage.size());
+    bytesSent = write(_newSocket, _serverMessage.c_str(), _serverMessage.size());
 
     if (bytesSent == _serverMessage.size())
     {

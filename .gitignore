@@ -2,3 +2,4 @@
 .DS_STORE
 *HttpLinux
 .vscode
+.tcpServer.hpp.gch.icloud
