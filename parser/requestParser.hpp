@@ -1,8 +1,9 @@
 #ifndef REQUESTPARSER_HPP
 # define REQUESTPARSER_HPP
 
-# include <string>
-# include <map>
+#include <string>
+#include <map>
+#include <vector>
 
 // An HttpRequest object receives an incoming request, parses it, and extracts the relevant information.
 // info: method, path, headers, and message body(if present). 
@@ -24,7 +25,12 @@ private:
 
     void    add_header(std::string key, std::string value);
     void    consume_request();
-    void    parse_error(const std::string &str);
+    void    parse_error(const std::string &str, int code);
+    void    tokenize(const std::string& str, std::vector<std::string>& tokens, char delimiter);
+    void    validate_request_line();
+    void    stringTrim(std::string &str);
+    void    decode_uri();
+    void    validate_header(std::string line);
 
 public:
     // requestParser();

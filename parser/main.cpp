@@ -1,7 +1,7 @@
 #include "requestParser.hpp"
 
 #include <iostream>
-
+#include <cstring>
 
 // Request Line:
 //      what-where-which protocol
@@ -14,13 +14,11 @@
 
 int main(int, char**)
 {
-    const char text[] =
-        "GET /index HTTP/1.1"
-        "Host: 192.168.0.199:80"
-        "Connection: keep-alive"
-;
+const char* httpRequest = "GET /index%21 HTTP/1.1\r\n"
+                          "Host: 192.168.0.199:80\r\n"
+                          "Connection: keep-alive\r\n\r\n";
 
-    requestParser parser(text, strlen(text));
+    requestParser parser(httpRequest, strlen(httpRequest));
 
     // HttpResponseParser::ParseResult res = parser.parse(response, text, text + strlen(text));
 
