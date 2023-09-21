@@ -40,10 +40,14 @@ public:
 
 };
 
-// enum parseState
-// {
+// THIS IS WHERE I LEFT OFF: start making cases instead of the boolean flags!!
 
-// };
+enum ParseState {
+    StartParsing,
+    RequestLineParsing,
+    HeadersParsing,
+    BodyParsing
+};
 
 enum httpMethod
 {

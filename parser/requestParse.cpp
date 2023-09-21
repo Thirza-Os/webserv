@@ -96,6 +96,8 @@ void    requestParser::validate_header(std::string line){
 
     size_t colon_pos = line.find(':');
 
+    std::cout << line << std::endl;
+
     if (colon_pos != std::string::npos)
     {
         std::string header_name = line.substr(0, colon_pos);
@@ -118,12 +120,13 @@ void requestParser::consume_request(){
     std::vector<std::string>    words;
     size_t                      colon_pos;
 
-    bool requestLineProcessed = false;
+    ParseState state = StartParsing;
 
     if (raw_request.empty())
         parse_error("Bad Request", 400);
     char first_char = line[0];
     
+
     while (std::getline(iss, line)) {
         parsed_request.push_back(line);
         if (!requestLineProcessed) {
@@ -141,12 +144,19 @@ void requestParser::consume_request(){
             }
         requestLineProcessed = true;
         }
-        else
+        else if (requestLineProcessed && !headersProcessed)
         {
+            if(line.empty())
+            {
+                headersProcessed = true;
+                continue;
+            }
             validate_header(line);
-        std::map<std::string, std::string>::iterator it = this->_headers.begin();
-                std::advance(it, 1); // Advance by 1 to reach the second element.
-        std::cout << "First Key: " << it->first << std::endl;
-        std::cout << "First Value: " << it->second << std::endl;        }
+        }
+        else if (requestLineProcessed && headersProcessed)
+        {
+
+        // process body
+        }
     }
 }
