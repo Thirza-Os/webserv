@@ -5,10 +5,6 @@
 #include <map>
 #include <vector>
 
-// An HttpRequest object receives an incoming request, parses it, and extracts the relevant information.
-// info: method, path, headers, and message body(if present). 
-// If any syntax error was found in the request during parsing, error flags are set and parsing stops. 
-
 class requestParser
 {
 private:
@@ -23,27 +19,35 @@ private:
 
     std::string                         _body;
 
-    void    add_header(std::string key, std::string value);
-    void    consume_request();
-    void    parse_error(const std::string &str, int code);
-    void    tokenize(const std::string& str, std::vector<std::string>& tokens, char delimiter);
-    void    validate_request_line();
-    void    stringTrim(std::string &str);
-    void    decode_uri();
-    void    validate_header(std::string line);
+    bool                                _ParsingCompleted;
+
+    void        add_header(std::string key, std::string value);
+    void        consume_request();
+    void        parse_error(const std::string &str, int code);
+    void        tokenize(const std::string& str, std::vector<std::string>& tokens, char delimiter);
+    void        validate_request_line();
+    void        stringTrim(std::string &str);
+    void        decode_uri();
+    void        validate_header(std::string line);
+    bool        validate_content(std::string line);
+
+    void        print_request() const;
 
 public:
-    // requestParser();
     requestParser(std::string request, size_t len);
     requestParser(const requestParser &src);
     ~requestParser();
 
+    bool        parsingCompleted() const;
+    std::string get_method() const;
+    std::string get_uri() const;
+    std::string get_protocol() const;
+    std::string get_body() const;
+    std::string get_content_type() const;
+    size_t      get_content_length() const;
 };
 
-// THIS IS WHERE I LEFT OFF: start making cases instead of the boolean flags!!
-
 enum ParseState {
-    StartParsing,
     RequestLineParsing,
     HeadersParsing,
     BodyParsing

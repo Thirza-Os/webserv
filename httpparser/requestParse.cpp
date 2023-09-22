@@ -9,16 +9,9 @@
 #include <algorithm>
 #include <cstdio>
 
-
-
-// default
-// requestParser::requestParser()
-// {
-
-// }
-
-requestParser::requestParser(std::string request, size_t len): _request(request), _len(len) {
+requestParser::requestParser(std::string request, size_t len): _request(request), _len(len), _content_length(0), _ParsingCompleted(false) {
     consume_request();
+    print_request();
 }
 
 requestParser::requestParser(const requestParser &src) {
@@ -31,6 +24,42 @@ requestParser::~requestParser() {}
 void    requestParser::add_header(std::string key, std::string value) {
     
     this->_headers[key] = value;
+}
+
+bool    requestParser::parsingCompleted() const {
+    return this->_ParsingCompleted;
+}
+
+std::string requestParser::get_method() const {
+    return (this->_method);
+}
+
+std::string requestParser::get_uri() const {
+    return (this->_uri);
+}
+
+std::string requestParser::get_protocol() const {
+    return (this->_protocol);
+}
+
+std::string requestParser::get_body() const {
+    return (this->_body);
+}
+
+std::string requestParser::get_content_type() const {
+    if (_headers.count("Content-Type") > 0) {
+        return _headers.at("Content-Type");
+    } else {
+        return "";
+    }
+}
+
+size_t requestParser::get_content_length() const {
+    if (_headers.count("Content-Length") > 0) {
+        return std::stoi(_headers.at("Content-Length"));
+    } else {
+        return 0;
+    }
 }
 
 void    requestParser::parse_error(const std::string &str, int code) {
@@ -79,8 +108,7 @@ void    requestParser::decode_uri(){
             {
                 decoded += static_cast<char>(hex);
                 i += 2;
-            }
-            else 
+            } else 
                 decoded += this->_uri[i];
         }
         // check for spaces
@@ -96,7 +124,6 @@ void    requestParser::validate_header(std::string line){
 
     size_t colon_pos = line.find(':');
 
-    std::cout << line << std::endl;
 
     if (colon_pos != std::string::npos)
     {
@@ -104,11 +131,15 @@ void    requestParser::validate_header(std::string line){
         std::string header_value = line.substr(colon_pos + 1);
 
         this->_headers.insert(std::make_pair(header_name, header_value));
-    }
-    else
+    } else
     {
         parse_error("Invalid Header Format", 400);
     }
+}
+
+bool    requestParser::validate_content(std::string line){     
+
+    return(0);
 }
 
 void requestParser::consume_request(){
@@ -120,7 +151,7 @@ void requestParser::consume_request(){
     std::vector<std::string>    words;
     size_t                      colon_pos;
 
-    ParseState state = StartParsing;
+    ParseState                  state = RequestLineParsing;
 
     if (raw_request.empty())
         parse_error("Bad Request", 400);
@@ -129,8 +160,10 @@ void requestParser::consume_request(){
 
     while (std::getline(iss, line)) {
         parsed_request.push_back(line);
-        if (!requestLineProcessed) {
-            stringTrim(line);
+        stringTrim(line);
+        
+        switch(state) {
+            case RequestLineParsing:
             tokenize(line, words, ' ');
 
             if (words.size() >= 3) {
@@ -142,21 +175,42 @@ void requestParser::consume_request(){
             } else {
                 parse_error("Invalid Request Format", 400);
             }
-        requestLineProcessed = true;
-        }
-        else if (requestLineProcessed && !headersProcessed)
-        {
-            if(line.empty())
-            {
-                headersProcessed = true;
-                continue;
-            }
-            validate_header(line);
-        }
-        else if (requestLineProcessed && headersProcessed)
-        {
 
-        // process body
+            state = HeadersParsing;
+            break;
+
+            case HeadersParsing:
+                if (line.empty()) {
+                    state = BodyParsing;
+                    break;
+                } else
+                    validate_header(line);
+                break;
+
+            case BodyParsing:
+                if (validate_content(line))
+                    break;
+                this->_body += line + '\n';
+                break;
         }
     }
+    this->_ParsingCompleted = true;
+}
+
+void requestParser::print_request() const {
+    std::cout << "Request: " << _request << std::endl;
+    std::cout << "Method: " << _method << std::endl;
+    std::cout << "URI: " << _uri << std::endl;
+    std::cout << "Protocol: " << _protocol << std::endl;
+
+    std::cout << "Headers:" << std::endl;
+    for (const auto& header : _headers) {
+        std::cout << "  " << header.first << ": " << header.second << std::endl;
+    }
+
+    std::cout << "Body: " << _body << std::endl;
+
+    std::cout << "Content length: " << _content_length << std::endl;
+    std::cout << "Content type: " << _content_type << std::endl;
+
 }
