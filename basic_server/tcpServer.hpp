@@ -5,8 +5,10 @@
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <string>
+#include <vector>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <poll.h>
 
 class tcpServer
 {
@@ -18,25 +20,26 @@ public:
     void    log(const std::string &message);
 
 private:
-    std::string     _ip_add;
-    int             _port;
-    int             _socket;
-    int             _newSocket;
-    long            _incomingMessage;
+    std::string                 _ip_add;
+    int                         _port;
+    int                         _socket;
+    //int                         _newSocket;
+    //long                        _incomingMessage;
 
-    struct          sockaddr_in _socketAddr;
-    unsigned int    _socketAddrLen;
-    std::string     _serverMessage;   
+    struct                      sockaddr_in _socketAddr;
+    unsigned int                _socketAddrLen;
+    std::string                 _serverMessage;
+    std::vector<struct pollfd>  _pollfds;
 
 
     int             startServer();
     void            closeServer();
 
     void            startListen();
-    void            acceptConnection(int &new_socket);
+    void            acceptConnection();
 
     std::string     buildResponse();
-    void            sendResponse();
+    void            sendResponse(int socket_fd);
 };
 
 #endif
