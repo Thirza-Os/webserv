@@ -15,14 +15,12 @@ requestParser::requestParser(std::string request, size_t len): _request(request)
 }
 
 requestParser::requestParser(const requestParser &src) {
-    
     *this = src;
 }
 
 requestParser::~requestParser() {}
 
 void    requestParser::add_header(std::string key, std::string value) {
-    
     this->_headers[key] = value;
 }
 
