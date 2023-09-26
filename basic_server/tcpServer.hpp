@@ -23,8 +23,6 @@ private:
     std::string                 _ip_add;
     int                         _port;
     int                         _socket;
-    //int                         _newSocket;
-    //long                        _incomingMessage;
 
     struct                      sockaddr_in _socketAddr;
     unsigned int                _socketAddrLen;

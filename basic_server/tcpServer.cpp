@@ -86,13 +86,12 @@ void tcpServer::startListen()
         {
             log("====== Waiting for a new connection ======\n\n\n");
             if (poll(&_pollfds[0], _pollfds.size(), -1) == -1) {
-                log("Error returned from poll()");
+                log("Error returned from poll()\n");
             }
             for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
                 if (it->revents & POLLIN) {
                     if (it->fd == listener.fd) {
                         acceptConnection();
-                        it = _pollfds.end();
                         break ;
                     }
                     else {
@@ -113,15 +112,7 @@ void tcpServer::startListen()
                 else if (it->revents & POLLOUT) {
                     sendResponse(it->fd);
                     close(it->fd);
-                    if (it == _pollfds.end()) {
-                        _pollfds.pop_back();
-                        it = _pollfds.end();
-                    }
-                    else {
-                        it = _pollfds.erase(it);
-                        //make sure there's no gap from this removal
-                        //pop and insert the end into iterator?
-                    }
+                    it = _pollfds.erase(it);
                     break ;
                 }
             }
