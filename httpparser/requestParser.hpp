@@ -37,6 +37,7 @@ public:
     requestParser(std::string request, size_t len);
     requestParser(const requestParser &src);
     ~requestParser();
+    requestParser &operator=(const requestParser &src);
 
     bool        parsingCompleted() const;
     std::string get_method() const;
@@ -53,11 +54,11 @@ enum ParseState {
     BodyParsing
 };
 
-enum httpMethod
-{
-    GET,            // Read only: The HTTP GET request method is used to request a resource from the server. 
-    POST,           // Send data to server, create new resource: create new data entry
-    DELETE
-};
+// enum httpMethod
+// {
+//     GET,            // Read only: The HTTP GET request method is used to request a resource from the server. 
+//     POST,           // Send data to server, create new resource: create new data entry
+//     DELETE
+// };
 
 #endif

@@ -26,6 +26,22 @@ void    requestParser::add_header(std::string key, std::string value) {
     this->_headers[key] = value;
 }
 
+requestParser &requestParser::operator=(const requestParser &src)
+{
+    if (this != &src) {
+        this->_len = src._len;
+        this->_request = src._request;
+        this->_method = src._method;
+        this->_uri = src._uri;
+        this->_protocol = _protocol;
+        this->_headers = src._headers;
+        this->_body = src._body;
+        this->_ParsingCompleted = src._ParsingCompleted;
+
+    }
+    return *this;
+}
+
 bool    requestParser::parsingCompleted() const {
     return this->_ParsingCompleted;
 }
