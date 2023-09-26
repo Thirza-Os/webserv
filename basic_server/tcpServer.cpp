@@ -81,10 +81,10 @@ void tcpServer::startListen()
     listener.fd = _socket;
     listener.events = POLLIN;
     _pollfds.push_back(listener);
-
+    // main webserv loop starts here, the program should never exit this loop
         while (true)
         {
-            log("====== Waiting for a new connection ======\n\n\n");
+            log("====== Waiting for a new event ======\n\n\n");
             if (poll(&_pollfds[0], _pollfds.size(), -1) == -1) {
                 log("Error returned from poll()\n");
             }
@@ -99,7 +99,8 @@ void tcpServer::startListen()
                         bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
                         if (bytesReceived < 0)
                         {
-                            exitError("Failed to read bytes from client socket connection");
+                            log("Failed to read bytes from client socket connection");
+                            break ;
                         }
 
                         std::ostringstream ss;
@@ -131,12 +132,16 @@ void tcpServer::acceptConnection()
         "Server failed to accept incoming connection from ADDRESS: "
         << inet_ntoa(_socketAddr.sin_addr) << "; PORT: "
         << ntohs(_socketAddr.sin_port);
-        exitError(ss.str());
+        log(ss.str());
+        return ;
     }
     struct pollfd new_socket_fd;
     new_socket_fd.fd = new_socket;
     new_socket_fd.events = POLLIN;
     _pollfds.push_back(new_socket_fd);
+    std::ostringstream ss;
+    ss << "------ New connection established ------\n\n";
+    log(ss.str());
 }
 
 std::string tcpServer::buildResponse()
