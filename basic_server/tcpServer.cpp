@@ -6,7 +6,7 @@
 
 const int BUFFER_SIZE = 30720;
 
-tcpServer::tcpServer(std::string ip_add, int port):_ip_add(ip_add), _port(port), _socket(), _newSocket(), _incomingMessage(), _socketAddr(), _socketAddrLen(sizeof(_socketAddr))
+tcpServer::tcpServer(std::string ip_add, int port):_ip_add(ip_add), _port(port), _socket(), _socketAddr(), _socketAddrLen(sizeof(_socketAddr))
 {
 
     _socketAddr.sin_family = AF_INET;
@@ -35,9 +35,9 @@ void    tcpServer::log(const std::string &message)
 int tcpServer::startServer()
 {
     // making the socket
-            printf("Starting sockert\n");
+            printf("Starting socket\n");
 
-    _socket = socket(AF_INET, SOCK_STREAM, 0);
+    _socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 
     if (_socket < 0)
     {
@@ -59,7 +59,6 @@ int tcpServer::startServer()
 void    tcpServer::closeServer()
 {
     close(_socket);
-    close(_newSocket);
     exit(0);
 }
 
@@ -77,53 +76,72 @@ void tcpServer::startListen()
     log(ss.str());
 
     int bytesReceived;
+    struct pollfd listener;
 
-            while (true)
+    listener.fd = _socket;
+    listener.events = POLLIN;
+    _pollfds.push_back(listener);
+    // main webserv loop starts here, the program should never exit this loop
+        while (true)
         {
-            log("====== Waiting for a new connection ======\n\n\n");
-            acceptConnection(_newSocket);
-            printf("socket: %i\n socket: %i\n", _socket, _newSocket);
-
-            char buffer[BUFFER_SIZE] = {0};
-            bytesReceived = read(_newSocket, buffer, BUFFER_SIZE);
-            printf("This int: %i \n", bytesReceived);
-            if (bytesReceived < 0)
-            {
-                exitError("Failed to read bytes from client socket connection");
+            log("====== Waiting for a new event ======\n\n\n");
+            if (poll(&_pollfds[0], _pollfds.size(), -1) == -1) {
+                log("Error returned from poll()\n");
             }
+            for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
+                if (it->revents & POLLIN) {
+                    if (it->fd == listener.fd) {
+                        acceptConnection();
+                        break ;
+                    }
+                    else {
+                        char buffer[BUFFER_SIZE] = {0};
+                        bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
+                        if (bytesReceived < 0)
+                        {
+                            log("Failed to read bytes from client socket connection");
+                            break ;
+                        }
 
-            std::ostringstream ss;
-            ss << "------ Received Request from client ------\n\n";
-            log(ss.str());
-
-            sendResponse();
-
-            close(_newSocket);
+                        std::ostringstream ss;
+                        ss << "------ Received Request from client ------\n\n";
+                        log(ss.str());
+                        it->events = POLLOUT;
+                        break ;
+                    }
+                }
+                else if (it->revents & POLLOUT) {
+                    sendResponse(it->fd);
+                    close(it->fd);
+                    it = _pollfds.erase(it);
+                    break ;
+                }
+            }
         }
 
 }
 
-void tcpServer::acceptConnection(int &new_socket)
+void tcpServer::acceptConnection()
 {
-        printf("socket 1: %i\n", new_socket);
-        printf("socket old: %i\n", _socket);
-        printf("socket old  len: %i\n", _socketAddrLen);
-
-        new_socket = accept(_socket, (sockaddr *)&_socketAddr, 
-                        &_socketAddrLen);
-
-        printf("socket new: %i\n", _socket);
-        printf("socket new  len: %i\n", _socketAddrLen);
-        printf("socket 2: %i\n", new_socket);
+    int new_socket = accept4(_socket, (sockaddr *)&_socketAddr,
+                        &_socketAddrLen, SOCK_NONBLOCK);
     if (new_socket < 0)
     {
         std::ostringstream ss;
-        ss << 
-        "Server failed to accept incoming connection from ADDRESS: " 
-        << inet_ntoa(_socketAddr.sin_addr) << "; PORT: " 
+        ss <<
+        "Server failed to accept incoming connection from ADDRESS: "
+        << inet_ntoa(_socketAddr.sin_addr) << "; PORT: "
         << ntohs(_socketAddr.sin_port);
-        exitError(ss.str());
+        log(ss.str());
+        return ;
     }
+    struct pollfd new_socket_fd;
+    new_socket_fd.fd = new_socket;
+    new_socket_fd.events = POLLIN;
+    _pollfds.push_back(new_socket_fd);
+    std::ostringstream ss;
+    ss << "------ New connection established ------\n\n";
+    log(ss.str());
 }
 
 std::string tcpServer::buildResponse()
@@ -136,13 +154,13 @@ std::string tcpServer::buildResponse()
     return ss.str();
 }
 
-void tcpServer::sendResponse()
+void tcpServer::sendResponse(int socket_fd)
 {
-    long bytesSent;
+    unsigned long bytesSent;
 
     std::string _serverMessage = buildResponse();
 
-    bytesSent = write(_newSocket, _serverMessage.c_str(), _serverMessage.size());
+    bytesSent = write(socket_fd, _serverMessage.c_str(), _serverMessage.size());
 
     if (bytesSent == _serverMessage.size())
     {
@@ -153,3 +171,4 @@ void tcpServer::sendResponse()
         log("Error sending response to client");
     }
 }
+
