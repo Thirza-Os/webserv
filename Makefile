@@ -1,8 +1,8 @@
 NAME =	webserv
 
-INC =	basic_server/tcpServer.hpp
+INC =	basic_server/tcpServer.hpp basic_server/httpparser/requestParser.hpp
 
-OBJ =	basic_server/server.o basic_server/tcpServer.o
+OBJ =	basic_server/server.o basic_server/tcpServer.o basic_server/httpparser/requestParser.o
 
 CC =	clang++
 

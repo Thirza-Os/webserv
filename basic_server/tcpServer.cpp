@@ -1,8 +1,10 @@
 #include "tcpServer.hpp"
+#include "httpparser/requestParser.hpp"
 
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
+#include <cstring>
 
 const int BUFFER_SIZE = 30720;
 
@@ -102,6 +104,7 @@ void tcpServer::startListen()
                             log("Failed to read bytes from client socket connection");
                             break ;
                         }
+                        requestParser parser(buffer, strlen(buffer));
 
                         std::ostringstream ss;
                         ss << "------ Received Request from client ------\n\n";
