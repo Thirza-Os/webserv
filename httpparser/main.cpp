@@ -12,7 +12,7 @@
 // Request Body
 
 
-int main(int, char**)
+int main(void)
 {
     const char* getRequest =
         "GET /path/to/resource HTTP/1.1\r\n"

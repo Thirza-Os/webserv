@@ -1,6 +1,7 @@
 #ifndef SERVERCONFIG_HPP
 # define SERVERCONFIG_HPP
 
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <netinet/in.h>

@@ -1,5 +1,5 @@
 #include "requestParser.hpp"
-
+#include "utilities/utilities.hpp"
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
@@ -9,7 +9,9 @@
 #include <algorithm>
 #include <cstdio>
 
-requestParser::requestParser(std::string request, size_t len): _request(request), _len(len), _content_length(0), _ParsingCompleted(false) {
+// CHECK: Check if everything looks well with the whitespaces trim, or more chars have to be added.
+
+requestParser::requestParser(std::string request): _request(request), _ParsingCompleted(false) {
     consume_request();
     print_request();
 }
@@ -27,7 +29,6 @@ void    requestParser::add_header(std::string key, std::string value) {
 requestParser &requestParser::operator=(const requestParser &src)
 {
     if (this != &src) {
-        this->_len = src._len;
         this->_request = src._request;
         this->_method = src._method;
         this->_uri = src._uri;
@@ -86,13 +87,6 @@ void    requestParser::tokenize(const std::string& str, std::vector<std::string>
     while (std::getline(iss, token, delimiter)) {
         tokens.push_back(token);
     }
-}
-
-void    requestParser::stringTrim(std::string &str){
-    // possibly more chars?
-    static const char* spaces = "\r";
-    str.erase(0, str.find_first_not_of(spaces));
-    str.erase(str.find_last_not_of(spaces) + 1);
 }
 
 void    requestParser::validate_request_line(){
@@ -174,7 +168,7 @@ void requestParser::consume_request(){
 
     while (std::getline(iss, line)) {
         parsed_request.push_back(line);
-        stringTrim(line);
+        utility::stringTrim(line, "\r");
         
         switch(state) {
             case RequestLineParsing:
@@ -224,7 +218,7 @@ void requestParser::print_request() const {
 
     std::cout << "Body: " << _body << std::endl;
 
-    std::cout << "Content length: " << _content_length << std::endl;
-    std::cout << "Content type: " << _content_type << std::endl;
+    std::cout << "Content length: " << this->get_content_length() << std::endl;
+    std::cout << "Content type: " << this->get_content_type() << std::endl;
 
 }
