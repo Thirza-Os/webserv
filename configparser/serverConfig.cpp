@@ -1,6 +1,6 @@
 #include "serverConfig.hpp"
 
-serverConfig::serverConfig(/* args */) {
+serverConfig::serverConfig() {
 }
 
 serverConfig::~serverConfig() {

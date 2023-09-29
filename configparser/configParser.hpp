@@ -28,12 +28,12 @@ public:
     configParser(const configParser &src);
     configParser &operator=(const configParser &src);
 
-    const serverConfig& getServerConfig() const;
-    void                config_error(const std::string &message);
-    void                read_and_parse_config();
-    void                process_line(std::string &line);
-    void                validate_braces(std::string &line);
-    void                del_comments(std::string &line);
+    std::vector<serverConfig>           getServerConfig() const;
+    void                                read_and_parse_config();
+    void                                process_line(std::string &line);
+    void                                validate_braces(std::string &line);
+    void                                del_comments(std::string &line);
+    bool                                file_exists(const char *path);
 };
 
 #endif
