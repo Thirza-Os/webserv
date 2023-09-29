@@ -40,7 +40,7 @@ void    configParser::config_error(const std::string &message) {
     std::cerr << "Error: " << message << std::endl;
 }
 
-void    configParser::validate_braces(std::string line) {
+void    configParser::validate_braces(std::string &line) {
         if (line.find('{') != std::string::npos) {
             this->_braceStack.push('{');
     }
@@ -53,6 +53,15 @@ void    configParser::validate_braces(std::string line) {
     }
 }
 
+void    configParser::del_comments(std::string &line) {
+
+    size_t hash = line.find('#');
+
+    if (hash != std::string::npos) {
+        line.erase(hash);
+    }
+}
+
 void    configParser::read_and_parse_config() {
 
     std::ifstream configFile(this->_path);
@@ -61,6 +70,7 @@ void    configParser::read_and_parse_config() {
         std::string line;
         while (std::getline(configFile, line)) {
             utility::stringTrim(line, " \t\n\r\f\v");
+            del_comments(line);
             validate_braces(line);
             process_line(line);
         }
@@ -73,6 +83,6 @@ void    configParser::read_and_parse_config() {
     }
 }
 
-void    configParser::process_line(std::string line) {
+void    configParser::process_line(std::string &line) {
 
 }

@@ -17,10 +17,10 @@ public:
 class configParser
 {
 private:
-    std::string         _path;
-    serverConfig        _server;
+    std::string                 _path;
+	std::vector<serverConfig>	_servers;
 
-    std::stack<char>    _braceStack;
+    std::stack<char>            _braceStack;
 
 public:
     configParser(std::string path);
@@ -31,8 +31,9 @@ public:
     const serverConfig& getServerConfig() const;
     void                config_error(const std::string &message);
     void                read_and_parse_config();
-    void                process_line(std::string line);
-    void                validate_braces(std::string line);
+    void                process_line(std::string &line);
+    void                validate_braces(std::string &line);
+    void                del_comments(std::string &line);
 };
 
 #endif
