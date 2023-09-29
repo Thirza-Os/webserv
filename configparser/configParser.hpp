@@ -19,6 +19,7 @@ class configParser
 private:
     std::string                 _path;
 	std::vector<serverConfig>	_servers;
+    std::vector<std::string>    _serverBlocks;   
 
     std::stack<char>            _braceStack;
 
@@ -30,10 +31,11 @@ public:
 
     std::vector<serverConfig>           getServerConfig() const;
     void                                read_and_parse_config();
-    void                                process_line(std::string &line);
+    void                                process_server_block(std::string &serverBlock);
     void                                validate_braces(std::string &line);
     void                                del_comments(std::string &line);
     bool                                file_exists(const char *path);
+    void                                process_line(std::string &line);
 };
 
 #endif

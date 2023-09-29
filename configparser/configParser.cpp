@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sys/stat.h>
 #include <fstream>
+#include <sstream>
 
 configParser::configParser(std::string path) {
     const char* charPath = path.c_str();
@@ -65,33 +66,64 @@ void    configParser::read_and_parse_config() {
     std::ifstream configFile(this->_path);
 
     if (configFile.is_open()) {
-
-        bool contentRead = false;                          // check if file is not empty
+        std::string configContents;
         std::string line;
 
         while (std::getline(configFile, line)) {
-            utility::stringTrim(line, " \t\n\r\f\v");
-            del_comments(line);
-            if (!line.empty()) {
-                contentRead = true;
-            } else
-                continue;                                   // skip empty lines
-            validate_braces(line);
-            process_line(line);
+            configContents += line + "\n";
         }
-        if (!contentRead) {
+        configFile.close();
+        if (configContents.empty())
             throw ConfigParserException("Configuration file is empty");
+        // Split the configuration string into server blocks
+        size_t startPos = 0;
+        size_t endPos = configContents.find("server {", startPos);
+
+        while (endPos != std::string::npos) {
+            size_t nextStartPos = configContents.find("server {", endPos + 1);
+            if (nextStartPos == std::string::npos) {
+                // If there are no more "server {" occurrences, use the end of the string
+                nextStartPos = configContents.length();
+            }
+            
+            // Extract the current server block
+            this->_serverBlocks.push_back(configContents.substr(startPos, nextStartPos - startPos));
+            
+            // Update startPos and endPos for the next iteration
+            startPos = nextStartPos;
+            endPos = configContents.find("server {", startPos);
         }
-        if (!this->_braceStack.empty()) {
-            throw ConfigParserException("Mismatched opening brace '{'");
+        // Process each server block
+        for (std::vector<std::string>::iterator it = _serverBlocks.begin(); it != _serverBlocks.end(); ++it) {
+            std::string& serverBlock = *it;
+            process_server_block(serverBlock);
         }
     }
     else {
         throw ConfigParserException("Failed to open configuration file");
     }
-    configFile.close();
+}
+
+void    configParser::process_server_block(std::string &serverBlock) {
+
+    std::stringstream sb(serverBlock); 
+    bool contentRead = false;                          // check if file is not empty
+    std::string line;
+
+    while (std::getline(sb, line)) {
+        utility::stringTrim(line, " \t\n\r\f\v");
+        del_comments(line);
+        if (line.empty())
+            continue;                                   // skip empty lines
+        validate_braces(line);
+        process_line(line);
+    }
+    if (!this->_braceStack.empty()) {
+        throw ConfigParserException("Mismatched opening brace '{'");
+    }
 }
 
 void    configParser::process_line(std::string &line) {
-    std::cout << line << std::endl;
+        std::cout << line << std::endl;
+
 }
