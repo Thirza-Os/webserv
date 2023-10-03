@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 struct Location {
     std::string path;
@@ -20,9 +21,10 @@ struct Location {
 class serverConfig
 {
 private:
-    std::vector<int>            _port;
-    std::string                 _host;
+    int                         _port;
+    in_addr_t                   _host;
     std::string                 _serverName;
+    std::string                 _methods;
     size_t                      _maxSize;
     std::vector<std::string>    _errorPages;
     std::string                 _rootDirectory;
@@ -38,8 +40,9 @@ public:
     serverConfig &operator=(const serverConfig &src);
 
     void setPort(const int port);
-    void setHost(const std::string host);
+    void setHost(in_addr_t &host);
     void setServerName(const std::string serverName);
+    void setMethods(std::string &methodString);
     void setMaxSize(size_t maxSize);
     void setErrorPages(const std::string errorPage);
     void setRootDirectory(const std::string rootDirectory);

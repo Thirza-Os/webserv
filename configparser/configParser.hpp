@@ -35,7 +35,9 @@ public:
     void                                validate_braces(std::string &line);
     void                                del_comments(std::string &line);
     bool                                file_exists(const char *path);
-    void                                process_line(std::string &line);
+    void                                process_listen(std::string &line, serverConfig &server);
+    void                                process_host(std::string &line, serverConfig &server);
+    void                                process_line(std::string &line, serverConfig &server);
 };
 
 #endif

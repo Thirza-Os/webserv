@@ -1,6 +1,15 @@
 #include "serverConfig.hpp"
 
-serverConfig::serverConfig() {
+#include <netinet/in.h>
+
+
+serverConfig::serverConfig():
+    _port(80),
+    _serverName(""),
+    _maxSize(-1),
+    _errorPages(),
+    _rootDirectory(""),
+    _index("") {
 }
 
 serverConfig::~serverConfig() {
@@ -26,31 +35,44 @@ serverConfig &serverConfig::operator=(const serverConfig &src) {
 }
 
 void serverConfig::setPort(int port) {
-    this->_port.push_back(port);
+    this->_port = port;
 }
 
-void serverConfig::setHost(const std::string host) {
-    _host = host;
+void serverConfig::setHost(in_addr_t &host) {
+    this->_host = host;
 }
 
 void serverConfig::setServerName(const std::string serverName) {
-    _serverName = serverName;
+    this->_serverName = serverName;
+}
+
+void serverConfig::setMethods(std::string &methodString) {
+    this->_methods = methodString;
+    // if (methodString.find("GET") != std::string::npos) {
+    //     this->_.set(0, true); // Set the first bit for GET
+    // }
+    // if (methodString.find("POST") != std::string::npos) {
+    //    this-> _methods.set(1, true); // Set the second bit for POST
+    // }
+    // if (methodString.find("PUT") != std::string::npos) {
+    //     this->_methods.set(2, true); // Set the third bit for PUT
+    // }
 }
 
 void serverConfig::setMaxSize(size_t maxSize) {
-    _maxSize = maxSize;
+    this->_maxSize = maxSize;
 }
 
 void serverConfig::setErrorPages(const std::string errorPage) {
-    _errorPages.push_back(errorPage);
+    this->_errorPages.push_back(errorPage);
 }
 
 void serverConfig::setRootDirectory(const std::string rootDirectory) {
-    _rootDirectory = rootDirectory;
+    this->_rootDirectory = rootDirectory;
 }
 
 void serverConfig::setIndex(const std::string index) {
-    _index = index;
+    this->_index = index;
 }
 
 // void serverConfig::addLocation(const Location& location) {

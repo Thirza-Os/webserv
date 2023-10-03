@@ -8,6 +8,8 @@
 #include <fstream>
 #include <sstream>
 
+// TODO : handle missing {}
+
 configParser::configParser(std::string path) {
     const char* charPath = path.c_str();
     if (!file_exists(charPath)) {
@@ -106,6 +108,8 @@ void    configParser::read_and_parse_config() {
 
 void    configParser::process_server_block(std::string &serverBlock) {
 
+    serverConfig server; // Create a serverConfig object for this server block
+
     std::stringstream sb(serverBlock); 
     bool contentRead = false;                          // check if file is not empty
     std::string line;
@@ -116,14 +120,44 @@ void    configParser::process_server_block(std::string &serverBlock) {
         if (line.empty())
             continue;                                   // skip empty lines
         validate_braces(line);
-        process_line(line);
+        process_line(line, server);
     }
     if (!this->_braceStack.empty()) {
         throw ConfigParserException("Mismatched opening brace '{'");
     }
+    this->_servers.push_back(server);
 }
 
-void    configParser::process_line(std::string &line) {
-        std::cout << line << std::endl;
-
+void configParser::process_listen(std::string &line, serverConfig &server) {
+    size_t pos = line.find("listen");
+    if (pos != std::string::npos) {
+        std::string trimmedLine = line.substr(pos + 6);
+        utility::stringTrim(trimmedLine, " \t\n\r\f\v;");
+        try {
+            int intValue = std::stoi(trimmedLine);
+            server.setPort(intValue);
+        } catch (const std::invalid_argument& e) {
+            throw ConfigParserException("Invalid port number");
+        }
+    }
 }
+
+void configParser::process_host(std::string &line, serverConfig &server) {
+    size_t pos = line.find("host");
+    if (pos != std::string::npos) {
+        std::string trimmedLine = line.substr(pos + 4);
+        utility::stringTrim(trimmedLine, " \t\n\r\f\v;");
+        in_addr_t ipAddress = inet_addr(trimmedLine.c_str());
+
+        if (ipAddress == INADDR_NONE)
+            throw ConfigParserException("Invalid IP address");
+        else
+            server.setHost(ipAddress);
+    }
+}
+
+void configParser::process_line(std::string &line, serverConfig &server) {
+    process_listen(line, server);
+    process_host(line, server);
+}
+
