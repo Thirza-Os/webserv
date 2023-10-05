@@ -2,6 +2,7 @@
 # define TCPSERVER_HPP
 
 #include "httpparser/requestParser.hpp"
+#include "responseBuilder.hpp"
 
 #include <stdio.h>
 #include <sys/socket.h>
@@ -40,7 +41,7 @@ private:
     void            startListen();
     void            acceptConnection();
 
-    std::string     buildResponse(std::string uri);
+    //std::string     buildResponse(std::string uri);
     void            sendResponse(int socket_fd);
 };
 

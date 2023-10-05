@@ -149,36 +149,11 @@ void tcpServer::acceptConnection()
     log(ss.str());
 }
 
-std::string tcpServer::buildResponse(std::string uri)
-{
-    std::cout << "attempting to send this uri: " << uri << std::endl;
-    std::ifstream htmlFile(uri.c_str());
-    if (!htmlFile.good()) {
-        std::cout << "file can't be opened" << std::endl;
-        //this should serve an error page 404
-    }
-    std::stringstream buffer;
-    buffer << htmlFile.rdbuf();
-    std::string content = buffer.str();
-    std::ostringstream ss;
-    ss << "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " << content.size() << "\n\n"
-        << content;
-
-    htmlFile.close();
-    return ss.str();
-}
-
 void tcpServer::sendResponse(int socket_fd)
 {
     unsigned long bytesSent;
-    std::string uri = _requests.at(socket_fd).get_uri();
-    printf("requested URI: %s\n", uri.c_str());
-    //use the config file to get the directory, default file for requested dirctory, etc
-    if (uri.back() == '/') {
-        uri.append("index.html"); //or whatever config file says is the default
-    }
-    uri.erase(0, 1);
-    std::string _serverMessage = buildResponse(uri);
+    responseBuilder response(_requests.at(socket_fd));
+    std::string _serverMessage = response.getResponse();
     std::cout << _serverMessage << std::endl;
 
     bytesSent = write(socket_fd, _serverMessage.c_str(), _serverMessage.size());

@@ -9,9 +9,12 @@
 #include <algorithm>
 #include <cstdio>
 
-requestParser::requestParser(std::string request, size_t len): _request(request), _len(len), _content_length(0), _ParsingCompleted(false) {
+requestParser::requestParser(std::string request, size_t len): _request(request), _len(len), _content_length(0), _status_code(200), _ParsingCompleted(false) {
     consume_request();
     print_request();
+}
+
+requestParser::requestParser(): _len(0), _content_length(0), _status_code(400), _ParsingCompleted(false) {
 }
 
 requestParser::requestParser(const requestParser &src) {
@@ -35,6 +38,7 @@ requestParser &requestParser::operator=(const requestParser &src)
         this->_headers = src._headers;
         this->_body = src._body;
         this->_ParsingCompleted = src._ParsingCompleted;
+        this->_status_code = src._status_code;
 
     }
     return *this;
@@ -76,7 +80,12 @@ size_t requestParser::get_content_length() const {
     }
 }
 
+int     requestParser::get_status_code() const {
+    return (this->_status_code);
+}
+
 void    requestParser::parse_error(const std::string &str, int code) {
+    this->_status_code = code;
     std::cerr << code << " " << str << std::endl;
 }
 

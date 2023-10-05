@@ -19,6 +19,7 @@ private:
     std::map<std::string, std::string>  _headers;
 
     std::string                         _body;
+    int                                 _status_code;
 
     bool                                _ParsingCompleted;
 
@@ -36,6 +37,7 @@ private:
 
 public:
     requestParser(std::string request, size_t len);
+    requestParser();
     requestParser(const requestParser &src);
     ~requestParser();
     requestParser &operator=(const requestParser &src);
@@ -47,6 +49,7 @@ public:
     std::string get_body() const;
     std::string get_content_type() const;
     size_t      get_content_length() const;
+    int         get_status_code() const;
 };
 
 enum ParseState {
