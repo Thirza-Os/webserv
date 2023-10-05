@@ -30,11 +30,23 @@ responseBuilder &responseBuilder::operator=(const responseBuilder &src)
 
 void        responseBuilder::build_header() {
     std::ostringstream ss;
-    //todo: figure out how to determine the content type
-    //todo: check status code before building the header, modify response
-    //in fact, the status code should probably be handled first, and the class
-    //should be able to set the status code as well, so it should be a member of this class also
-    ss << this->_request.get_protocol() << " " << this->_status_code << " OK\nContent-Type: text/html\nContent-Length: " << this->_body.size() << "\n\n";
+    if (this->_request.get_protocol().empty())
+        ss << "HTTP/1.1";
+    else
+        ss << this->_request.get_protocol();
+    ss << " " << this->_status_code;
+    if (this->_status_code == 200)
+        ss << " OK\n";
+    else if (this->_status_code == 404)
+        ss << " Not Found\n";
+    else
+        ss << " Some Other Status\n"; //expand on this later
+    if (this->_request.get_content_type().empty())
+        ss << "Content-Type: text/html\n";
+    else
+        ss << this->_request.get_content_type() << "\n";
+    ss << "Connection: close\n";
+    ss << "Content-Length: " << this->_body.size() << "\n\n";
 	this->_header = ss.str();
 }
 
@@ -69,4 +81,8 @@ void	responseBuilder::build_response() {
 
 std::string responseBuilder::getResponse() {
 	return (this->_response);
+}
+
+std::string responseBuilder::getHeader() {
+	return (this->_header);
 }

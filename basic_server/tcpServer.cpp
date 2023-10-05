@@ -154,7 +154,7 @@ void tcpServer::sendResponse(int socket_fd)
     unsigned long bytesSent;
     responseBuilder response(_requests.at(socket_fd));
     std::string _serverMessage = response.getResponse();
-    std::cout << _serverMessage << std::endl;
+    std::cout << response.getHeader() << std::endl;
 
     bytesSent = write(socket_fd, _serverMessage.c_str(), _serverMessage.size());
 

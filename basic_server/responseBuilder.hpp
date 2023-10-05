@@ -24,6 +24,7 @@ public:
     responseBuilder &operator=(const responseBuilder &src);
 
     std::string     getResponse();
+    std::string     getHeader();
 };
 
 #endif
