@@ -1,8 +1,19 @@
 NAME =	webserv
 
-INC =	basic_server/tcpServer.hpp basic_server/httpparser/requestParser.hpp basic_server/responseBuilder.hpp
+INC =	web_server/tcpServer.hpp \
+		web_server/responseBuilder.hpp \
+		web_server/httpparser/requestParser.hpp \
+		web_server/configparser/configParser.hpp \
+		web_server/configparser/serverConfig.hpp \
+		web_server/utilities/utilities.hpp
 
-OBJ =	basic_server/server.o basic_server/tcpServer.o basic_server/httpparser/requestParser.o basic_server/responseBuilder.o
+OBJ =	main.o \
+		web_server/tcpServer.o \
+		web_server/responseBuilder.o \
+		web_server/httpparser/requestParser.o \
+		web_server/configparser/configParser.o \
+		web_server/configparser/serverConfig.o \
+		web_server/utilities/utilities.o
 
 CC =	clang++
 

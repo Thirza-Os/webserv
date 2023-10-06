@@ -9,8 +9,6 @@ class requestParser
 {
 private:
     std::string                         _request;
-    size_t                              _len;
-    size_t                              _content_length;
 
     std::string                         _method;
     std::string                         _uri;
@@ -19,6 +17,7 @@ private:
     std::map<std::string, std::string>  _headers;
 
     std::string                         _body;
+
     int                                 _status_code;
 
     bool                                _ParsingCompleted;
@@ -28,7 +27,6 @@ private:
     void        parse_error(const std::string &str, int code);
     void        tokenize(const std::string& str, std::vector<std::string>& tokens, char delimiter);
     void        validate_request_line();
-    void        stringTrim(std::string &str);
     void        decode_uri();
     void        validate_header(std::string line);
     bool        validate_content(std::string line);
@@ -36,7 +34,7 @@ private:
     void        print_request() const;
 
 public:
-    requestParser(std::string request, size_t len);
+    requestParser(std::string request);
     requestParser();
     requestParser(const requestParser &src);
     ~requestParser();

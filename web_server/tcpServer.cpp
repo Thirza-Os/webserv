@@ -8,12 +8,13 @@
 
 const int BUFFER_SIZE = 30720;
 
-tcpServer::tcpServer(std::string ip_add, int port):_ip_add(ip_add), _port(port), _socket(), _socketAddr(), _socketAddrLen(sizeof(_socketAddr))
+tcpServer::tcpServer(serverConfig config):_config(config), _socket(), _socketAddr(), _socketAddrLen(sizeof(_socketAddr))
 {
-
+    this->_ip_add = this->_config.getHost();
+    this->_port = this->_config.getPort();
     _socketAddr.sin_family = AF_INET;
     _socketAddr.sin_port = htons(_port);
-    _socketAddr.sin_addr.s_addr = inet_addr(_ip_add.c_str());
+    _socketAddr.sin_addr.s_addr = _ip_add;
 
     startServer();
 }
@@ -104,7 +105,7 @@ void tcpServer::startListen()
                             log("Failed to read bytes from client socket connection");
                             break ;
                         }
-                        requestParser request(buffer, strlen(buffer));
+                        requestParser request(buffer);
                         _requests.insert({it->fd, request});
 
                         std::ostringstream ss;
