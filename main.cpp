@@ -15,8 +15,9 @@ int main(int argc, char **argv){
         std::vector<serverConfig> servers = parsed.getServerConfig();
 
         // std::cout << "Server Name: " << server.getserverName() << std::endl;
+        std::vector<tcpServer> tcpservers;
         for (std::vector<serverConfig>::iterator it = servers.begin(); it != servers.end() ;it++) {
-            tcpServer tcpserver = tcpServer(*it);
+            tcpservers.push_back(tcpServer(*it));
         }
     }
     catch(const ConfigParserException& e) {
