@@ -3,6 +3,7 @@
 
 #include "httpparser/requestParser.hpp"
 #include "responseBuilder.hpp"
+#include "configparser/serverConfig.hpp"
 
 #include <stdio.h>
 #include <sys/socket.h>
@@ -17,14 +18,15 @@
 class tcpServer
 {
 public:
-    tcpServer(std::string ip_add, int port);
+    tcpServer(serverConfig config);
     ~tcpServer();
 
     void    exitError(const std::string &str);
     void    log(const std::string &message);
 
 private:
-    std::string                     _ip_add;
+    serverConfig                    _config;
+    in_addr_t                       _ip_add;
     int                             _port;
     int                             _socket;
 

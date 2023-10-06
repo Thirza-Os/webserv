@@ -31,7 +31,7 @@ private:
     std::string                 _index;
     std::vector<Location> 		_locations;
 
-    struct          sockaddr_in  _socketAddr;
+    //struct          sockaddr_in  _socketAddr;
 
 public:
     serverConfig(/* args */);
@@ -49,6 +49,9 @@ public:
     void setIndex(const std::string index);
     //void setLocations(const locations);
     //void setSocketAddress(const struct sockaddr_in& socketAddr);
+
+    int         getPort() const;
+    in_addr_t   getHost() const;
 };
 
 #endif

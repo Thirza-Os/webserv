@@ -1,6 +1,6 @@
 #include "configParser.hpp"
 #include "serverConfig.hpp"
-#include "utilities/utilities.hpp"
+#include "../utilities/utilities.hpp"
 
 #include <string>
 #include <iostream>
@@ -111,7 +111,7 @@ void    configParser::process_server_block(std::string &serverBlock) {
     serverConfig server; // Create a serverConfig object for this server block
 
     std::stringstream sb(serverBlock); 
-    bool contentRead = false;                          // check if file is not empty
+    //bool contentRead = false;                          // check if file is not empty
     std::string line;
 
     while (std::getline(sb, line)) {

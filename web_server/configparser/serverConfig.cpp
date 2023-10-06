@@ -82,3 +82,11 @@ void serverConfig::setIndex(const std::string index) {
 // void serverConfig::setSocketAddr(const struct sockaddr_in& socketAddr) {
 //     _socketAddr = socketAddr;
 // }
+
+int serverConfig::getPort() const {
+    return (this->_port);
+}
+
+in_addr_t   serverConfig::getHost() const {
+    return (this->_host);
+}

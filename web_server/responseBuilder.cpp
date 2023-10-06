@@ -53,10 +53,11 @@ void        responseBuilder::build_header() {
 std::string responseBuilder::process_uri() {
     std::string uri = this->_request.get_uri();
     //use the config file to get the directory, default file for requested dirctory, etc
+    uri.insert(0, "web_server/www/penguinserv");
     if (uri.back() == '/') {
         uri.append("index.html"); //or whatever config file says is the default
     }
-    uri.erase(0, 1);
+    //uri.erase(0, 1);
     std::cout << "attempting to send this uri: " << uri << std::endl;
     return (uri);
 }
@@ -68,7 +69,7 @@ void	responseBuilder::build_response() {
         htmlFile.close();
         std::cout << "file can't be opened" << std::endl;
         this->_status_code = 404;
-        htmlFile.open("404Error.html");
+        htmlFile.open("web_server/www/penguinserv/errorPages/404Error.html");
     }
     std::stringstream buffer;
     buffer << htmlFile.rdbuf();
