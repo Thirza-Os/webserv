@@ -1,8 +1,10 @@
 #include "tcpServer.hpp"
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <unistd.h>
+#include <cstring>
 
 const int BUFFER_SIZE = 30720;
 
@@ -102,6 +104,8 @@ void tcpServer::startListen()
                             log("Failed to read bytes from client socket connection");
                             break ;
                         }
+                        requestParser request(buffer, strlen(buffer));
+                        _requests.insert({it->fd, request});
 
                         std::ostringstream ss;
                         ss << "------ Received Request from client ------\n\n";
@@ -113,6 +117,7 @@ void tcpServer::startListen()
                 else if (it->revents & POLLOUT) {
                     sendResponse(it->fd);
                     close(it->fd);
+                    _requests.erase(it->fd);
                     it = _pollfds.erase(it);
                     break ;
                 }
@@ -144,21 +149,12 @@ void tcpServer::acceptConnection()
     log(ss.str());
 }
 
-std::string tcpServer::buildResponse()
-{
-    std::string htmlFile = "<!DOCTYPE html><html lang=\"en\"><body><h1> HOME </h1><p> Hello from your Server :) </p></body></html>";
-    std::ostringstream ss;
-    ss << "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " << htmlFile.size() << "\n\n"
-        << htmlFile;
-
-    return ss.str();
-}
-
 void tcpServer::sendResponse(int socket_fd)
 {
     unsigned long bytesSent;
-
-    std::string _serverMessage = buildResponse();
+    responseBuilder response(_requests.at(socket_fd));
+    std::string _serverMessage = response.getResponse();
+    std::cout << response.getHeader() << std::endl;
 
     bytesSent = write(socket_fd, _serverMessage.c_str(), _serverMessage.size());
 
