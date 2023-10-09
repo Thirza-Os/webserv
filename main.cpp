@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+void	handleQuitSignal(int signum);
+
 int main(int argc, char **argv){
     if (argc != 2) {
         std::cout << "Please provide a config file" << std::endl;

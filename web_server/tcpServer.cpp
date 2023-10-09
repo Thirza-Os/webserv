@@ -47,6 +47,11 @@ int tcpServer::startServer()
         exitError("Socket failed!");
         return 1;
     }
+    int enable = 1;
+    if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+        exitError("setsockopt(SO_REUSEADDR) failed");
+        return 1;
+    }
 
 // binding the socket
     if (bind(_socket, (sockaddr *)&_socketAddr, _socketAddrLen) < 0)
