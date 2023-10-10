@@ -26,8 +26,6 @@ public:
 
 private:
     serverConfig                    _config;
-    in_addr_t                       _ip_add;
-    int                             _port;
     int                             _socket;
 
     struct                          sockaddr_in _socketAddr;

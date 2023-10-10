@@ -2,12 +2,14 @@
 # define RESPONSEBIULDER_HPP
 
 #include "httpparser/requestParser.hpp"
+#include "configparser/serverConfig.hpp"
 #include <string>
 
 class responseBuilder
 {
 private:
     requestParser                       _request;
+    serverConfig                        _config;
     std::string                         _header;
     std::string                         _body;
     std::string                         _response;
@@ -18,7 +20,7 @@ private:
     std::string process_uri();
 
 public:
-    responseBuilder(requestParser request);
+    responseBuilder(requestParser request, serverConfig config);
     responseBuilder(const responseBuilder &src);
     ~responseBuilder();
     responseBuilder &operator=(const responseBuilder &src);

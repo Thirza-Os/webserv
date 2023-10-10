@@ -10,11 +10,9 @@ const int BUFFER_SIZE = 30720;
 
 tcpServer::tcpServer(serverConfig config):_config(config), _socket(), _socketAddr(), _socketAddrLen(sizeof(_socketAddr))
 {
-    this->_ip_add = this->_config.getHost();
-    this->_port = this->_config.getPort();
     _socketAddr.sin_family = AF_INET;
-    _socketAddr.sin_port = htons(_port);
-    _socketAddr.sin_addr.s_addr = _ip_add;
+    _socketAddr.sin_port = htons(_config.getPort());
+    _socketAddr.sin_addr.s_addr = _config.getHost();
 
     startServer();
 }
@@ -45,6 +43,12 @@ int tcpServer::startServer()
     if (_socket < 0)
     {
         exitError("Socket failed!");
+        return 1;
+    }
+    
+    int enable = 1;
+    if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+        exitError("setsockopt() failed");
         return 1;
     }
 
@@ -153,7 +157,7 @@ void tcpServer::acceptConnection()
 void tcpServer::sendResponse(int socket_fd)
 {
     unsigned long bytesSent;
-    responseBuilder response(_requests.at(socket_fd));
+    responseBuilder response(_requests.at(socket_fd), _config);
     std::string _serverMessage = response.getResponse();
     std::cout << response.getHeader() << std::endl;
 
