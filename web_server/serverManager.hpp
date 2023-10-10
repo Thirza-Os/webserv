@@ -1,5 +1,5 @@
-#ifndef TCPSERVER_HPP
-# define TCPSERVER_HPP
+#ifndef SERVERMANAGER_HPP
+# define SERVERMANAGER_HPP
 
 #include "httpparser/requestParser.hpp"
 #include "responseBuilder.hpp"
@@ -15,17 +15,17 @@
 #include <arpa/inet.h>
 #include <poll.h>
 
-class tcpServer
+class serverManager
 {
 public:
-    tcpServer(serverConfig config);
-    ~tcpServer();
+    serverManager(std::vector<serverConfig> configs);
+    ~serverManager();
 
     void    exitError(const std::string &str);
     void    log(const std::string &message);
 
 private:
-    serverConfig                    _config;
+    std::vector<serverConfig>       _configs;
     int                             _socket;
 
     struct                          sockaddr_in _socketAddr;

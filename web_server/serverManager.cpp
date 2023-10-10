@@ -1,4 +1,4 @@
-#include "tcpServer.hpp"
+#include "serverManager.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -8,32 +8,32 @@
 
 const int BUFFER_SIZE = 30720;
 
-tcpServer::tcpServer(serverConfig config):_config(config), _socket(), _socketAddr(), _socketAddrLen(sizeof(_socketAddr))
+serverManager::serverManager(std::vector<serverConfig> configs):_configs(configs), _socket(), _socketAddr(), _socketAddrLen(sizeof(_socketAddr))
 {
     _socketAddr.sin_family = AF_INET;
-    _socketAddr.sin_port = htons(_config.getPort());
-    _socketAddr.sin_addr.s_addr = _config.getHost();
+    _socketAddr.sin_port = htons(_configs[0].getPort());
+    _socketAddr.sin_addr.s_addr = _configs[0].getHost();
 
     startServer();
 }
 
-tcpServer::~tcpServer()
+serverManager::~serverManager()
 {
     closeServer();
 }
 
-void    tcpServer::exitError(const std::string &str)
+void    serverManager::exitError(const std::string &str)
 {
     std::cerr << "Error - " << str << std::endl;
     exit(1);
 }
 
-void    tcpServer::log(const std::string &message)
+void    serverManager::log(const std::string &message)
 {
     std::cout << message << std::endl;
 }
 
-int tcpServer::startServer()
+int serverManager::startServer()
 {
     // making the socket
             printf("Starting socket\n");
@@ -63,13 +63,13 @@ int tcpServer::startServer()
     return 0;
 }
 
-void    tcpServer::closeServer()
+void    serverManager::closeServer()
 {
     close(_socket);
     exit(0);
 }
 
-void tcpServer::startListen()
+void serverManager::startListen()
 {
     if (listen(_socket, 20) < 0)
     {
@@ -131,7 +131,7 @@ void tcpServer::startListen()
 
 }
 
-void tcpServer::acceptConnection()
+void serverManager::acceptConnection()
 {
     int new_socket = accept4(_socket, (sockaddr *)&_socketAddr,
                         &_socketAddrLen, SOCK_NONBLOCK);
@@ -154,10 +154,10 @@ void tcpServer::acceptConnection()
     log(ss.str());
 }
 
-void tcpServer::sendResponse(int socket_fd)
+void serverManager::sendResponse(int socket_fd)
 {
     unsigned long bytesSent;
-    responseBuilder response(_requests.at(socket_fd), _config);
+    responseBuilder response(_requests.at(socket_fd), _configs[0]);
     std::string _serverMessage = response.getResponse();
     std::cout << response.getHeader() << std::endl;
 
