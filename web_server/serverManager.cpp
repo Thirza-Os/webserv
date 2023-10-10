@@ -10,11 +10,10 @@ const int BUFFER_SIZE = 30720;
 
 serverManager::serverManager(std::vector<serverConfig> configs):_configs(configs), _socket(), _socketAddr(), _socketAddrLen(sizeof(_socketAddr))
 {
-    _socketAddr.sin_family = AF_INET;
-    _socketAddr.sin_port = htons(_configs[0].getPort());
-    _socketAddr.sin_addr.s_addr = _configs[0].getHost();
-
-    startServer();
+    for (std::vector<serverConfig>::iterator it = _configs.begin(); it != _configs.end() ;it++) {
+        _servers.push_back(server(*it));
+    }
+    startListen();
 }
 
 serverManager::~serverManager()

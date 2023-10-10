@@ -1,6 +1,7 @@
 NAME =	webserv
 
 INC =	web_server/serverManager.hpp \
+		web_server/server.hpp \
 		web_server/responseBuilder.hpp \
 		web_server/httpparser/requestParser.hpp \
 		web_server/configparser/configParser.hpp \
@@ -9,6 +10,7 @@ INC =	web_server/serverManager.hpp \
 
 OBJ =	main.o \
 		web_server/serverManager.o \
+		web_server/server.o \
 		web_server/responseBuilder.o \
 		web_server/httpparser/requestParser.o \
 		web_server/configparser/configParser.o \

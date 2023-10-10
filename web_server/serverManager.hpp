@@ -3,6 +3,7 @@
 
 #include "httpparser/requestParser.hpp"
 #include "responseBuilder.hpp"
+#include "server.hpp"
 #include "configparser/serverConfig.hpp"
 
 #include <stdio.h>
@@ -26,11 +27,8 @@ public:
 
 private:
     std::vector<serverConfig>       _configs;
-    int                             _socket;
+    std::vector<server>             _servers;
 
-    struct                          sockaddr_in _socketAddr;
-    unsigned int                    _socketAddrLen;
-    std::string                     _serverMessage;
     std::vector<struct pollfd>      _pollfds;
     std::map<int, requestParser>    _requests;
 
