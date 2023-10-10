@@ -157,7 +157,7 @@ void tcpServer::acceptConnection()
 void tcpServer::sendResponse(int socket_fd)
 {
     unsigned long bytesSent;
-    responseBuilder response(_requests.at(socket_fd));
+    responseBuilder response(_requests.at(socket_fd), _config);
     std::string _serverMessage = response.getResponse();
     std::cout << response.getHeader() << std::endl;
 

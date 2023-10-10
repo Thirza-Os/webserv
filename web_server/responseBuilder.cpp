@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <cstring>
 
-responseBuilder::responseBuilder(requestParser request): _request(request) {
+responseBuilder::responseBuilder(requestParser request, serverConfig config): _request(request), _config(config) {
     this->_status_code = this->_request.get_status_code();
     build_response();
 }
@@ -52,7 +52,6 @@ void        responseBuilder::build_header() {
 
 std::string responseBuilder::process_uri() {
     std::string uri = this->_request.get_uri();
-    //use the config file to get the directory, default file for requested dirctory, etc
     uri.insert(0, "web_server/www/penguinserv");
     if (uri.back() == '/') {
         uri.append("index.html"); //or whatever config file says is the default
