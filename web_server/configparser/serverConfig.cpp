@@ -8,12 +8,9 @@ serverConfig::serverConfig():
     _serverName(""),
     _maxSize(-1),
     _errorPages(),
-    _rootDirectory(""),
-    _index("") {
-}
+    _rootDirectory("") {}
 
-serverConfig::~serverConfig() {
-}
+serverConfig::~serverConfig() {}
 
 serverConfig::serverConfig(const serverConfig &src) {
     *this = src;
@@ -75,9 +72,9 @@ void serverConfig::set_index(std::vector<std::string> &index) {
     this->_index = index;
 }
 
-// void serverConfig::addLocation(const Location& location) {
-//     _locations.push_back(location);
-// }
+void serverConfig::set_location(const Location& location) {
+    _locations.push_back(location);
+}
 
 // void serverConfig::setSocketAddr(const struct sockaddr_in& socketAddr) {
 //     _socketAddr = socketAddr;

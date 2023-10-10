@@ -12,6 +12,7 @@
 // MAYBE TODO: split lines on ; ??
 // CHECK when to throw an exception and when to log?
 // perhaps add multiple error_page in one line?
+// Add regulkar expressions for location blocks??
 
 
 configParser::configParser(std::string path) {
@@ -67,7 +68,7 @@ bool configParser::file_exists(const char* path) {
     return (stat(path, &buffer) == 0);
 }
 
-bool index_exists(const std::string& rootDirectory, const std::string& indexFilename) {
+bool configParser::index_exists(const std::string& rootDirectory, const std::string& indexFilename) {
     std::string fullPath = rootDirectory + "/" + indexFilename;
 
     std::ifstream file(fullPath.c_str());
@@ -117,12 +118,13 @@ void    configParser::read_and_parse_config() {
     }
 }
 
+// things with braces: server, location
+
 void    configParser::process_server_block(std::string &serverBlock) {
 
     serverConfig server; // Create a serverConfig object for this server block
 
     std::stringstream sb(serverBlock); 
-    //bool contentRead = false;                          // check if file is not empty
     std::string line;
 
     while (std::getline(sb, line)) {
@@ -131,7 +133,11 @@ void    configParser::process_server_block(std::string &serverBlock) {
         if (line.empty())
             continue;                                   // skip empty lines
         validate_braces(line);
-        process_line(line, server);
+        if (line.find("location") == 0){
+            process_location(sb, server);
+        }
+        else
+            process_line(line, server);
     }
     if (!this->_braceStack.empty()) {
         throw ConfigParserException("Mismatched opening brace '{'");
@@ -236,8 +242,41 @@ void configParser::process_index(std::string &line, serverConfig &server) {
     }
 }
 
+void configParser::process_location(std::stringstream& sb, serverConfig &server) {
+    std::string line;
+    size_t      locationPos = line.find("location");
+    Location    loc;
+
+    std::string path = line.substr(locationPos + 8);
+    utility::stringTrim(path, " \t\n\r\f\v");
+    if (!index_exists(server.get_rootdirectory(), path))
+        throw ConfigParserException("Location path does not exist");
+    else
+        loc.path = path;
+
+    std::getline(sb, line);
+    while (std::getline(sb, line)) {
+        utility::stringTrim(line, " \t\n\r\f\v");
+        del_comments(line);
+
+        if (line.empty()) {
+            continue;
+        }
+
+        if (line == "}") {
+            server.set_location(loc);
+            break; // End of location block
+        }
+    }
+}
+
 void configParser::process_line(std::string &line, serverConfig &server) {
     process_listen(line, server);
     process_host(line, server);
+    process_servername(line, server);
+    process_maxsize(line, server);
+    process_errorpages(line, server);
+    process_rootdirectory(line, server);
+    process_index(line, server);
 }
 

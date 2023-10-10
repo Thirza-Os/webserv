@@ -9,14 +9,14 @@
 #include <arpa/inet.h>
 
 struct Location {
-    std::string path;
-    std::vector<std::string> allowedMethods;
-    std::string index;
+    std::string                 path;
+    std::vector<std::string>    methods;
+    std::string                 index;
     //std::string cgiPath;           // CGI script path (if applicable)
     //std::vector<std::string> cgiExtensions;
-    bool autoindex;
-    std::string alias;
-    std::string returnPath;
+    bool                        autoindex;
+    std::string                 alias;
+    std::string                 returnPath;
 };
 
 class serverConfig
@@ -30,15 +30,16 @@ private:
     std::map<int, std::string>  _errorPages;
     std::string                 _rootDirectory;
     std::vector<std::string>    _index;
-    std::vector<Location> 		_locations;
 
     //struct          sockaddr_in  _socketAddr;
 
 public:
-    serverConfig(/* args */);
+    serverConfig();
     ~serverConfig();
     serverConfig(const serverConfig &src);
     serverConfig &operator=(const serverConfig &src);
+
+    std::vector<Location> 		_locations;
 
     void set_port(const int port);
     void set_host(in_addr_t &host);
@@ -48,7 +49,7 @@ public:
     void set_error_pages(int code, std::string &errorPage);
     void set_rootdirectory(const std::string rootDirectory);
     void set_index(std::vector<std::string> &index);
-    //void setLocations(const locations);
+    void set_location(const Location& location);
     //void setSocketAddress(const struct sockaddr_in& socketAddr);
 
     int         get_port() const;

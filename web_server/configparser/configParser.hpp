@@ -20,7 +20,6 @@ private:
     std::string                 _path;
 	std::vector<serverConfig>	_servers;
     std::vector<std::string>    _serverBlocks;   
-
     std::stack<char>            _braceStack;
 
 public:
@@ -43,7 +42,7 @@ public:
     void                                process_errorpages(std::string &line, serverConfig &server);
     void                                process_rootdirectory(std::string &line, serverConfig &server);
     void                                process_index(std::string &line, serverConfig &server);
-    void                                process_locations(std::string &line, serverConfig &server);
+    void                                process_location(std::stringstream& sb, serverConfig &server);
 
     void                                process_line(std::string &line, serverConfig &server);
 };
