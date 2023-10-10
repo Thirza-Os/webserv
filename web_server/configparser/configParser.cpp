@@ -9,6 +9,10 @@
 #include <sstream>
 
 // TODO : handle missing {}
+// MAYBE TODO: split lines on ; ??
+// CHECK when to throw an exception and when to log?
+// perhaps add multiple error_page in one line?
+
 
 configParser::configParser(std::string path) {
     const char* charPath = path.c_str();
@@ -32,7 +36,7 @@ configParser &configParser::operator=(const configParser &src) {
     return *this;
 }
 
-std::vector<serverConfig> configParser::getServerConfig() const {
+std::vector<serverConfig> configParser::get_serverconfig() const {
     return _servers;
 }
 
@@ -61,6 +65,13 @@ void    configParser::del_comments(std::string &line) {
 bool configParser::file_exists(const char* path) {
     struct stat buffer;
     return (stat(path, &buffer) == 0);
+}
+
+bool index_exists(const std::string& rootDirectory, const std::string& indexFilename) {
+    std::string fullPath = rootDirectory + "/" + indexFilename;
+
+    std::ifstream file(fullPath.c_str());
+    return file.good();
 }
 
 void    configParser::read_and_parse_config() {
@@ -135,7 +146,7 @@ void configParser::process_listen(std::string &line, serverConfig &server) {
         utility::stringTrim(trimmedLine, " \t\n\r\f\v;");
         try {
             int intValue = std::stoi(trimmedLine);
-            server.setPort(intValue);
+            server.set_port(intValue);
         } catch (const std::invalid_argument& e) {
             throw ConfigParserException("Invalid port number");
         }
@@ -152,7 +163,76 @@ void configParser::process_host(std::string &line, serverConfig &server) {
         if (ipAddress == INADDR_NONE)
             throw ConfigParserException("Invalid IP address");
         else
-            server.setHost(ipAddress);
+            server.set_host(ipAddress);
+    }
+}
+
+void configParser::process_servername(std::string &line, serverConfig &server) {
+    size_t pos = line.find("server_name");
+    if (pos != std::string::npos) {
+        std::string trimmedLine = line.substr(pos + 11);
+        utility::stringTrim(trimmedLine, " \t\n\r\f\v;");
+        server.set_servername(trimmedLine);
+    }
+}
+
+void configParser::process_maxsize(std::string &line, serverConfig &server) {
+    size_t pos = line.find("max_size");
+    if (pos != std::string::npos) {
+        std::string trimmedLine = line.substr(pos + 8);
+        utility::stringTrim(trimmedLine, " \t\n\r\f\v;");
+    try {
+        size_t sizeValue = std::stoull(trimmedLine);
+        server.set_maxsize(sizeValue);
+    } catch (const std::exception& e) {
+        throw ConfigParserException("Invalid size");
+    }}
+}
+
+void configParser::process_errorpages(std::string &line, serverConfig &server) {
+    int         code;
+    std::string errorPage;
+    size_t pos = line.find("error_page");
+
+    if (pos != std::string::npos) {
+        std::string trimmedLine = line.substr(pos + 10);
+
+        std::istringstream iss(trimmedLine);
+        if (iss >> code >> errorPage) {
+            server.set_error_pages(code, errorPage);
+        } else
+            throw ConfigParserException("Invalid error page");
+    }
+}
+
+void configParser::process_rootdirectory(std::string &line, serverConfig &server) {
+    size_t pos = line.find("root");
+    if (pos != std::string::npos) {
+        std::string trimmedLine = line.substr(pos + 4);
+        utility::stringTrim(trimmedLine, " \t\n\r\f\v;");
+        if (file_exists(trimmedLine.c_str()))
+            server.set_rootdirectory(trimmedLine);
+        else
+            throw ConfigParserException("Root directory does not exist");
+    }
+}
+
+void configParser::process_index(std::string &line, serverConfig &server) {
+    std::vector<std::string> index;
+    size_t pos = line.find("index");
+    if (pos != std::string::npos) {
+        std::string trimmedLine = line.substr(pos + 5);
+        utility::stringTrim(trimmedLine, " \t\n\r\f\v;");
+        std::istringstream iss(trimmedLine);
+        std::string filename;
+
+        while (std::getline(iss, filename, ' ')) {
+        if (!index_exists(server.get_rootdirectory(), filename)) {
+                throw ConfigParserException("Index directory does not exist");
+            }
+            index.push_back(filename);
+        }
+        server.set_index(index);
     }
 }
 

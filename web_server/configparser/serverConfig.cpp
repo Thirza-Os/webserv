@@ -34,19 +34,19 @@ serverConfig &serverConfig::operator=(const serverConfig &src) {
     return *this;
 }
 
-void serverConfig::setPort(int port) {
+void serverConfig::set_port(int port) {
     this->_port = port;
 }
 
-void serverConfig::setHost(in_addr_t &host) {
+void serverConfig::set_host(in_addr_t &host) {
     this->_host = host;
 }
 
-void serverConfig::setServerName(const std::string serverName) {
+void serverConfig::set_servername(const std::string serverName) {
     this->_serverName = serverName;
 }
 
-void serverConfig::setMethods(std::string &methodString) {
+void serverConfig::set_methods(std::string &methodString) {
     this->_methods = methodString;
     // if (methodString.find("GET") != std::string::npos) {
     //     this->_.set(0, true); // Set the first bit for GET
@@ -59,19 +59,19 @@ void serverConfig::setMethods(std::string &methodString) {
     // }
 }
 
-void serverConfig::setMaxSize(size_t maxSize) {
+void serverConfig::set_maxsize(size_t maxSize) {
     this->_maxSize = maxSize;
 }
 
-void serverConfig::setErrorPages(const std::string errorPage) {
-    this->_errorPages.push_back(errorPage);
+void serverConfig::set_error_pages(int code, std::string &errorPage) {
+    _errorPages[code] = errorPage;
 }
 
-void serverConfig::setRootDirectory(const std::string rootDirectory) {
+void serverConfig::set_rootdirectory(const std::string rootDirectory) {
     this->_rootDirectory = rootDirectory;
 }
 
-void serverConfig::setIndex(const std::string index) {
+void serverConfig::set_index(std::vector<std::string> &index) {
     this->_index = index;
 }
 
@@ -83,10 +83,14 @@ void serverConfig::setIndex(const std::string index) {
 //     _socketAddr = socketAddr;
 // }
 
-int serverConfig::getPort() const {
+int serverConfig::get_port() const {
     return (this->_port);
 }
 
-in_addr_t   serverConfig::getHost() const {
+in_addr_t   serverConfig::get_host() const {
     return (this->_host);
+}
+
+std::string   serverConfig::get_rootdirectory() const {
+    return (this->_rootDirectory);
 }

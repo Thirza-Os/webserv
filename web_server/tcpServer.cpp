@@ -10,8 +10,8 @@ const int BUFFER_SIZE = 30720;
 
 tcpServer::tcpServer(serverConfig config):_config(config), _socket(), _socketAddr(), _socketAddrLen(sizeof(_socketAddr))
 {
-    this->_ip_add = this->_config.getHost();
-    this->_port = this->_config.getPort();
+    this->_ip_add = this->_config.get_host();
+    this->_port = this->_config.get_port();
     _socketAddr.sin_family = AF_INET;
     _socketAddr.sin_port = htons(_port);
     _socketAddr.sin_addr.s_addr = _ip_add;

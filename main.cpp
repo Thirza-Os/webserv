@@ -12,7 +12,7 @@ int main(int argc, char **argv){
     try{
         configParser parsed(argv[1]);
         parsed.read_and_parse_config();
-        std::vector<serverConfig> servers = parsed.getServerConfig();
+        std::vector<serverConfig> servers = parsed.get_serverconfig();
 
         // std::cout << "Server Name: " << server.getserverName() << std::endl;
         std::vector<tcpServer> tcpservers;

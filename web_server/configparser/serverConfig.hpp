@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <map>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -26,9 +27,9 @@ private:
     std::string                 _serverName;
     std::string                 _methods;
     size_t                      _maxSize;
-    std::vector<std::string>    _errorPages;
+    std::map<int, std::string>  _errorPages;
     std::string                 _rootDirectory;
-    std::string                 _index;
+    std::vector<std::string>    _index;
     std::vector<Location> 		_locations;
 
     //struct          sockaddr_in  _socketAddr;
@@ -39,19 +40,20 @@ public:
     serverConfig(const serverConfig &src);
     serverConfig &operator=(const serverConfig &src);
 
-    void setPort(const int port);
-    void setHost(in_addr_t &host);
-    void setServerName(const std::string serverName);
-    void setMethods(std::string &methodString);
-    void setMaxSize(size_t maxSize);
-    void setErrorPages(const std::string errorPage);
-    void setRootDirectory(const std::string rootDirectory);
-    void setIndex(const std::string index);
+    void set_port(const int port);
+    void set_host(in_addr_t &host);
+    void set_servername(const std::string serverName);
+    void set_methods(std::string &methodString);
+    void set_maxsize(size_t maxSize);
+    void set_error_pages(int code, std::string &errorPage);
+    void set_rootdirectory(const std::string rootDirectory);
+    void set_index(std::vector<std::string> &index);
     //void setLocations(const locations);
     //void setSocketAddress(const struct sockaddr_in& socketAddr);
 
-    int         getPort() const;
-    in_addr_t   getHost() const;
+    int         get_port() const;
+    in_addr_t   get_host() const;
+    std::string get_rootdirectory() const;
 };
 
 #endif
