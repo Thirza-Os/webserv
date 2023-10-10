@@ -13,6 +13,8 @@ server::server(serverConfig config): _config(config) {
 	startServer();
 }
 
+server::~server(){}
+
 void    server::exitError(const std::string &str)
 {
     std::cerr << "Error - " << str << std::endl;
@@ -37,7 +39,7 @@ void	server::startServer()
     }
 
 	// binding the socket
-    if (bind(_socket, (sockaddr *)&_socketAddr, _socketAddrLen) < 0)
+    if (bind(_socket, (sockaddr *)&_socketAddr, sizeof(_socketAddr)) < 0)
     {
         exitError("Cannot connect socket to address");
     }

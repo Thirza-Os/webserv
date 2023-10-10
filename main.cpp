@@ -1,6 +1,7 @@
 #include "web_server/configparser/serverConfig.hpp"
 #include "web_server/configparser/configParser.hpp"
 #include "web_server/serverManager.hpp"
+#include "web_server/server.hpp"
 
 #include <iostream>
 

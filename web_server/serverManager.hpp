@@ -19,6 +19,7 @@
 class serverManager
 {
 public:
+
     serverManager(std::vector<serverConfig> configs);
     ~serverManager();
 
@@ -26,6 +27,7 @@ public:
     void    log(const std::string &message);
 
 private:
+
     std::vector<serverConfig>       _configs;
     std::vector<server>             _servers;
 
