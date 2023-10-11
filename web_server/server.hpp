@@ -18,6 +18,7 @@ class server
 
 public:
     server(serverConfig config);
+    server();
     ~server();
 
 	int					getSocket() const;

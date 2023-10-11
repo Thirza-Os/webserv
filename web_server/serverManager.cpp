@@ -5,6 +5,7 @@
 #include <sstream>
 #include <unistd.h>
 #include <cstring>
+#include <algorithm>
 
 const int BUFFER_SIZE = 30720;
 
@@ -31,23 +32,25 @@ void    serverManager::log(const std::string &message)
 
 void serverManager::startListen()
 {
-    if (listen(_servers[0].getSocket(), 20) < 0)
-    {
-        exitError("Socket listen failed");
+    std::vector<int> listeners;
+    for (std::vector<server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
+        if (listen(it->getSocket(), 20) < 0)
+        {
+            exitError("Socket listen failed");
+        }
+        std::ostringstream ss;
+        ss << "\n*** Listening on ADDRESS: " 
+            << inet_ntoa(it->getSockAddr().sin_addr) 
+            << " PORT: " << ntohs(it->getSockAddr().sin_port) 
+            << " ***\n\n";
+        log(ss.str());
+        struct pollfd listener;
+
+        listener.fd = it->getSocket();
+        listener.events = POLLIN;
+        listeners.push_back(it->getSocket());
+        _pollfds.push_back(listener);
     }
-    std::ostringstream ss;
-    ss << "\n*** Listening on ADDRESS: " 
-        << inet_ntoa(_servers[0].getSockAddr().sin_addr) 
-        << " PORT: " << ntohs(_servers[0].getSockAddr().sin_port) 
-        << " ***\n\n";
-    log(ss.str());
-
-    int bytesReceived;
-    struct pollfd listener;
-
-    listener.fd = _servers[0].getSocket();
-    listener.events = POLLIN;
-    _pollfds.push_back(listener);
     // main webserv loop starts here, the program should never exit this loop
         while (true)
         {
@@ -57,19 +60,20 @@ void serverManager::startListen()
             }
             for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
                 if (it->revents & POLLIN) {
-                    if (it->fd == listener.fd) {
-                        acceptConnection();
+                    if (std::find(listeners.begin(), listeners.end(), it->fd) != listeners.end()) {
+                        acceptConnection(it->fd);
                         break ;
                     }
                     else {
                         char buffer[BUFFER_SIZE] = {0};
-                        bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
+                        int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
                         if (bytesReceived < 0)
                         {
                             log("Failed to read bytes from client socket connection");
                             break ;
                         }
                         requestParser request(buffer);
+                        //maybe each server should keep track of its own requests?
                         _requests.insert({it->fd, request});
 
                         std::ostringstream ss;
@@ -91,11 +95,16 @@ void serverManager::startListen()
 
 }
 
-void serverManager::acceptConnection()
+void serverManager::acceptConnection(int incoming)
 {
-    sockaddr_in socketAddr = _servers[0].getSockAddr();
+    server correctServer;
+    for (std::vector<server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
+        if (it->getSocket() == incoming)
+            correctServer = *it;
+    }
+    sockaddr_in socketAddr = correctServer.getSockAddr();
     unsigned int socketAddrLen = sizeof(socketAddr);
-    int new_socket = accept4(_servers[0].getSocket(), (sockaddr *)&socketAddr,
+    int new_socket = accept4(correctServer.getSocket(), (sockaddr *)&socketAddr,
                         &socketAddrLen, SOCK_NONBLOCK);
     if (new_socket < 0)
     {
@@ -116,6 +125,7 @@ void serverManager::acceptConnection()
     log(ss.str());
 }
 
+//should I send the server instead of the serverConfig?
 void serverManager::sendResponse(int socket_fd)
 {
     unsigned long bytesSent;

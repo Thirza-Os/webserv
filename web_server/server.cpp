@@ -13,6 +13,8 @@ server::server(serverConfig config): _config(config) {
 	startServer();
 }
 
+server::server(){}
+
 server::~server(){}
 
 void    server::exitError(const std::string &str)
