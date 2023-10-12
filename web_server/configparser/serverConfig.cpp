@@ -43,10 +43,6 @@ void serverConfig::set_servername(const std::string serverName) {
     this->_serverName = serverName;
 }
 
-void serverConfig::set_methods(std::bitset<3> &methodString) {
-    this->_methods = methodString;
-}
-
 void serverConfig::set_maxsize(size_t maxSize) {
     this->_maxSize = maxSize;
 }
@@ -77,6 +73,14 @@ int serverConfig::get_port() const {
 
 in_addr_t   serverConfig::get_host() const {
     return (this->_host);
+}
+
+std::string   serverConfig::get_servername() const {
+    return (this->_serverName);
+}
+
+size_t    serverConfig::get_maxsize() const {
+    return (this->_maxSize);
 }
 
 std::string   serverConfig::get_rootdirectory() const {

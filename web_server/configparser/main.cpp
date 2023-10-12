@@ -3,6 +3,7 @@
 #include "../utilities/utilities.hpp"
 #include <iostream>
 #include <vector>
+#include <bitset>
 
 int main(int argc, char *argv[])
 {
@@ -16,5 +17,10 @@ int main(int argc, char *argv[])
         for (const serverConfig& server : servers) {
         std::cout << "Server Listen: " << server.get_port() << std::endl;
         std::cout << "Server Host: " << server.get_host() << std::endl;
+        std::cout << "Server Name: " << server.get_servername() << std::endl;
+        std::cout << "Server Maxsize: " << server.get_maxsize() << std::endl;
+ //       std::cout << "Server Error pages: " << server.get_errorpages() << std::endl;
+        std::cout << "Root Directory: " << server.get_rootdirectory() << std::endl;
+
     }
 } 
