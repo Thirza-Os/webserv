@@ -1,7 +1,9 @@
 #include "serverConfig.hpp"
 
 #include <netinet/in.h>
-
+#include <iostream>
+#include <sstream>
+#include <string>
 
 serverConfig::serverConfig():
     _port(80),

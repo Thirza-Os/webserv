@@ -1,93 +1,56 @@
-#include "tcpServer.hpp"
+#include "serverManager.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <unistd.h>
 #include <cstring>
+#include <algorithm>
 
 const int BUFFER_SIZE = 30720;
 
-tcpServer::tcpServer(serverConfig config):_config(config), _socket(), _socketAddr(), _socketAddrLen(sizeof(_socketAddr))
+serverManager::serverManager(std::vector<serverConfig> configs): _configs(configs)
 {
-    _socketAddr.sin_family = AF_INET;
-    _socketAddr.sin_port = htons(_config.getPort());
-    _socketAddr.sin_addr.s_addr = _config.getHost();
-
-    startServer();
+    for (std::vector<serverConfig>::iterator it = _configs.begin(); it != _configs.end() ;it++) {
+        _servers.push_back(server(*it));
+    }
+    startListen();
 }
 
-tcpServer::~tcpServer()
-{
-    closeServer();
-}
+serverManager::~serverManager(){}
 
-void    tcpServer::exitError(const std::string &str)
+void    serverManager::exitError(const std::string &str)
 {
     std::cerr << "Error - " << str << std::endl;
     exit(1);
 }
 
-void    tcpServer::log(const std::string &message)
+void    serverManager::log(const std::string &message)
 {
     std::cout << message << std::endl;
 }
 
-int tcpServer::startServer()
+void serverManager::startListen()
 {
-    // making the socket
-            printf("Starting socket\n");
+    std::vector<int> listeners;
+    for (std::vector<server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
+        if (listen(it->getSocket(), 20) < 0)
+        {
+            exitError("Socket listen failed");
+        }
+        std::ostringstream ss;
+        ss << "\n*** Listening on ADDRESS: " 
+            << inet_ntoa(it->getSockAddr().sin_addr) 
+            << " PORT: " << ntohs(it->getSockAddr().sin_port) 
+            << " ***\n\n";
+        log(ss.str());
+        struct pollfd listener;
 
-    _socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-
-    if (_socket < 0)
-    {
-        exitError("Socket failed!");
-        return 1;
+        listener.fd = it->getSocket();
+        listener.events = POLLIN;
+        listeners.push_back(it->getSocket());
+        _pollfds.push_back(listener);
     }
-    
-    int enable = 1;
-    if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
-        exitError("setsockopt() failed");
-        return 1;
-    }
-
-// binding the socket
-    if (bind(_socket, (sockaddr *)&_socketAddr, _socketAddrLen) < 0)
-    {
-        exitError("Cannot connect socket to address");
-        return 1;
-    }
-
-    startListen();
-    return 0;
-}
-
-void    tcpServer::closeServer()
-{
-    close(_socket);
-    exit(0);
-}
-
-void tcpServer::startListen()
-{
-    if (listen(_socket, 20) < 0)
-    {
-        exitError("Socket listen failed");
-    }
-    std::ostringstream ss;
-    ss << "\n*** Listening on ADDRESS: " 
-        << inet_ntoa(_socketAddr.sin_addr) 
-        << " PORT: " << ntohs(_socketAddr.sin_port) 
-        << " ***\n\n";
-    log(ss.str());
-
-    int bytesReceived;
-    struct pollfd listener;
-
-    listener.fd = _socket;
-    listener.events = POLLIN;
-    _pollfds.push_back(listener);
     // main webserv loop starts here, the program should never exit this loop
         while (true)
         {
@@ -97,13 +60,13 @@ void tcpServer::startListen()
             }
             for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
                 if (it->revents & POLLIN) {
-                    if (it->fd == listener.fd) {
-                        acceptConnection();
+                    if (std::find(listeners.begin(), listeners.end(), it->fd) != listeners.end()) {
+                        acceptConnection(it->fd);
                         break ;
                     }
                     else {
                         char buffer[BUFFER_SIZE] = {0};
-                        bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
+                        int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
                         if (bytesReceived < 0)
                         {
                             log("Failed to read bytes from client socket connection");
@@ -131,17 +94,24 @@ void tcpServer::startListen()
 
 }
 
-void tcpServer::acceptConnection()
+void serverManager::acceptConnection(int incoming)
 {
-    int new_socket = accept4(_socket, (sockaddr *)&_socketAddr,
-                        &_socketAddrLen, SOCK_NONBLOCK);
+    server correctServer;
+    for (std::vector<server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
+        if (it->getSocket() == incoming)
+            correctServer = *it;
+    }
+    sockaddr_in socketAddr = correctServer.getSockAddr();
+    unsigned int socketAddrLen = sizeof(socketAddr);
+    int new_socket = accept4(correctServer.getSocket(), (sockaddr *)&socketAddr,
+                        &socketAddrLen, SOCK_NONBLOCK);
     if (new_socket < 0)
     {
         std::ostringstream ss;
         ss <<
         "Server failed to accept incoming connection from ADDRESS: "
-        << inet_ntoa(_socketAddr.sin_addr) << "; PORT: "
-        << ntohs(_socketAddr.sin_port);
+        << inet_ntoa(socketAddr.sin_addr) << "; PORT: "
+        << ntohs(socketAddr.sin_port);
         log(ss.str());
         return ;
     }
@@ -149,21 +119,22 @@ void tcpServer::acceptConnection()
     new_socket_fd.fd = new_socket;
     new_socket_fd.events = POLLIN;
     _pollfds.push_back(new_socket_fd);
+    this->_requestServerIndex.insert({new_socket, correctServer});
     std::ostringstream ss;
     ss << "------ New connection established ------\n\n";
     log(ss.str());
 }
 
-void tcpServer::sendResponse(int socket_fd)
+void serverManager::sendResponse(int socket_fd)
 {
     unsigned long bytesSent;
-    responseBuilder response(_requests.at(socket_fd), _config);
-    std::string _serverMessage = response.getResponse();
+    responseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).getConfig());
+    std::string serverMessage = response.getResponse();
     std::cout << response.getHeader() << std::endl;
 
-    bytesSent = write(socket_fd, _serverMessage.c_str(), _serverMessage.size());
+    bytesSent = write(socket_fd, serverMessage.c_str(), serverMessage.size());
 
-    if (bytesSent == _serverMessage.size())
+    if (bytesSent == serverMessage.size())
     {
         log("------ Server Response sent to client ------\n\n");
     }
@@ -171,5 +142,5 @@ void tcpServer::sendResponse(int socket_fd)
     {
         log("Error sending response to client");
     }
+    _requestServerIndex.erase(socket_fd);
 }
-
