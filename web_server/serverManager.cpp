@@ -60,6 +60,7 @@ void serverManager::startListen()
             }
             for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
                 if (it->revents & POLLIN) {
+                    std::cout << "Gonna get request or accept new connection on socket: " << it->fd << std::endl;
                     if (std::find(listeners.begin(), listeners.end(), it->fd) != listeners.end()) {
                         acceptConnection(it->fd);
                         break ;
@@ -83,10 +84,15 @@ void serverManager::startListen()
                     }
                 }
                 else if (it->revents & POLLOUT) {
-                    sendResponse(it->fd);
-                    close(it->fd);
+                    std::cout << "Gonna send response on socket: " << it->fd << std::endl;
+                    if (sendResponse(it->fd)) {
+                        close(it->fd);
+                        it = _pollfds.erase(it);
+                    }
+                    else {
+                        it->events = POLLIN;
+                    }
                     _requests.erase(it->fd);
-                    it = _pollfds.erase(it);
                     break ;
                 }
             }
@@ -125,7 +131,8 @@ void serverManager::acceptConnection(int incoming)
     log(ss.str());
 }
 
-void serverManager::sendResponse(int socket_fd)
+//return 1 to close the connection after, 0 to keep it alive for now
+int serverManager::sendResponse(int socket_fd)
 {
     unsigned long bytesSent;
     responseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).getConfig());
@@ -142,5 +149,13 @@ void serverManager::sendResponse(int socket_fd)
     {
         log("Error sending response to client");
     }
-    _requestServerIndex.erase(socket_fd);
+    if (_requests.at(socket_fd).find_header("Connection") == " keep-alive") {
+        std::cout << "Attempting to keep connection alive" << std::endl;
+        return (0);
+    }
+    else {
+        std::cout << "Closing connection" << std::endl;
+        _requestServerIndex.erase(socket_fd);
+        return (1);
+    }
 }

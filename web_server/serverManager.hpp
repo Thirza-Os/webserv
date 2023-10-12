@@ -42,7 +42,7 @@ private:
     void            startListen();
     void            acceptConnection(int incoming);
 
-    void            sendResponse(int socket_fd);
+    int             sendResponse(int socket_fd);
 };
 
 #endif

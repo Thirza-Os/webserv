@@ -86,6 +86,10 @@ int requestParser::get_status_code() const {
     return (this->_status_code);
 }
 
+std::string requestParser::find_header(std::string key) {
+    return (_headers.at(key));
+}
+
 void    requestParser::parse_error(const std::string &str, int code) {
     this->_status_code = code;
     std::cerr << code << " " << str << std::endl;

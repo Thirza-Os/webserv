@@ -48,6 +48,8 @@ public:
     std::string get_content_type() const;
     size_t      get_content_length() const;
     int         get_status_code() const;
+
+    std::string find_header(std::string key);
 };
 
 enum ParseState {

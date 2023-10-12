@@ -45,7 +45,7 @@ void        responseBuilder::build_header() {
         ss << "Content-Type: text/html\n";
     else
         ss << this->_request.get_content_type() << "\n";
-    ss << "Connection: close\n";
+    //ss << "Connection: close\n";
     ss << "Content-Length: " << this->_body.size() << "\n\n";
 	this->_header = ss.str();
 }
