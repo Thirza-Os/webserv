@@ -43,17 +43,8 @@ void serverConfig::set_servername(const std::string serverName) {
     this->_serverName = serverName;
 }
 
-void serverConfig::set_methods(std::string &methodString) {
+void serverConfig::set_methods(std::bitset<3> &methodString) {
     this->_methods = methodString;
-    // if (methodString.find("GET") != std::string::npos) {
-    //     this->_.set(0, true); // Set the first bit for GET
-    // }
-    // if (methodString.find("POST") != std::string::npos) {
-    //    this-> _methods.set(1, true); // Set the second bit for POST
-    // }
-    // if (methodString.find("PUT") != std::string::npos) {
-    //     this->_methods.set(2, true); // Set the third bit for PUT
-    // }
 }
 
 void serverConfig::set_maxsize(size_t maxSize) {

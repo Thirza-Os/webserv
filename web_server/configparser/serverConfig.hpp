@@ -5,18 +5,19 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <bitset>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
 struct Location {
     std::string                 path;
-    std::vector<std::string>    methods;
-    std::string                 index;
-    //std::string cgiPath;           // CGI script path (if applicable)
-    //std::vector<std::string> cgiExtensions;
+    std::string                 root;
+    std::bitset<3>              methods;
     bool                        autoindex;
-    std::string                 alias;
+    std::string                 index;
     std::string                 returnPath;
+    //std::vector<std::string> cgiExtensions;
+    //std::string cgiPath;           // CGI script path (if applicable)
 };
 
 class serverConfig
@@ -25,7 +26,7 @@ private:
     int                         _port;
     in_addr_t                   _host;
     std::string                 _serverName;
-    std::string                 _methods;
+    std::bitset<3>              _methods;
     size_t                      _maxSize;
     std::map<int, std::string>  _errorPages;
     std::string                 _rootDirectory;
@@ -44,7 +45,7 @@ public:
     void set_port(const int port);
     void set_host(in_addr_t &host);
     void set_servername(const std::string serverName);
-    void set_methods(std::string &methodString);
+    void set_methods(std::bitset<3> &methodString);
     void set_maxsize(size_t maxSize);
     void set_error_pages(int code, std::string &errorPage);
     void set_rootdirectory(const std::string rootDirectory);
@@ -58,3 +59,13 @@ public:
 };
 
 #endif
+
+// if (_methods[0]) {
+//     // GET method is supported
+// }
+// if (_methods[1]) {
+//     // POST method is supported
+// }
+// if (_methods[2]) {
+//     // PUT method is supported
+// }

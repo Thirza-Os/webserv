@@ -8,6 +8,7 @@
 #include <string>
 #include <stack>
 #include <string>
+#include <bitset>
 
 class ConfigParserException : public std::runtime_error {
 public:
@@ -17,10 +18,10 @@ public:
 class configParser
 {
 private:
-    std::string                 _path;
-	std::vector<serverConfig>	_servers;
-    std::vector<std::string>    _serverBlocks;   
-    std::stack<char>            _braceStack;
+    std::string                         _path;
+	std::vector<serverConfig>	        _servers;
+    std::vector<std::string>            _serverBlocks;   
+    std::stack<char>                    _braceStack;
 
 public:
     configParser(std::string path);
@@ -38,13 +39,16 @@ public:
     void                                process_listen(std::string &line, serverConfig &server);
     void                                process_host(std::string &line, serverConfig &server);
     void                                process_servername(std::string &line, serverConfig &server);
+    std::bitset<3>                      process_methods(std::string &line);
     void                                process_maxsize(std::string &line, serverConfig &server);
     void                                process_errorpages(std::string &line, serverConfig &server);
-    void                                process_rootdirectory(std::string &line, serverConfig &server);
+    std::string                         process_rootdirectory(std::string &line);
     void                                process_index(std::string &line, serverConfig &server);
-    void                                process_location(std::stringstream& sb, serverConfig &server);
+    void                                process_location(std::string line, std::stringstream& sb, serverConfig &server);
 
     void                                process_line(std::string &line, serverConfig &server);
+
+    std::vector<serverConfig>           get_serverconfig();
 };
 
 #endif
