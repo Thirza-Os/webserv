@@ -23,6 +23,7 @@ public:
 
 	int					getSocket() const;
 	struct sockaddr_in	getSockAddr() const;
+    serverConfig        getConfig() const;
 
 private:
 
@@ -30,7 +31,6 @@ private:
     int                             _socket;
 
     struct sockaddr_in				_socketAddr;
-    //std::map<int, requestParser>    _requests;
 
     void             	startServer();
     void            	closeServer();

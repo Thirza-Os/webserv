@@ -47,10 +47,14 @@ void	server::startServer()
     }
 }
 
-	int	server::getSocket() const {
-		return(this->_socket);
-	}
+int server::getSocket() const {
+    return(this->_socket);
+}
 
-	struct sockaddr_in	server::getSockAddr() const {
-		return(this->_socketAddr);
-	}
+struct sockaddr_in  server::getSockAddr() const {
+    return(this->_socketAddr);
+}
+
+serverConfig    server::getConfig() const {
+    return(this->_config);
+}

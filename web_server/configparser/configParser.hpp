@@ -7,7 +7,6 @@
 
 #include <string>
 #include <stack>
-#include <string>
 
 class ConfigParserException : public std::runtime_error {
 public:

@@ -41,7 +41,6 @@ private:
     void            startListen();
     void            acceptConnection(int incoming);
 
-    //std::string     buildResponse(std::string uri);
     void            sendResponse(int socket_fd);
 };
 

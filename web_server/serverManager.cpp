@@ -73,7 +73,6 @@ void serverManager::startListen()
                             break ;
                         }
                         requestParser request(buffer);
-                        //maybe each server should keep track of its own requests?
                         _requests.insert({it->fd, request});
 
                         std::ostringstream ss;
@@ -125,11 +124,15 @@ void serverManager::acceptConnection(int incoming)
     log(ss.str());
 }
 
-//should I send the server instead of the serverConfig?
 void serverManager::sendResponse(int socket_fd)
 {
+    server correctServer;
+    for (std::vector<server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
+        if (it->getSocket() == socket_fd)
+            correctServer = *it;
+    }
     unsigned long bytesSent;
-    responseBuilder response(_requests.at(socket_fd), _configs[0]);
+    responseBuilder response(_requests.at(socket_fd), correctServer.getConfig());
     std::string serverMessage = response.getResponse();
     std::cout << response.getHeader() << std::endl;
 

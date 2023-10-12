@@ -14,8 +14,9 @@ int main(int argc, char **argv){
         configParser parsed(argv[1]);
         parsed.read_and_parse_config();
         std::vector<serverConfig> servers = parsed.getServerConfig();
-
-        // std::cout << "Server Name: " << server.getserverName() << std::endl;
+        // for (std::vector<serverConfig>::iterator it = servers.begin(); it != servers.end() ;it++) {
+        //     std::cout << "Host: " << it->getHost() << " Port: " << it->getPort() << std::endl;
+        // }
         serverManager manager(servers);
     }
     catch(const ConfigParserException& e) {
