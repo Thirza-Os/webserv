@@ -32,6 +32,7 @@ private:
     std::vector<server>             _servers;
 
     std::vector<struct pollfd>      _pollfds;
+    std::map<int, server>           _requestServerIndex;
     std::map<int, requestParser>    _requests;
 
 

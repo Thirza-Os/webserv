@@ -119,6 +119,7 @@ void serverManager::acceptConnection(int incoming)
     new_socket_fd.fd = new_socket;
     new_socket_fd.events = POLLIN;
     _pollfds.push_back(new_socket_fd);
+    this->_requestServerIndex.insert({new_socket, correctServer});
     std::ostringstream ss;
     ss << "------ New connection established ------\n\n";
     log(ss.str());
@@ -126,13 +127,8 @@ void serverManager::acceptConnection(int incoming)
 
 void serverManager::sendResponse(int socket_fd)
 {
-    server correctServer;
-    for (std::vector<server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
-        if (it->getSocket() == socket_fd)
-            correctServer = *it;
-    }
     unsigned long bytesSent;
-    responseBuilder response(_requests.at(socket_fd), correctServer.getConfig());
+    responseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).getConfig());
     std::string serverMessage = response.getResponse();
     std::cout << response.getHeader() << std::endl;
 
@@ -146,4 +142,5 @@ void serverManager::sendResponse(int socket_fd)
     {
         log("Error sending response to client");
     }
+    _requestServerIndex.erase(socket_fd);
 }
