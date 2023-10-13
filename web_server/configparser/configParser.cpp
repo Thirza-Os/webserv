@@ -302,7 +302,7 @@ void    configParser::process_server_block(std::string &serverBlock) {
         del_comments(line);
         if (line.empty())
             continue;                                   // skip empty lines
-        //validate_braces(line);
+        validate_braces(line);
         if (line.find("location") == 0){
             process_location(line, sb, server);
         }
@@ -334,7 +334,7 @@ void    configParser::read_and_parse_config() {
         size_t endPos = configContents.find("server {", startPos);
 
         while (endPos != std::string::npos) {
-            size_t nextStartPos = configContents.find("server {", endPos + 1);
+            size_t nextStartPos = configContents.find("server {", endPos + 9);
             if (nextStartPos == std::string::npos) {
                 // If there are no more "server {" occurrences, use the end of the string
                 nextStartPos = configContents.length();
@@ -346,10 +346,12 @@ void    configParser::read_and_parse_config() {
             // Update startPos and endPos for the next iteration
             startPos = nextStartPos;
             endPos = configContents.find("server {", startPos);
-        }
+        }            
         // Process each server block
-        for (std::vector<std::string>::iterator it = _serverBlocks.begin(); it != _serverBlocks.end(); ++it) {
-            std::string& serverBlock = *it;
+        size_t serverBlockCount = _serverBlocks.size();
+        for (size_t i = 0; i < serverBlockCount; ++i) {
+            std::cout << "Processing server block " << i + 1 << " out of " << serverBlockCount << " times." << std::endl;
+            std::string& serverBlock = _serverBlocks[i];
             process_server_block(serverBlock);
         }
     }
