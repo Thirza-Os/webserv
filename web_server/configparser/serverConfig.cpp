@@ -1,13 +1,13 @@
 #include "serverConfig.hpp"
 
 #include <netinet/in.h>
-
+#include <iostream>
 
 serverConfig::serverConfig():
     _port(80),
+    _host(0),
     _serverName(""),
-    _maxSize(-1),
-    _errorPages(),
+    _maxSize(0),
     _rootDirectory("") {}
 
 serverConfig::~serverConfig() {}
@@ -63,6 +63,10 @@ void serverConfig::set_location(const Location& location) {
     _locations.push_back(location);
 }
 
+void serverConfig::set_cgiExtensions(const std::string ext, const std::string program) {
+    _cgiExtensions[ext] = program;
+}
+
 // void serverConfig::setSocketAddr(const struct sockaddr_in& socketAddr) {
 //     _socketAddr = socketAddr;
 // }
@@ -83,6 +87,18 @@ size_t    serverConfig::get_maxsize() const {
     return (this->_maxSize);
 }
 
+std::map<int, std::string>    serverConfig::get_errorpages() const {
+    return (this->_errorPages);
+}
+
 std::string   serverConfig::get_rootdirectory() const {
     return (this->_rootDirectory);
+}
+
+std::vector<Location>   serverConfig::get_locations() const {
+    return (this->_locations);
+}
+
+std::map<std::string, std::string>   serverConfig::get_cgiExtensions() const {
+    return (this->_cgiExtensions);
 }
