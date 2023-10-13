@@ -87,7 +87,11 @@ int requestParser::get_status_code() const {
 }
 
 std::string requestParser::find_header(std::string key) {
-    return (_headers.at(key));
+    if (_headers.count("Content-Length") > 0) {
+        return (_headers.at(key));
+    } else {
+        return "";
+    }
 }
 
 void    requestParser::parse_error(const std::string &str, int code) {

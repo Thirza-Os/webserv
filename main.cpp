@@ -4,12 +4,14 @@
 #include "web_server/server.hpp"
 
 #include <iostream>
+#include <csignal>
 
 int main(int argc, char **argv){
     if (argc != 2) {
         std::cout << "Please provide a config file" << std::endl;
         return (0);
     }
+    signal(SIGPIPE, SIG_IGN);
     try{
         configParser parsed(argv[1]);
         parsed.read_and_parse_config();

@@ -60,7 +60,6 @@ void serverManager::startListen()
             }
             for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
                 if (it->revents & POLLIN) {
-                    std::cout << "Gonna get request or accept new connection on socket: " << it->fd << std::endl;
                     if (std::find(listeners.begin(), listeners.end(), it->fd) != listeners.end()) {
                         acceptConnection(it->fd);
                         break ;
@@ -71,6 +70,13 @@ void serverManager::startListen()
                         if (bytesReceived < 0)
                         {
                             log("Failed to read bytes from client socket connection");
+                            break ;
+                        }
+                        if (bytesReceived == 0) {
+                            log("Client closed the connection");
+                            _requestServerIndex.erase(it->fd);
+                            close(it->fd);
+                            it = _pollfds.erase(it);
                             break ;
                         }
                         requestParser request(buffer);
@@ -84,7 +90,6 @@ void serverManager::startListen()
                     }
                 }
                 else if (it->revents & POLLOUT) {
-                    std::cout << "Gonna send response on socket: " << it->fd << std::endl;
                     if (sendResponse(it->fd)) {
                         close(it->fd);
                         it = _pollfds.erase(it);
@@ -131,16 +136,14 @@ void serverManager::acceptConnection(int incoming)
     log(ss.str());
 }
 
-//return 1 to close the connection after, 0 to keep it alive for now
+//return 1 to close the connection after, 0 to keep it alive
 int serverManager::sendResponse(int socket_fd)
 {
     unsigned long bytesSent;
     responseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).getConfig());
     std::string serverMessage = response.getResponse();
     std::cout << response.getHeader() << std::endl;
-
     bytesSent = write(socket_fd, serverMessage.c_str(), serverMessage.size());
-
     if (bytesSent == serverMessage.size())
     {
         log("------ Server Response sent to client ------\n\n");
@@ -149,13 +152,13 @@ int serverManager::sendResponse(int socket_fd)
     {
         log("Error sending response to client");
     }
-    if (_requests.at(socket_fd).find_header("Connection") == " keep-alive") {
-        std::cout << "Attempting to keep connection alive" << std::endl;
-        return (0);
-    }
-    else {
+    if (_requests.at(socket_fd).find_header("Connection") == " close") {
         std::cout << "Closing connection" << std::endl;
         _requestServerIndex.erase(socket_fd);
         return (1);
+    }
+    else {
+        std::cout << "Keeping connection alive" << std::endl;
+        return (0);
     }
 }

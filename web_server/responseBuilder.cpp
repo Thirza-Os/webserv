@@ -45,7 +45,6 @@ void        responseBuilder::build_header() {
         ss << "Content-Type: text/html\n";
     else
         ss << this->_request.get_content_type() << "\n";
-    //ss << "Connection: close\n";
     ss << "Content-Length: " << this->_body.size() << "\n\n";
 	this->_header = ss.str();
 }
@@ -62,6 +61,12 @@ std::string responseBuilder::process_uri() {
 }
 
 void	responseBuilder::build_response() {
+    if (this->_status_code == 400) {
+        std::cout << "Bad request" << std::endl;
+        build_header();
+        this->_response = this->_header;
+        return ;
+    }
     std::string uri = process_uri();
     std::ifstream htmlFile(uri.c_str());
     if (!htmlFile.good()) {
@@ -69,6 +74,13 @@ void	responseBuilder::build_response() {
         std::cout << "file can't be opened" << std::endl;
         this->_status_code = 404;
         htmlFile.open("web_server/www/penguinserv/errorPages/404Error.html");
+        if (!htmlFile.good()) {
+            htmlFile.close();
+            std::cout << "error page can't be opened either" << std::endl;
+            build_header();
+            this->_response = this->_header;
+            return ;
+        }
     }
     std::stringstream buffer;
     buffer << htmlFile.rdbuf();
