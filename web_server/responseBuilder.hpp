@@ -15,6 +15,8 @@ private:
     std::string                         _response;
     int                                 _status_code;
 
+
+	void		handle_post();
     void        build_response();
     void        build_header();
     std::string process_uri();

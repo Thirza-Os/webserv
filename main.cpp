@@ -2,6 +2,7 @@
 #include "web_server/configparser/configParser.hpp"
 #include "web_server/tcpServer.hpp"
 
+#include <fstream>
 #include <iostream>
 
 int main(int argc, char **argv){

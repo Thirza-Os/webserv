@@ -5,6 +5,7 @@
 #include <sstream>
 #include <unistd.h>
 #include <cstring>
+#include <regex>
 
 responseBuilder::responseBuilder(requestParser request, serverConfig config): _request(request), _config(config) {
     this->_status_code = this->_request.get_status_code();
@@ -61,8 +62,56 @@ std::string responseBuilder::process_uri() {
     return (uri);
 }
 
+
+void responseBuilder::handle_post()
+{
+	size_t boundary_pos = this->_request.get_content_type().find("boundary=");
+	std::string boundary = "--" + this->_request.get_content_type().substr(boundary_pos + 9, std::string::npos);
+	
+	char* raw_data = this->_request.get_body();
+
+	std::istringstream body(this->_request.get_body());
+	std::stringstream data;
+	std::string filename;
+	std::string line;
+
+	while (std::getline(body, line))
+	{
+		std::ofstream newfile;
+		if (line.find("Content-Disposition:") != std::string::npos)
+		{
+			size_t filepos = line.find("filename=\"") + 9;
+			filename = line.substr(filepos, std::string::npos);
+			filename.erase(std::remove(filename.begin(), filename.end(), '\"'), filename.end());
+		}
+		newfile.open(filename, std::ios::binary);
+		//CHECKEN VOOR OPEN FILE
+
+		if (line.find("Content-Type:") != std::string::npos)
+		{
+			std::getline(body,line);
+			while (std::getline(body, line))
+			{
+				if (line.find(boundary) == std::string::npos)
+				{
+					data << line;
+					
+				}
+			}
+			newfile.write(data.str().c_str(), this->_request.get_content_length());
+			newfile.close();
+			continue;
+		}
+		std::cout << line.length() << "body line: " << line << std::endl;
+	}
+}
+
 void	responseBuilder::build_response() {
     std::string uri = process_uri();
+	if (this->_request.get_method() == "POST")
+	{
+		handle_post();
+	}
     std::ifstream htmlFile(uri.c_str());
     if (!htmlFile.good()) {
         htmlFile.close();
