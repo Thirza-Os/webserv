@@ -1,4 +1,5 @@
 #include "serverManager.hpp"
+#include "utilities/utilities.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -55,7 +56,7 @@ void serverManager::startListen()
         while (true)
         {
             log("====== Waiting for a new event ======\n\n\n");
-            if (poll(&_pollfds[0], _pollfds.size(), -1) == -1) {
+            if (poll(&_pollfds[0], _pollfds.size(), 10000) == -1) {
                 log("Error returned from poll()\n");
             }
             for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
@@ -81,6 +82,7 @@ void serverManager::startListen()
                         }
                         requestParser request(buffer);
                         _requests.insert({it->fd, request});
+                        this->_timeOutIndex.at(it->fd) = utility::getCurrentTimeinSec();
 
                         std::ostringstream ss;
                         ss << "------ Received Request from client ------\n\n";
@@ -101,6 +103,7 @@ void serverManager::startListen()
                     break ;
                 }
             }
+            checkTimeout();
         }
 
 }
@@ -131,6 +134,7 @@ void serverManager::acceptConnection(int incoming)
     new_socket_fd.events = POLLIN;
     _pollfds.push_back(new_socket_fd);
     this->_requestServerIndex.insert({new_socket, correctServer});
+    this->_timeOutIndex.insert({new_socket, utility::getCurrentTimeinSec()});
     std::ostringstream ss;
     ss << "------ New connection established ------\n\n";
     log(ss.str());
@@ -160,5 +164,27 @@ int serverManager::sendResponse(int socket_fd)
     else {
         std::cout << "Keeping connection alive" << std::endl;
         return (0);
+    }
+}
+
+//Close connections that are idle for 30 seconds or more
+void serverManager::checkTimeout(void)
+{
+    long current_time = utility::getCurrentTimeinSec();
+    for(std::map<int, long>::iterator it = this->_timeOutIndex.begin(); it != this->_timeOutIndex.end(); it++) {
+        long time_elapsed = current_time - it->second;
+        if (time_elapsed >= 30) {
+            std::cout << "Connection timed out after " << time_elapsed << "seconds" << std::endl;
+            close(it->first);
+            for (std::vector<struct pollfd>::iterator it2 = _pollfds.begin(); it2 != _pollfds.end() ; it2++) {
+                if (it2->fd == it->first) {
+                    it2 = _pollfds.erase(it2);
+                    break;
+                }
+            }
+            _requestServerIndex.erase(it->first);
+            it = _timeOutIndex.erase(it);
+            break ;
+        }
     }
 }

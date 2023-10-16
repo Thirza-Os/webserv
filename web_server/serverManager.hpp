@@ -34,6 +34,7 @@ private:
     std::vector<struct pollfd>      _pollfds;
     std::map<int, server>           _requestServerIndex;
     std::map<int, requestParser>    _requests;
+    std::map<int, long>             _timeOutIndex;
 
 
     int             startServer();
@@ -43,6 +44,7 @@ private:
     void            acceptConnection(int incoming);
 
     int             sendResponse(int socket_fd);
+    void            checkTimeout(void);
 };
 
 #endif
