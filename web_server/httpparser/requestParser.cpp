@@ -13,13 +13,10 @@
 
 requestParser::requestParser(std::string request): _request(request), _status_code(200), _ParsingCompleted(false) {
     consume_request();
-    print_request();
+    print_request();                // FOR TESTING
 }
 
-requestParser::requestParser(): _request(""), _status_code(200), _ParsingCompleted(false) {
-    //consume_request();
-    //print_request();
-}
+requestParser::requestParser(): _request(""), _status_code(200), _ParsingCompleted(false) {}
 
 requestParser::requestParser(const requestParser &src) {
     *this = src;
@@ -40,13 +37,13 @@ requestParser &requestParser::operator=(const requestParser &src)
         this->_protocol = src._protocol;
         this->_headers = src._headers;
         this->_body = src._body;
-        this->_ParsingCompleted = src._ParsingCompleted;
+        this->parsingCompleted = src._ParsingCompleted;
         this->_status_code = src._status_code;
     }
     return *this;
 }
 
-bool    requestParser::parsingCompleted() const {
+bool    requestParser::parsing_completed() const {
     return this->_ParsingCompleted;
 }
 
@@ -184,7 +181,6 @@ void requestParser::consume_request(){
     if (raw_request.empty())
         parse_error("Bad Request", 400);
     //char first_char = line[0];
-    
 
     while (std::getline(iss, line)) {
         parsed_request.push_back(line);

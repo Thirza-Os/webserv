@@ -40,7 +40,7 @@ public:
     ~requestParser();
     requestParser &operator=(const requestParser &src);
 
-    bool        parsingCompleted() const;
+    bool        parsing_completed() const;
     std::string get_method() const;
     std::string get_uri() const;
     std::string get_protocol() const;
