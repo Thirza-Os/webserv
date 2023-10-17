@@ -59,6 +59,7 @@ public:
     size_t                                  get_maxsize() const;
     std::map<int, std::string>              get_errorpages() const;
     std::string                             get_rootdirectory() const;
+    std::string                             get_index() const;
     std::vector<Location>                   get_locations() const;
     std::map<std::string, std::string>      get_cgiExtensions() const;
 };

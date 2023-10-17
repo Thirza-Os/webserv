@@ -8,7 +8,9 @@
 
 ResponseBuilder::ResponseBuilder(RequestParser request, ServerConfig config): _request(request), _config(config) {
     this->_status_code = this->_request.get_status_code();
-    build_response();
+    if (this->_request.get_method() == "GET"){
+        build_response();
+    }
 }
 
 ResponseBuilder::ResponseBuilder(const ResponseBuilder &src) {
@@ -51,11 +53,19 @@ void        ResponseBuilder::build_header() {
 
 std::string ResponseBuilder::process_uri() {
     std::string uri = this->_request.get_uri();
-    uri.insert(0, "WebServer/www/penguinserv");
-    if (uri.back() == '/') {
-        uri.append("index.html"); //or whatever config file says is the default
+    std::string dflt_index = this->_config.get_index();
+    if (dflt_index.empty())
+        dflt_index = "index.html";
+    std::vector<Location> locations = this->_config.get_locations();
+    for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++) {
+        if (it->method[0]) { //check if GET method is even allowed or not
+            //build uri for this Location block
+        }
     }
-    //uri.erase(0, 1);
+    uri.insert(0, this->_config.get_rootdirectory());
+    if (uri.back() == '/') {
+        uri.append(dflt_index);
+    }
     std::cout << "attempting to send this uri: " << uri << std::endl;
     return (uri);
 }
