@@ -37,7 +37,7 @@ requestParser &requestParser::operator=(const requestParser &src)
         this->_protocol = src._protocol;
         this->_headers = src._headers;
         this->_body = src._body;
-        this->parsingCompleted = src._ParsingCompleted;
+        this->_ParsingCompleted = src._ParsingCompleted;
         this->_status_code = src._status_code;
     }
     return *this;

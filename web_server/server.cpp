@@ -8,8 +8,8 @@
 
 server::server(serverConfig config): _config(config) {
 	_socketAddr.sin_family = AF_INET;
-    _socketAddr.sin_port = htons(_config.getPort());
-    _socketAddr.sin_addr.s_addr = _config.getHost();
+    _socketAddr.sin_port = htons(_config.get_port());
+    _socketAddr.sin_addr.s_addr = _config.get_host();
 	startServer();
 }
 
