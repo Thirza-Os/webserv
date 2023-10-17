@@ -1,4 +1,4 @@
-#include "server.hpp"
+#include "Server.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -6,24 +6,24 @@
 #include <unistd.h>
 #include <cstring>
 
-server::server(serverConfig config): _config(config) {
+Server::Server(ServerConfig config): _config(config) {
 	_socketAddr.sin_family = AF_INET;
     _socketAddr.sin_port = htons(_config.get_port());
     _socketAddr.sin_addr.s_addr = _config.get_host();
 	startServer();
 }
 
-server::server(){}
+Server::Server(){}
 
-server::~server(){}
+Server::~Server(){}
 
-void    server::exitError(const std::string &str)
+void    Server::exitError(const std::string &str)
 {
     std::cerr << "Error - " << str << std::endl;
     exit(1);
 }
 
-void	server::startServer()
+void	Server::startServer()
 {
     // making the socket
     std::cout << "Starting socket" << std::endl;
@@ -47,14 +47,14 @@ void	server::startServer()
     }
 }
 
-int server::getSocket() const {
+int Server::getSocket() const {
     return(this->_socket);
 }
 
-struct sockaddr_in  server::getSockAddr() const {
+struct sockaddr_in  Server::getSockAddr() const {
     return(this->_socketAddr);
 }
 
-serverConfig    server::getConfig() const {
+ServerConfig    Server::getConfig() const {
     return(this->_config);
 }

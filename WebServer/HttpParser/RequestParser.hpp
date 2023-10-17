@@ -5,7 +5,7 @@
 #include <map>
 #include <vector>
 
-class requestParser
+class RequestParser
 {
 private:
     std::string                         _request;
@@ -34,11 +34,11 @@ private:
     void        print_request() const;
 
 public:
-    requestParser(std::string request);
-    requestParser();
-    requestParser(const requestParser &src);
-    ~requestParser();
-    requestParser &operator=(const requestParser &src);
+    RequestParser(std::string request);
+    RequestParser();
+    RequestParser(const RequestParser &src);
+    ~RequestParser();
+    RequestParser &operator=(const RequestParser &src);
 
     bool        parsing_completed() const;
     std::string get_method() const;

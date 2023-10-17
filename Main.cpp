@@ -15,7 +15,7 @@ int main(int argc, char **argv){
     try{
         ConfigParser parsed(argv[1]);
         parsed.read_and_parse_config();
-        std::vector<ServerConfig> servers = parsed.get_serverconfig();
+        std::vector<ServerConfig> servers = parsed.get_ServerConfig();
         ServerManager manager(servers);
     }
     catch(const ConfigParserException& e) {

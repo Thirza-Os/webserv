@@ -1,6 +1,6 @@
-#include "configParser.hpp"
-#include "serverConfig.hpp"
-#include "../utilities/utilities.hpp"
+#include "ConfigParser.hpp"
+#include "ServerConfig.hpp"
+#include "../Utilities/Utilities.hpp"
 
 #include <string>
 #include <iostream>
@@ -16,7 +16,7 @@
 // Problem if location is in the name of the url?
 
 
-configParser::configParser(std::string path) {
+ConfigParser::ConfigParser(std::string path) {
 
     const char* charPath = path.c_str();
     if (!file_exists(charPath)) {
@@ -27,21 +27,21 @@ configParser::configParser(std::string path) {
     std::cout << "Config parser constructed with: " << this -> _path << "as _path" << std::endl;
 }
 
-configParser::~configParser() {
+ConfigParser::~ConfigParser() {
 }
 
-configParser::configParser(const configParser &src) {
+ConfigParser::ConfigParser(const ConfigParser &src) {
     *this = src;
 }
 
-configParser &configParser::operator=(const configParser &src) {
+ConfigParser &ConfigParser::operator=(const ConfigParser &src) {
     if (this != &src) {
         this->_path = src._path;
     }
     return *this;
 }
 
-void    configParser::validate_braces(std::string &line) {
+void    ConfigParser::validate_braces(std::string &line) {
         if (line.find('{') != std::string::npos) {
             this->_braceStack.push('{');
     }
@@ -54,7 +54,7 @@ void    configParser::validate_braces(std::string &line) {
     }
 }
 
-void    configParser::del_comments(std::string &line) {
+void    ConfigParser::del_comments(std::string &line) {
 
     size_t hash = line.find('#');
 
@@ -63,12 +63,12 @@ void    configParser::del_comments(std::string &line) {
     }
 }
 
-bool configParser::file_exists(const char* path) {
+bool ConfigParser::file_exists(const char* path) {
     struct stat buffer;
     return (stat(path, &buffer) == 0);
 }
 
-bool configParser::index_exists(const std::string& rootDirectory, const std::string& indexFilename) {
+bool ConfigParser::index_exists(const std::string& rootDirectory, const std::string& indexFilename) {
     std::string fullPath = rootDirectory + indexFilename;
     std::ifstream file(fullPath.c_str());
     return file.good();
@@ -76,7 +76,7 @@ bool configParser::index_exists(const std::string& rootDirectory, const std::str
 
 // things with braces: server, location
 
-void configParser::process_listen(std::string &line, serverConfig &server) {
+void ConfigParser::process_listen(std::string &line, ServerConfig &server) {
     size_t pos = line.find("listen");
     std::string trimmedLine = line.substr(pos + 7);
     utility::stringTrim(trimmedLine, " \t\n\r\f\v;");
@@ -100,7 +100,7 @@ void configParser::process_listen(std::string &line, serverConfig &server) {
     }
 }
 
-std::bitset<3>  configParser::process_methods(std::string &line)
+std::bitset<3>  ConfigParser::process_methods(std::string &line)
 {
     std::bitset<3> methods;
 
@@ -116,7 +116,7 @@ std::bitset<3>  configParser::process_methods(std::string &line)
     return (methods);
 }
 
-void configParser::process_servername(std::string &line, serverConfig &server) {
+void ConfigParser::process_servername(std::string &line, ServerConfig &server) {
     size_t pos = line.find("server_name");
     if (pos != std::string::npos) {
         std::string trimmedLine = line.substr(pos + 12);
@@ -125,7 +125,7 @@ void configParser::process_servername(std::string &line, serverConfig &server) {
     }
 }
 
-void configParser::process_maxsize(std::string &line, serverConfig &server) {
+void ConfigParser::process_maxsize(std::string &line, ServerConfig &server) {
     size_t pos = line.find("client_max_body_size");
     if (pos != std::string::npos) {
         std::string trimmedLine = line.substr(pos + 21);
@@ -138,7 +138,7 @@ void configParser::process_maxsize(std::string &line, serverConfig &server) {
     }}
 }
 
-void configParser::process_errorpages(std::string &line, serverConfig &server) {
+void ConfigParser::process_errorpages(std::string &line, ServerConfig &server) {
     int         code;
     std::string errorPage;
     size_t pos = line.find("error_page");
@@ -154,7 +154,7 @@ void configParser::process_errorpages(std::string &line, serverConfig &server) {
     }
 }
 
-std::string configParser::process_rootdirectory(std::string &line) {
+std::string ConfigParser::process_rootdirectory(std::string &line) {
     size_t startPos = line.find("root");
     std::string trimmedLine = line.substr(startPos + 5);
     utility::stringTrim(trimmedLine, " \t\n\r\f\v;");
@@ -166,7 +166,7 @@ std::string configParser::process_rootdirectory(std::string &line) {
 }
 
 
-void configParser::process_index(std::string &line, serverConfig &server) {
+void ConfigParser::process_index(std::string &line, ServerConfig &server) {
 
     std::vector<std::string> index;
     size_t pos = line.find("index");
@@ -186,7 +186,7 @@ void configParser::process_index(std::string &line, serverConfig &server) {
     }
 }
 
-void configParser::process_cgi(std::string &line, serverConfig &server)
+void ConfigParser::process_cgi(std::string &line, ServerConfig &server)
 {
     std::string ext;
     std::string program;
@@ -203,7 +203,7 @@ void configParser::process_cgi(std::string &line, serverConfig &server)
     }
 }
 
-void configParser::process_location(std::string first_line, std::stringstream& sb, serverConfig &server) {
+void ConfigParser::process_location(std::string first_line, std::stringstream& sb, ServerConfig &server) {
 
     Location    loc;
 
@@ -266,7 +266,7 @@ void configParser::process_location(std::string first_line, std::stringstream& s
     }
 }
 
-void configParser::process_line(std::string &line, serverConfig &server) {
+void ConfigParser::process_line(std::string &line, ServerConfig &server) {
     if (line.find("listen") != std::string::npos)
         process_listen(line, server);
     else if (line.find("server_name") != std::string::npos)
@@ -288,9 +288,9 @@ void configParser::process_line(std::string &line, serverConfig &server) {
 }
 
 
-void    configParser::process_server_block(std::string &serverBlock) {
+void    ConfigParser::process_server_block(std::string &serverBlock) {
 
-    serverConfig server; // Create a serverConfig object for this server block
+    ServerConfig server; // Create a ServerConfig object for this server block
 
     std::stringstream sb(serverBlock); 
     std::string line;
@@ -313,7 +313,7 @@ void    configParser::process_server_block(std::string &serverBlock) {
 }
 
 
-void    configParser::read_and_parse_config() {
+void    ConfigParser::read_and_parse_config() {
 
     std::ifstream configFile(this->_path);
 
@@ -358,6 +358,6 @@ void    configParser::read_and_parse_config() {
     }
 }
 
-std::vector<serverConfig>   configParser::get_serverconfig(){
+std::vector<ServerConfig>   ConfigParser::get_ServerConfig(){
     return(this->_servers);
 }

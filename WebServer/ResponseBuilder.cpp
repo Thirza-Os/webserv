@@ -1,4 +1,4 @@
-#include "responseBuilder.hpp"
+#include "ResponseBuilder.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -6,18 +6,18 @@
 #include <unistd.h>
 #include <cstring>
 
-responseBuilder::responseBuilder(requestParser request, serverConfig config): _request(request), _config(config) {
+ResponseBuilder::ResponseBuilder(RequestParser request, ServerConfig config): _request(request), _config(config) {
     this->_status_code = this->_request.get_status_code();
     build_response();
 }
 
-responseBuilder::responseBuilder(const responseBuilder &src) {
+ResponseBuilder::ResponseBuilder(const ResponseBuilder &src) {
     *this = src;
 }
 
-responseBuilder::~responseBuilder() {}
+ResponseBuilder::~ResponseBuilder() {}
 
-responseBuilder &responseBuilder::operator=(const responseBuilder &src)
+ResponseBuilder &ResponseBuilder::operator=(const ResponseBuilder &src)
 {
     if (this != &src) {
         this->_request = src._request;
@@ -28,7 +28,7 @@ responseBuilder &responseBuilder::operator=(const responseBuilder &src)
     return *this;
 }
 
-void        responseBuilder::build_header() {
+void        ResponseBuilder::build_header() {
     std::ostringstream ss;
     if (this->_request.get_protocol().empty())
         ss << "HTTP/1.1";
@@ -49,9 +49,9 @@ void        responseBuilder::build_header() {
 	this->_header = ss.str();
 }
 
-std::string responseBuilder::process_uri() {
+std::string ResponseBuilder::process_uri() {
     std::string uri = this->_request.get_uri();
-    uri.insert(0, "web_server/www/penguinserv");
+    uri.insert(0, "WebServer/www/penguinserv");
     if (uri.back() == '/') {
         uri.append("index.html"); //or whatever config file says is the default
     }
@@ -60,7 +60,7 @@ std::string responseBuilder::process_uri() {
     return (uri);
 }
 
-void	responseBuilder::build_response() {
+void	ResponseBuilder::build_response() {
     if (this->_status_code == 400) {
         std::cout << "Bad request" << std::endl;
         build_header();
@@ -73,7 +73,7 @@ void	responseBuilder::build_response() {
         htmlFile.close();
         std::cout << "file can't be opened" << std::endl;
         this->_status_code = 404;
-        htmlFile.open("web_server/www/penguinserv/errorPages/404Error.html");
+        htmlFile.open("WebServer/www/penguinserv/errorPages/404Error.html");
         if (!htmlFile.good()) {
             htmlFile.close();
             std::cout << "error page can't be opened either" << std::endl;
@@ -91,10 +91,10 @@ void	responseBuilder::build_response() {
 	this->_response.append(this->_body);
 }
 
-std::string responseBuilder::getResponse() {
+std::string ResponseBuilder::getResponse() {
 	return (this->_response);
 }
 
-std::string responseBuilder::getHeader() {
+std::string ResponseBuilder::getHeader() {
 	return (this->_header);
 }

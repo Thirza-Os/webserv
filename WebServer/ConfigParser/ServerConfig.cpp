@@ -1,22 +1,22 @@
-#include "serverConfig.hpp"
+#include "ServerConfig.hpp"
 
 #include <netinet/in.h>
 #include <iostream>
 
-serverConfig::serverConfig():
+ServerConfig::ServerConfig():
     _port(80),
     _host(0),
     _serverName(""),
     _maxSize(0),
     _rootDirectory("") {}
 
-serverConfig::~serverConfig() {}
+ServerConfig::~ServerConfig() {}
 
-serverConfig::serverConfig(const serverConfig &src) {
+ServerConfig::ServerConfig(const ServerConfig &src) {
     *this = src;
 }
 
-serverConfig &serverConfig::operator=(const serverConfig &src) {
+ServerConfig &ServerConfig::operator=(const ServerConfig &src) {
     if (this != &src) {
         this->_port = src._port;
         this->_host = src._host;
@@ -32,74 +32,74 @@ serverConfig &serverConfig::operator=(const serverConfig &src) {
     return *this;
 }
 
-void serverConfig::set_port(int port) {
+void ServerConfig::set_port(int port) {
     this->_port = port;
 }
 
-void serverConfig::set_host(in_addr_t &host) {
+void ServerConfig::set_host(in_addr_t &host) {
     this->_host = host;
 }
 
-void serverConfig::set_servername(const std::string serverName) {
+void ServerConfig::set_servername(const std::string serverName) {
     this->_serverName = serverName;
 }
 
-void serverConfig::set_maxsize(size_t maxSize) {
+void ServerConfig::set_maxsize(size_t maxSize) {
     this->_maxSize = maxSize;
 }
 
-void serverConfig::set_error_pages(int code, std::string &errorPage) {
+void ServerConfig::set_error_pages(int code, std::string &errorPage) {
     _errorPages[code] = errorPage;
 }
 
-void serverConfig::set_rootdirectory(const std::string rootDirectory) {
+void ServerConfig::set_rootdirectory(const std::string rootDirectory) {
     this->_rootDirectory = rootDirectory;
 }
 
-void serverConfig::set_index(std::vector<std::string> &index) {
+void ServerConfig::set_index(std::vector<std::string> &index) {
     this->_index = index;
 }
 
-void serverConfig::set_location(const Location& location) {
+void ServerConfig::set_location(const Location& location) {
     _locations.push_back(location);
 }
 
-void serverConfig::set_cgiExtensions(const std::string ext, const std::string program) {
+void ServerConfig::set_cgiExtensions(const std::string ext, const std::string program) {
     _cgiExtensions[ext] = program;
 }
 
-// void serverConfig::setSocketAddr(const struct sockaddr_in& socketAddr) {
+// void ServerConfig::setSocketAddr(const struct sockaddr_in& socketAddr) {
 //     _socketAddr = socketAddr;
 // }
 
-int serverConfig::get_port() const {
+int ServerConfig::get_port() const {
     return (this->_port);
 }
 
-in_addr_t   serverConfig::get_host() const {
+in_addr_t   ServerConfig::get_host() const {
     return (this->_host);
 }
 
-std::string   serverConfig::get_servername() const {
+std::string   ServerConfig::get_servername() const {
     return (this->_serverName);
 }
 
-size_t    serverConfig::get_maxsize() const {
+size_t    ServerConfig::get_maxsize() const {
     return (this->_maxSize);
 }
 
-std::map<int, std::string>    serverConfig::get_errorpages() const {
+std::map<int, std::string>    ServerConfig::get_errorpages() const {
     return (this->_errorPages);
 }
 
-std::string   serverConfig::get_rootdirectory() const {
+std::string   ServerConfig::get_rootdirectory() const {
     return (this->_rootDirectory);
 }
 
-std::vector<Location>   serverConfig::get_locations() const {
+std::vector<Location>   ServerConfig::get_locations() const {
     return (this->_locations);
 }
 
-std::map<std::string, std::string>   serverConfig::get_cgiExtensions() const {
+std::map<std::string, std::string>   ServerConfig::get_cgiExtensions() const {
     return (this->_cgiExtensions);
 }

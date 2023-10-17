@@ -1,5 +1,5 @@
-#include "serverManager.hpp"
-#include "utilities/utilities.hpp"
+#include "ServerManager.hpp"
+#include "Utilities/Utilities.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -10,31 +10,31 @@
 
 const int BUFFER_SIZE = 30720;
 
-serverManager::serverManager(std::vector<serverConfig> configs): _configs(configs)
+ServerManager::ServerManager(std::vector<ServerConfig> configs): _configs(configs)
 {
-    for (std::vector<serverConfig>::iterator it = _configs.begin(); it != _configs.end() ;it++) {
-        _servers.push_back(server(*it));
+    for (std::vector<ServerConfig>::iterator it = _configs.begin(); it != _configs.end() ;it++) {
+        _servers.push_back(Server(*it));
     }
     startListen();
 }
 
-serverManager::~serverManager(){}
+ServerManager::~ServerManager(){}
 
-void    serverManager::exitError(const std::string &str)
+void    ServerManager::exitError(const std::string &str)
 {
     std::cerr << "Error - " << str << std::endl;
     exit(1);
 }
 
-void    serverManager::log(const std::string &message)
+void    ServerManager::log(const std::string &message)
 {
     std::cout << message << std::endl;
 }
 
-void serverManager::startListen()
+void ServerManager::startListen()
 {
     std::vector<int> listeners;
-    for (std::vector<server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
+    for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
         if (listen(it->getSocket(), 20) < 0)
         {
             exitError("Socket listen failed");
@@ -80,7 +80,7 @@ void serverManager::startListen()
                             it = _pollfds.erase(it);
                             break ;
                         }
-                        requestParser request(buffer);
+                        RequestParser request(buffer);
                         _requests.insert({it->fd, request});
                         this->_timeOutIndex.at(it->fd) = utility::getCurrentTimeinSec();
 
@@ -108,10 +108,10 @@ void serverManager::startListen()
 
 }
 
-void serverManager::acceptConnection(int incoming)
+void ServerManager::acceptConnection(int incoming)
 {
-    server correctServer;
-    for (std::vector<server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
+    Server correctServer;
+    for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
         if (it->getSocket() == incoming)
             correctServer = *it;
     }
@@ -132,7 +132,7 @@ void serverManager::acceptConnection(int incoming)
     struct pollfd new_socket_fd;
     new_socket_fd.fd = new_socket;
     new_socket_fd.events = POLLIN;
-    _pollfds.push_back(new_socket_fd);
+    this->_pollfds.push_back(new_socket_fd);
     this->_requestServerIndex.insert({new_socket, correctServer});
     this->_timeOutIndex.insert({new_socket, utility::getCurrentTimeinSec()});
     std::ostringstream ss;
@@ -141,10 +141,10 @@ void serverManager::acceptConnection(int incoming)
 }
 
 //return 1 to close the connection after, 0 to keep it alive
-int serverManager::sendResponse(int socket_fd)
+int ServerManager::sendResponse(int socket_fd)
 {
     unsigned long bytesSent;
-    responseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).getConfig());
+    ResponseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).getConfig());
     std::string serverMessage = response.getResponse();
     std::cout << response.getHeader() << std::endl;
     bytesSent = write(socket_fd, serverMessage.c_str(), serverMessage.size());
@@ -168,7 +168,7 @@ int serverManager::sendResponse(int socket_fd)
 }
 
 //Close connections that are idle for 30 seconds or more
-void serverManager::checkTimeout(void)
+void ServerManager::checkTimeout(void)
 {
     long current_time = utility::getCurrentTimeinSec();
     for(std::map<int, long>::iterator it = this->_timeOutIndex.begin(); it != this->_timeOutIndex.end(); it++) {

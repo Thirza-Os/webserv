@@ -1,10 +1,10 @@
 #ifndef SERVERMANAGER_HPP
 # define SERVERMANAGER_HPP
 
-#include "httpparser/requestParser.hpp"
-#include "responseBuilder.hpp"
-#include "server.hpp"
-#include "configparser/serverConfig.hpp"
+#include "HttpParser/RequestParser.hpp"
+#include "ResponseBuilder.hpp"
+#include "Server.hpp"
+#include "ConfigParser/ServerConfig.hpp"
 
 #include <stdio.h>
 #include <sys/socket.h>
@@ -16,24 +16,24 @@
 #include <arpa/inet.h>
 #include <poll.h>
 
-class serverManager
+class ServerManager
 {
 public:
 
-    serverManager(std::vector<serverConfig> configs);
-    ~serverManager();
+    ServerManager(std::vector<ServerConfig> configs);
+    ~ServerManager();
 
     void    exitError(const std::string &str);
     void    log(const std::string &message);
 
 private:
 
-    std::vector<serverConfig>       _configs;
-    std::vector<server>             _servers;
+    std::vector<ServerConfig>       _configs;
+    std::vector<Server>             _servers;
 
     std::vector<struct pollfd>      _pollfds;
-    std::map<int, server>           _requestServerIndex;
-    std::map<int, requestParser>    _requests;
+    std::map<int, Server>           _requestServerIndex;
+    std::map<int, RequestParser>    _requests;
     std::map<int, long>             _timeOutIndex;
 
 
