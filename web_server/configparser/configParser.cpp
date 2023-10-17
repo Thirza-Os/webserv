@@ -271,7 +271,6 @@ void configParser::process_line(std::string &line, serverConfig &server) {
         process_listen(line, server);
     else if (line.find("server_name") != std::string::npos)
         {
-        std::cout << "how often HUH" << line << std::endl;
         process_servername(line, server);
         }
     else if (line.find("client_max_body_size") != std::string::npos)
