@@ -283,7 +283,6 @@ void configParser::process_line(std::string &line, serverConfig &server) {
         process_index(line, server);
     else if (line.find("cgi") != std::string::npos)
     {
-        std::cout << "how often" << line << std::endl;
         process_cgi(line, server);
     }
 }
