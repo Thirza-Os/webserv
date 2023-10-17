@@ -22,5 +22,4 @@ int main(int argc, char **argv){
     catch(const ConfigParserException& e) {
         std::cerr << "ConfigParser Error: " << e.what() << std::endl;
     }
-    serverManager manager(servers);
 }
