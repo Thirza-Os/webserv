@@ -26,19 +26,8 @@ serverConfig &serverConfig::operator=(const serverConfig &src) {
         this->_rootDirectory = src._rootDirectory;
         this->_index = src._index;
         this->_locations = src._locations;
-        for (const Location &srcLocation : src._locations) {
-            Location destinationLocation; // Create a new Location object
-            destinationLocation.path = srcLocation.path;
-            destinationLocation.root = srcLocation.root;
-            destinationLocation.methods = srcLocation.methods;
-            destinationLocation.autoindex = srcLocation.autoindex;
-            destinationLocation.index = srcLocation.index;
-            destinationLocation.returnPath = srcLocation.returnPath;
-
-            this->_locations.push_back(destinationLocation); // Add the copied Location to the vector
-        }
         this->_cgiExtensions = src._cgiExtensions;
-        // ADD STRUCT COPY HERE
+        this->_locations = src._locations;
     }
     return *this;
 }
