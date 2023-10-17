@@ -13,7 +13,7 @@ int main(int argc, char **argv){
     try{
         configParser parsed(argv[1]);
         parsed.read_and_parse_config();
-        std::vector<serverConfig> servers = parsed.getServerConfig();
+        std::vector<serverConfig> servers = parsed.get_serverconfig();
         // for (std::vector<serverConfig>::iterator it = servers.begin(); it != servers.end() ;it++) {
         //     std::cout << "Host: " << it->getHost() << " Port: " << it->getPort() << std::endl;
         // }
@@ -22,4 +22,5 @@ int main(int argc, char **argv){
     catch(const ConfigParserException& e) {
         std::cerr << "ConfigParser Error: " << e.what() << std::endl;
     }
+    serverManager manager(servers);
 }
