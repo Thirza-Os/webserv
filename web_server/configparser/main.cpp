@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
             std::cout << "cgi extension: " << it->first << ", cgi program: " << it->second << std::endl;
         }
         
-        std::cout << "locations:" << std::endl;
+        std::cout << "locations: " << server.get_locations().size() << std::endl;
         const std::vector<Location>& locations = server.get_locations();
         for (size_t j = 0; j < locations.size(); j++) {
             const Location& location = locations[j];
@@ -42,7 +42,10 @@ int main(int argc, char *argv[]) {
             std::cout << "Location Autoindex: " << (location.autoindex ? "true" : "false") << std::endl;
             std::cout << "Location Index: " << location.index << std::endl;
             std::cout << "Location Return Path: " << location.returnPath << std::endl;
+
+            std::cout << "END OF LOCATION BLOCK" << std::endl;
         }
+
 
         std::cout << "END OF SERVER" << std::endl << std::endl;
     }

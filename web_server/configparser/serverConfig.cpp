@@ -27,7 +27,7 @@ serverConfig &serverConfig::operator=(const serverConfig &src) {
         this->_index = src._index;
         this->_locations = src._locations;
         this->_cgiExtensions = src._cgiExtensions;
-        // ADD STRUCT COPY HERE
+        this->_locations = src._locations;
     }
     return *this;
 }
@@ -66,12 +66,6 @@ void serverConfig::set_location(const Location& location) {
 
 void serverConfig::set_cgiExtensions(const std::string ext, const std::string program) {
     this->_cgiExtensions[ext] = program;
-        std::cout << "SETTER" <<std::endl << std::endl;
-    std::map<std::string, std::string> cgi = this->_cgiExtensions;
-            for (std::map<std::string, std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it) {
-            std::cout << "cgi extension: " << it->first << ", cgi program: " << it->second << std::endl;
-        }
-
 }
 
 // void serverConfig::setSocketAddr(const struct sockaddr_in& socketAddr) {
@@ -107,10 +101,5 @@ std::vector<Location>   serverConfig::get_locations() const {
 }
 
 std::map<std::string, std::string>   serverConfig::get_cgiExtensions() const {
-    std::cout << "GETTER" <<std::endl << std::endl;
-    std::map<std::string, std::string> cgi = this->_cgiExtensions;
-            for (std::map<std::string, std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it) {
-            std::cout << "cgi extension: " << it->first << ", cgi program: " << it->second << std::endl;
-        }
     return (this->_cgiExtensions);
 }
