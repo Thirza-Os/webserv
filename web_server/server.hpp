@@ -1,7 +1,7 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-#include "configparser/serverConfig.hpp"
+#include "ConfigParser/ServerConfig.hpp"
 
 #include <stdio.h>
 #include <sys/socket.h>

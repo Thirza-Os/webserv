@@ -1,8 +1,8 @@
 #ifndef RESPONSEBIULDER_HPP
 # define RESPONSEBIULDER_HPP
 
-#include "httpparser/requestParser.hpp"
-#include "configparser/serverConfig.hpp"
+#include "httpparser/RequestParser.hpp"
+#include "ConfigParser/ServerConfig.hpp"
 #include <string>
 
 class responseBuilder

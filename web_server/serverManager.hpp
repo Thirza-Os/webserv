@@ -1,10 +1,10 @@
 #ifndef SERVERMANAGER_HPP
 # define SERVERMANAGER_HPP
 
-#include "httpparser/requestParser.hpp"
-#include "responseBuilder.hpp"
-#include "server.hpp"
-#include "configparser/serverConfig.hpp"
+#include "HttpParser/RequestParser.hpp"
+#include "ResponseBuilder.hpp"
+#include "Server.hpp"
+#include "Configparser/ServerConfig.hpp"
 
 #include <stdio.h>
 #include <sys/socket.h>

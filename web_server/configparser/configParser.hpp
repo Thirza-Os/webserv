@@ -37,7 +37,6 @@ public:
     bool                                file_exists(const char *path);
     bool                                index_exists(const std::string& rootDirectory, const std::string& indexFilename);
     void                                process_listen(std::string &line, serverConfig &server);
-    void                                process_host(std::string &line, serverConfig &server);
     void                                process_servername(std::string &line, serverConfig &server);
     std::bitset<3>                      process_methods(std::string &line);
     void                                process_maxsize(std::string &line, serverConfig &server);
@@ -45,7 +44,7 @@ public:
     std::string                         process_rootdirectory(std::string &line);
     void                                process_index(std::string &line, serverConfig &server);
     void                                process_location(std::string line, std::stringstream& sb, serverConfig &server);
-    void                                process_cgi(std::string &line, serverConfig &server);
+    void                                process_cgi(std::string &line, Location &loc);
 
     void                                process_line(std::string &line, serverConfig &server);
 

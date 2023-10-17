@@ -1,6 +1,6 @@
 #include "configParser.hpp"
 #include "serverConfig.hpp"
-#include "../utilities/utilities.hpp"
+#include "../Utilities/Utilities.hpp"
 #include <iostream>
 #include <vector>
 #include <bitset>
@@ -26,12 +26,6 @@ int main(int argc, char *argv[]) {
             std::cout << "Error Page Key: " << it->first << ", Error Page Value: " << it->second << std::endl;
         }
         
-        std::cout << "cgi:" << std::endl;
-        std::map<std::string, std::string> cgi = server.get_cgiExtensions();
-        for (std::map<std::string, std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it) {
-            std::cout << "cgi extension: " << it->first << ", cgi program: " << it->second << std::endl;
-        }
-        
         std::cout << "locations: " << server.get_locations().size() << std::endl;
         const std::vector<Location>& locations = server.get_locations();
         for (size_t j = 0; j < locations.size(); j++) {
@@ -42,6 +36,10 @@ int main(int argc, char *argv[]) {
             std::cout << "Location Autoindex: " << (location.autoindex ? "true" : "false") << std::endl;
             std::cout << "Location Index: " << location.index << std::endl;
             std::cout << "Location Return Path: " << location.returnPath << std::endl;
+            std::cout << "CGI: " << std::endl;
+            for (std::map<std::string, std::string>::const_iterator it = location.cgiExtensions.begin(); it != location.cgiExtensions.end(); ++it) {
+                std::cout << "Extension: " << it->first << ", Program: " << it->second << std::endl;
+            }
 
             std::cout << "END OF LOCATION BLOCK" << std::endl;
         }

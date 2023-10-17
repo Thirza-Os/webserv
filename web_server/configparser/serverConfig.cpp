@@ -26,7 +26,6 @@ serverConfig &serverConfig::operator=(const serverConfig &src) {
         this->_rootDirectory = src._rootDirectory;
         this->_index = src._index;
         this->_locations = src._locations;
-        this->_cgiExtensions = src._cgiExtensions;
         this->_locations = src._locations;
     }
     return *this;
@@ -64,9 +63,9 @@ void serverConfig::set_location(const Location& location) {
     _locations.push_back(location);
 }
 
-void serverConfig::set_cgiExtensions(const std::string ext, const std::string program) {
-    this->_cgiExtensions[ext] = program;
-}
+// void serverConfig::set_cgiExtensions(const std::string ext, const std::string program) {
+//     this->_cgiExtensions[ext] = program;
+// }
 
 // void serverConfig::setSocketAddr(const struct sockaddr_in& socketAddr) {
 //     _socketAddr = socketAddr;
@@ -100,6 +99,6 @@ std::vector<Location>   serverConfig::get_locations() const {
     return (this->_locations);
 }
 
-std::map<std::string, std::string>   serverConfig::get_cgiExtensions() const {
-    return (this->_cgiExtensions);
-}
+// std::map<std::string, std::string>   serverConfig::get_cgiExtensions() const {
+//     return (this->_cgiExtensions);
+// }
