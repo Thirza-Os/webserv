@@ -1,5 +1,5 @@
-#include "requestParser.hpp"
-#include "../utilities/utilities.hpp"
+#include "RequestParser.hpp"
+#include "../Utilities/Utilities.hpp"
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
@@ -11,24 +11,24 @@
 
 // CHECK: Check if everything looks well with the whitespaces trim, or more chars have to be added.
 
-requestParser::requestParser(std::string request): _request(request), _status_code(200), _ParsingCompleted(false) {
+RequestParser::RequestParser(std::string request): _request(request), _status_code(200), _ParsingCompleted(false) {
     consume_request();
     print_request();                // FOR TESTING
 }
 
-requestParser::requestParser(): _request(""), _status_code(200), _ParsingCompleted(false) {}
+RequestParser::RequestParser(): _request(""), _status_code(200), _ParsingCompleted(false) {}
 
-requestParser::requestParser(const requestParser &src) {
+RequestParser::RequestParser(const RequestParser &src) {
     *this = src;
 }
 
-requestParser::~requestParser() {}
+RequestParser::~RequestParser() {}
 
-void    requestParser::add_header(std::string key, std::string value) {
+void    RequestParser::add_header(std::string key, std::string value) {
     this->_headers[key] = value;
 }
 
-requestParser &requestParser::operator=(const requestParser &src)
+RequestParser &RequestParser::operator=(const RequestParser &src)
 {
     if (this != &src) {
         this->_request = src._request;
@@ -37,33 +37,33 @@ requestParser &requestParser::operator=(const requestParser &src)
         this->_protocol = src._protocol;
         this->_headers = src._headers;
         this->_body = src._body;
-        this->parsingCompleted = src._ParsingCompleted;
+        this->_ParsingCompleted = src._ParsingCompleted;
         this->_status_code = src._status_code;
     }
     return *this;
 }
 
-bool    requestParser::parsing_completed() const {
+bool    RequestParser::parsing_completed() const {
     return this->_ParsingCompleted;
 }
 
-std::string requestParser::get_method() const {
+std::string RequestParser::get_method() const {
     return (this->_method);
 }
 
-std::string requestParser::get_uri() const {
+std::string RequestParser::get_uri() const {
     return (this->_uri);
 }
 
-std::string requestParser::get_protocol() const {
+std::string RequestParser::get_protocol() const {
     return (this->_protocol);
 }
 
-std::string requestParser::get_body() const {
+std::string RequestParser::get_body() const {
     return (this->_body);
 }
 
-std::string requestParser::get_content_type() const {
+std::string RequestParser::get_content_type() const {
     if (_headers.count("Content-Type") > 0) {
         return _headers.at("Content-Type");
     } else {
@@ -71,7 +71,7 @@ std::string requestParser::get_content_type() const {
     }
 }
 
-size_t requestParser::get_content_length() const {
+size_t RequestParser::get_content_length() const {
     if (_headers.count("Content-Length") > 0) {
         return std::stoi(_headers.at("Content-Length"));
     } else {
@@ -79,16 +79,24 @@ size_t requestParser::get_content_length() const {
     }
 }
 
-int requestParser::get_status_code() const {
+int RequestParser::get_status_code() const {
     return (this->_status_code);
 }
 
-void    requestParser::parse_error(const std::string &str, int code) {
+std::string RequestParser::find_header(std::string key) {
+    if (_headers.count("Content-Length") > 0) {
+        return (_headers.at(key));
+    } else {
+        return "";
+    }
+}
+
+void    RequestParser::parse_error(const std::string &str, int code) {
     this->_status_code = code;
     std::cerr << code << " " << str << std::endl;
 }
 
-void    requestParser::tokenize(const std::string& str, std::vector<std::string>& tokens, char delimiter) {
+void    RequestParser::tokenize(const std::string& str, std::vector<std::string>& tokens, char delimiter) {
     std::istringstream iss(str);
     std::string token;
     while (std::getline(iss, token, delimiter)) {
@@ -96,7 +104,7 @@ void    requestParser::tokenize(const std::string& str, std::vector<std::string>
     }
 }
 
-void    requestParser::validate_request_line(){
+void    RequestParser::validate_request_line(){
     if (this->_method != "GET" && this->_method != "POST" && this->_method != "DELETE")
         parse_error("Method Not Allowed", 405);
     // not sure what to check here
@@ -107,7 +115,7 @@ void    requestParser::validate_request_line(){
 
 }
 
-void    requestParser::decode_uri(){
+void    RequestParser::decode_uri(){
 
     std::string     decoded;
     size_t          len = this->_uri.length();
@@ -135,7 +143,7 @@ void    requestParser::decode_uri(){
     this->_uri = decoded;
 }
 
-void    requestParser::validate_header(std::string line){
+void    RequestParser::validate_header(std::string line){
 
     size_t colon_pos = line.find(':');
 
@@ -152,14 +160,14 @@ void    requestParser::validate_header(std::string line){
     }
 }
 
-bool    requestParser::validate_content(std::string line){
+bool    RequestParser::validate_content(std::string line){
     if (line.empty())
         return(0);
 
     return(0);
 }
 
-void requestParser::consume_request(){
+void RequestParser::consume_request(){
 
     std::string                 raw_request = this->_request;
     std::vector<std::string>    parsed_request;
@@ -213,7 +221,7 @@ void requestParser::consume_request(){
     this->_ParsingCompleted = true;
 }
 
-void requestParser::print_request() const {
+void RequestParser::print_request() const {
     std::cout << "Request: " << _request << std::endl;
     std::cout << "Method: " << _method << std::endl;
     std::cout << "URI: " << _uri << std::endl;

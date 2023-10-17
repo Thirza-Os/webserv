@@ -1,21 +1,21 @@
 NAME =	webserv
 
-INC =	web_server/serverManager.hpp \
-		web_server/server.hpp \
-		web_server/responseBuilder.hpp \
-		web_server/httpparser/requestParser.hpp \
-		web_server/configparser/configParser.hpp \
-		web_server/configparser/serverConfig.hpp \
-		web_server/utilities/utilities.hpp
+INC =	WebServer/ServerManager.hpp \
+		WebServer/Server.hpp \
+		WebServer/ResponseBuilder.hpp \
+		WebServer/HttpParser/RequestParser.hpp \
+		WebServer/ConfigParser/ConfigParser.hpp \
+		WebServer/ConfigParser/ServerConfig.hpp \
+		WebServer/Utilities/Utilities.hpp
 
-OBJ =	main.o \
-		web_server/serverManager.o \
-		web_server/server.o \
-		web_server/responseBuilder.o \
-		web_server/httpparser/requestParser.o \
-		web_server/configparser/configParser.o \
-		web_server/configparser/serverConfig.o \
-		web_server/utilities/utilities.o
+OBJ =	Main.o \
+		WebServer/ServerManager.o \
+		WebServer/Server.o \
+		WebServer/ResponseBuilder.o \
+		WebServer/HttpParser/RequestParser.o \
+		WebServer/ConfigParser/ConfigParser.o \
+		WebServer/ConfigParser/ServerConfig.o \
+		WebServer/Utilities/Utilities.o
 
 CC =	clang++
 
