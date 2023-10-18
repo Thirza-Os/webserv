@@ -13,21 +13,21 @@
 #include <arpa/inet.h>
 #include <poll.h>
 
-class server
+class Server
 {
 
 public:
-    server(serverConfig config);
-    server();
-    ~server();
+    Server(ServerConfig config);
+    Server();
+    ~Server();
 
 	int					getSocket() const;
 	struct sockaddr_in	getSockAddr() const;
-    serverConfig        getConfig() const;
+    ServerConfig        getConfig() const;
 
 private:
 
-    serverConfig					_config;
+    ServerConfig					_config;
     int                             _socket;
 
     struct sockaddr_in				_socketAddr;

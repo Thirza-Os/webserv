@@ -21,7 +21,7 @@ struct Location {
     Location() : autoindex(false){};
 };
 
-class serverConfig
+class ServerConfig
 {
 private:
     int                                 _port;
@@ -35,10 +35,10 @@ private:
     //struct          sockaddr_in  _socketAddr;
 
 public:
-    serverConfig();
-    ~serverConfig();
-    serverConfig(const serverConfig &src);
-    serverConfig &operator=(const serverConfig &src);
+    ServerConfig();
+    ~ServerConfig();
+    ServerConfig(const ServerConfig &src);
+    ServerConfig &operator=(const ServerConfig &src);
 
     std::vector<Location> 		_locations;
 

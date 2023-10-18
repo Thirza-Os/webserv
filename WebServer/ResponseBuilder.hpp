@@ -1,15 +1,16 @@
 #ifndef RESPONSEBIULDER_HPP
 # define RESPONSEBIULDER_HPP
 
-#include "httpparser/RequestParser.hpp"
+#include "HttpParser/RequestParser.hpp"
 #include "ConfigParser/ServerConfig.hpp"
+
 #include <string>
 
-class responseBuilder
+class ResponseBuilder
 {
 private:
-    requestParser                       _request;
-    serverConfig                        _config;
+    RequestParser                       _request;
+    ServerConfig                        _config;
     std::string                         _header;
     std::string                         _body;
     std::string                         _response;
@@ -20,10 +21,10 @@ private:
     std::string process_uri();
 
 public:
-    responseBuilder(requestParser request, serverConfig config);
-    responseBuilder(const responseBuilder &src);
-    ~responseBuilder();
-    responseBuilder &operator=(const responseBuilder &src);
+    ResponseBuilder(RequestParser request, ServerConfig config);
+    ResponseBuilder(const ResponseBuilder &src);
+    ~ResponseBuilder();
+    ResponseBuilder &operator=(const ResponseBuilder &src);
 
     std::string     getResponse();
     std::string     getHeader();
