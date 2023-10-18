@@ -12,8 +12,8 @@ CgiHandler::~CgiHandler()
 {
 }
 
-void    CgiHandler::initialize_environment(Location loc)
-{
-    this->_environment["PATH_INFO"] = this->_variables.path;
-    this->_environment["SCRIPT_FILENAME"] = this->_variables.path;
-}
+// void    CgiHandler::initialize_environment(Location loc)
+// {
+//     this->_environment["PATH_INFO"] = this->_variables.path;
+//     this->_environment["SCRIPT_FILENAME"] = this->_variables.path;
+// }

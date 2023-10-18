@@ -1,7 +1,7 @@
 #ifndef CGIHANDLER_HPP
 # define CGIHANDLER_HPP
 
-#include "../ConfigParser/serverConfig.hpp"
+#include "../ConfigParser/ServerConfig.hpp"
 #include <string>
 #include <map>
 

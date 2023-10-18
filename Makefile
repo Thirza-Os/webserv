@@ -3,6 +3,7 @@ NAME =	webserv
 INC =	WebServer/ServerManager.hpp \
 		WebServer/Server.hpp \
 		WebServer/ResponseBuilder.hpp \
+		WebServer/CgiHandler/CgiHandler.hpp \
 		WebServer/HttpParser/RequestParser.hpp \
 		WebServer/ConfigParser/ConfigParser.hpp \
 		WebServer/ConfigParser/ServerConfig.hpp \
@@ -12,6 +13,7 @@ OBJ =	Main.o \
 		WebServer/ServerManager.o \
 		WebServer/Server.o \
 		WebServer/ResponseBuilder.o \
+		WebServer/CgiHandler/CgiHandler.o \
 		WebServer/HttpParser/RequestParser.o \
 		WebServer/ConfigParser/ConfigParser.o \
 		WebServer/ConfigParser/ServerConfig.o \
