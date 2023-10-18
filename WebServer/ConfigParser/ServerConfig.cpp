@@ -49,7 +49,7 @@ void ServerConfig::set_maxsize(size_t maxSize) {
 }
 
 void ServerConfig::set_error_pages(int code, std::string &errorPage) {
-    _errorPages[code] = errorPage;
+    this->_errorPages[code] = errorPage;
 }
 
 void ServerConfig::set_rootdirectory(const std::string rootDirectory) {
@@ -64,9 +64,9 @@ void ServerConfig::set_location(const Location& location) {
     _locations.push_back(location);
 }
 
-void ServerConfig::set_cgiExtensions(const std::string ext, const std::string program) {
-    _cgiExtensions[ext] = program;
-}
+// void ServerConfig::set_cgiExtensions(const std::string ext, const std::string program) {
+//     _cgiExtensions[ext] = program;
+// }
 
 // void ServerConfig::setSocketAddr(const struct sockaddr_in& socketAddr) {
 //     _socketAddr = socketAddr;
@@ -100,6 +100,6 @@ std::vector<Location>   ServerConfig::get_locations() const {
     return (this->_locations);
 }
 
-std::map<std::string, std::string>   ServerConfig::get_cgiExtensions() const {
-    return (this->_cgiExtensions);
-}
+// std::map<std::string, std::string>   ServerConfig::get_cgiExtensions() const {
+//     return (this->_cgiExtensions);
+// }

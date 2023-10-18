@@ -16,6 +16,7 @@ struct Location {
     bool                                autoindex;
     std::string                         index;
     std::string                         returnPath;
+    std::map<std::string, std::string>  cgiExtensions;
 
     Location() : autoindex(false){};
 };
@@ -30,7 +31,6 @@ private:
     std::map<int, std::string>          _errorPages;
     std::string                         _rootDirectory;
     std::vector<std::string>            _index;
-    std::map<std::string, std::string>  _cgiExtensions;
 
     //struct          sockaddr_in  _socketAddr;
 
