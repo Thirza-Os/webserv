@@ -26,8 +26,18 @@ CgiHandler &CgiHandler::operator=(const CgiHandler &src) {
 
 void    CgiHandler::initialize_environment(Location const &loc, RequestParser const &httprequest)
 {
+    std::map<std::string, std::string>::const_iterator it = loc.cgiExtensions.begin();
+    // Only accessing first key & value, in case we want to expand to multiple we can make this a loop
+    const std::string& firstKey = it->first;
+    const std::string& firstValue = it->second;
+   
     this->_environment["GATEWAY_INTERFACE"] = std::string("CGI/1.1");
-    this->_environment["PATH_INFO"] = loc.root + loc.path;
+    this->_environment["SERVER_PROTOCOL"] = "HTTP/1.1";
+    this->_environment["REDIRECT_STATUS"] = "200";              // Hardcoded this as well, means succesfull response
+    this->_environment["SERVER_PORT"] = "8081";                 // hardcoded this for now
+    this->_environment["SERVER_SOFTWARE"] = "cool_server1.0";
+    this->_environment["PATH_INFO"] = loc.root + loc.path;      // not sure what to do with this
+    this->_environment["SCRIPT_NAME"] = firstValue;
     this->_environment["SCRIPT_FILENAME"] = loc.root + loc.path;
     this->_environment["REQUEST_METHOD"] = httprequest.get_method();
     this->_environment["REQUEST_URI"] = httprequest.get_uri();
