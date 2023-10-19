@@ -19,6 +19,7 @@ private:
     void        build_response();
     void        build_header();
     std::string process_uri();
+    Location    match_location(std::string uri);
 
 public:
     ResponseBuilder(RequestParser request, ServerConfig config);
