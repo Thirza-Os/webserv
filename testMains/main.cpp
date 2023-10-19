@@ -1,6 +1,8 @@
-#include "configParser.hpp"
-#include "serverConfig.hpp"
-#include "../utilities/utilities.hpp"
+// Put this in  the configparser file to test
+
+#include "ConfigParser.hpp"
+#include "ServerConfig.hpp"
+#include "../Utilities/Utilities.hpp"
 #include <iostream>
 #include <vector>
 #include <bitset>
@@ -9,12 +11,12 @@
 int main(int argc, char *argv[]) {
     std::cout << argc << std::endl;
     
-    configParser parser(argv[1]);
+    ConfigParser parser(argv[1]);
     parser.read_and_parse_config();
-    std::vector<serverConfig> servers = parser.get_serverconfig();
+    std::vector<ServerConfig> servers = parser.get_serverconfig();
 
     for (size_t i = 0; i < servers.size(); i++) {
-        const serverConfig& server = servers[i];
+        const ServerConfig& server = servers[i];
         std::cout << "Server Listen: " << server.get_port() << std::endl;
         std::cout << "Server Host: " << server.get_host() << std::endl;
         std::cout << "Server Name: " << server.get_servername() << std::endl;
@@ -26,13 +28,7 @@ int main(int argc, char *argv[]) {
             std::cout << "Error Page Key: " << it->first << ", Error Page Value: " << it->second << std::endl;
         }
         
-        std::cout << "cgi:" << std::endl;
-        std::map<std::string, std::string> cgi = server.get_cgiExtensions();
-        for (std::map<std::string, std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it) {
-            std::cout << "cgi extension: " << it->first << ", cgi program: " << it->second << std::endl;
-        }
-        
-        std::cout << "locations:" << std::endl;
+        std::cout << "locations: " << server.get_locations().size() << std::endl;
         const std::vector<Location>& locations = server.get_locations();
         for (size_t j = 0; j < locations.size(); j++) {
             const Location& location = locations[j];
@@ -42,7 +38,14 @@ int main(int argc, char *argv[]) {
             std::cout << "Location Autoindex: " << (location.autoindex ? "true" : "false") << std::endl;
             std::cout << "Location Index: " << location.index << std::endl;
             std::cout << "Location Return Path: " << location.returnPath << std::endl;
+            std::cout << "CGI: " << std::endl;
+            for (std::map<std::string, std::string>::const_iterator it = location.cgiExtensions.begin(); it != location.cgiExtensions.end(); ++it) {
+                std::cout << "Extension: " << it->first << ", Program: " << it->second << std::endl;
+            }
+
+            std::cout << "END OF LOCATION BLOCK" << std::endl;
         }
+
 
         std::cout << "END OF SERVER" << std::endl << std::endl;
     }
