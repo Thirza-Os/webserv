@@ -61,7 +61,6 @@ public:
     std::map<int, std::string>              get_errorpages() const;
     std::string                             get_rootdirectory() const;
     std::vector<Location>                   get_locations() const;
-    std::map<std::string, std::string>      get_cgiExtensions() const;
 };
 
 #endif

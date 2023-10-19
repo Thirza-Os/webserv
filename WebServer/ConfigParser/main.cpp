@@ -1,5 +1,5 @@
-#include "configParser.hpp"
-#include "serverConfig.hpp"
+#include "ConfigParser.hpp"
+#include "ServerConfig.hpp"
 #include "../Utilities/Utilities.hpp"
 #include <iostream>
 #include <vector>
@@ -9,12 +9,12 @@
 int main(int argc, char *argv[]) {
     std::cout << argc << std::endl;
     
-    configParser parser(argv[1]);
+    ConfigParser parser(argv[1]);
     parser.read_and_parse_config();
-    std::vector<serverConfig> servers = parser.get_serverconfig();
+    std::vector<ServerConfig> servers = parser.get_serverconfig();
 
     for (size_t i = 0; i < servers.size(); i++) {
-        const serverConfig& server = servers[i];
+        const ServerConfig& server = servers[i];
         std::cout << "Server Listen: " << server.get_port() << std::endl;
         std::cout << "Server Host: " << server.get_host() << std::endl;
         std::cout << "Server Name: " << server.get_servername() << std::endl;

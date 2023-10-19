@@ -186,7 +186,7 @@ void ConfigParser::process_index(std::string &line, ServerConfig &server) {
     }
 }
 
-void ConfigParser::process_cgi(std::string &line, ServerConfig &server)
+void ConfigParser::process_cgi(std::string &line, Location &loc)
 {
     std::string ext;
     std::string program;
@@ -197,7 +197,7 @@ void ConfigParser::process_cgi(std::string &line, ServerConfig &server)
 
         std::istringstream iss(trimmedLine);
         if (iss >> ext >> program) {
-            server.set_cgiExtensions(ext, program);
+            loc.cgiExtensions[ext] = program;
         } else
             throw ConfigParserException("Invalid cgi input");
     }
@@ -212,6 +212,7 @@ void ConfigParser::process_location(std::string first_line, std::stringstream& s
     std::string path = first_line.substr(locationPos, endPos - locationPos);
     utility::stringTrim(path, " \t\n\r\f\v");
     loc.path = path;
+    loc.root = server.get_rootdirectory();
 
     std::string line;
     while (std::getline(sb, line)) {
@@ -259,6 +260,10 @@ void ConfigParser::process_location(std::string first_line, std::stringstream& s
             utility::stringTrim(trimmedLine, " \t\n\r\f\v;");
             loc.returnPath = trimmedLine;
         }
+        else if (line.find("cgi") != std::string::npos)
+        {
+            process_cgi(line, loc);
+        }
         else if (line == "}") {
             server.set_location(loc);
             _braceStack.pop();
@@ -281,10 +286,6 @@ void ConfigParser::process_line(std::string &line, ServerConfig &server) {
         server.set_rootdirectory(process_rootdirectory(line));
     else if (line.find("index") != std::string::npos)
         process_index(line, server);
-    else if (line.find("cgi") != std::string::npos)
-    {
-        process_cgi(line, server);
-    }
 }
 
 
@@ -358,6 +359,6 @@ void    ConfigParser::read_and_parse_config() {
     }
 }
 
-std::vector<ServerConfig>   ConfigParser::get_ServerConfig(){
+std::vector<ServerConfig>   ConfigParser::get_serverconfig() const {
     return(this->_servers);
 }

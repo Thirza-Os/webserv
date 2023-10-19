@@ -29,7 +29,7 @@ public:
     ConfigParser(const ConfigParser &src);
     ConfigParser &operator=(const ConfigParser &src);
 
-    std::vector<ServerConfig>           get_Serverconfig() const;
+    std::vector<ServerConfig>           get_serverconfig() const;
     void                                read_and_parse_config();
     void                                process_server_block(std::string &serverBlock);
     void                                validate_braces(std::string &line);
@@ -45,11 +45,9 @@ public:
     std::string                         process_rootdirectory(std::string &line);
     void                                process_index(std::string &line, ServerConfig &server);
     void                                process_location(std::string line, std::stringstream& sb, ServerConfig &server);
-    void                                process_cgi(std::string &line, ServerConfig &server);
+    void                                process_cgi(std::string &line, Location &loc);
 
     void                                process_line(std::string &line, ServerConfig &server);
-
-    std::vector<ServerConfig>           get_ServerConfig();
 };
 
 #endif

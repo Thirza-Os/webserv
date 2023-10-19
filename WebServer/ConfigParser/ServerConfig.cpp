@@ -26,8 +26,6 @@ ServerConfig &ServerConfig::operator=(const ServerConfig &src) {
         this->_rootDirectory = src._rootDirectory;
         this->_index = src._index;
         this->_locations = src._locations;
-        //this->_cgiExtensions = src._cgiExtensions;
-        this->_locations = src._locations;
     }
     return *this;
 }
