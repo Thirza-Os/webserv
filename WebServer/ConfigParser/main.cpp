@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
         for (std::map<int, std::string>::const_iterator it = errorPages.begin(); it != errorPages.end(); ++it) {
             std::cout << "Error Page Key: " << it->first << ", Error Page Value: " << it->second << std::endl;
         }
-        
+        std::cout << std::endl;
         std::cout << "locations: " << server.get_locations().size() << std::endl;
         const std::vector<Location>& locations = server.get_locations();
         for (size_t j = 0; j < locations.size(); j++) {

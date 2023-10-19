@@ -1,0 +1,1 @@
+// If cgi is specified in a location block, the path specified is handled as cgi input.

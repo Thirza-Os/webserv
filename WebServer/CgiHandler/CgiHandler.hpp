@@ -13,15 +13,18 @@ public:
 class CgiHandler
 {
 private:
-    Location _variables;
+    Location                                _variables;
+    std::map<std::string, std::string>	    _environment;
 
-    std::map<std::string, std::string>	_environment;
-
-    void    initialize_environment(Location loc);
+    void                                    initialize_environment(Location loc);
 
 public:
     CgiHandler(const Location &loc);
     ~CgiHandler();
+    CgiHandler(const CgiHandler &src);
+    CgiHandler &operator=(const CgiHandler &src);
+
+    std::map<std::string, std::string>      get_environment() const;
 };
 
 //void    execute_script();
