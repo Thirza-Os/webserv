@@ -1,1 +1,4 @@
 // If cgi is specified in a location block, the path specified is handled as cgi input.
+// If uri from the http request is the same as a cgi path specified in the config files, cgi script will be exectuted
+// SO: if match request & cgi path: execute cgi class
+// Should work with get and post

@@ -2,6 +2,8 @@
 # define CGIHANDLER_HPP
 
 #include "../ConfigParser/ServerConfig.hpp"
+#include "../HttpParser/RequestParser.hpp"
+
 #include <string>
 #include <map>
 
@@ -13,13 +15,13 @@ public:
 class CgiHandler
 {
 private:
-    Location                                _variables;
     std::map<std::string, std::string>	    _environment;
 
-    void                                    initialize_environment(Location loc);
+    void    initialize_environment(Location const &loc, RequestParser const &httprequest);
+    void    print_env();
 
 public:
-    CgiHandler(const Location &loc);
+    CgiHandler(Location const &loc, RequestParser const &httprequest);
     ~CgiHandler();
     CgiHandler(const CgiHandler &src);
     CgiHandler &operator=(const CgiHandler &src);
