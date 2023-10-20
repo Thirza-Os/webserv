@@ -30,6 +30,8 @@ public:
     CgiHandler(const CgiHandler &src);
     CgiHandler &operator=(const CgiHandler &src);
 
+    int                                     pipe_in[2];
+    int                                     pipe_out[2];
     std::map<std::string, std::string>      get_environment() const;
 };
 

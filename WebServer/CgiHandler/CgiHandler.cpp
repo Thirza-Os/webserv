@@ -8,7 +8,7 @@
 
 CgiHandler::CgiHandler(Location const &loc, RequestParser const &httprequest) {
     std::cout << "constructor started for CGI handler " << std::endl;
-    this->_runLoc = "/usr/local/bin/php";
+    this->_runLoc = "/usr/local/bin/php";                                       // Set this to correct location of your php runner
     initialize_environment(loc, httprequest);
     execute_script();
     print_env();
@@ -57,6 +57,11 @@ void    CgiHandler::execute_script() {
             const_cast<char*>(this->_environment["SCRIPT_FILENAME"].c_str()), // The path to the script
             nullptr
         };
+        // build pipes
+        if (pipe(pipe_in) < 0)
+            perror("pipe in failed");
+        if (pipe(pipe_out) < 0)
+            perror("pipe out failed");
         // start fork to process in a child
         pid_t childPid = fork();
         if (childPid == -1)
@@ -71,6 +76,14 @@ void    CgiHandler::execute_script() {
                 this->_childEnvp.push_back(env);
             }
             this->_childEnvp.push_back(nullptr);
+            // pipes for std: redirecting std in/out to the pipe ends and close unused
+            // necessary for file upload
+            	dup2(pipe_in[0], STDIN_FILENO);
+                dup2(pipe_out[1], STDOUT_FILENO);
+                close(pipe_in[0]);
+                close(pipe_in[1]);
+                close(pipe_out[0]);
+                close(pipe_out[1]);
             // execve to execute the cgi program
             if (execve(this->_runLoc, argv,
                 &this->_childEnvp[0]) == -1){
@@ -81,8 +94,8 @@ void    CgiHandler::execute_script() {
                 delete[] this->_childEnvp[i];
         } else {
             // Parent
-            int status;
-            waitpid(childPid, &status, 0);
+            // int status;
+            // waitpid(childPid, &status, 0);
 
         }
     }   catch (const CgiException& e) {
