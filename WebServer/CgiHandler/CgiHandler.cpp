@@ -39,7 +39,7 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
     const std::string& firstValue = it->second;
    
    // set environment for execve
-    this->_environment["GATEWAY_INTERFACE"] = std::string("CGI/1.1");
+    this->_environment["GATEWAY_INTERFACE"] = "CGI/1.1";
     this->_environment["SERVER_PROTOCOL"] = "HTTP/1.1";
     this->_environment["REDIRECT_STATUS"] = "200";              // Hardcoded this as well, means succesfull response
     this->_environment["SERVER_PORT"] = "8081";                 // hardcoded this for now
