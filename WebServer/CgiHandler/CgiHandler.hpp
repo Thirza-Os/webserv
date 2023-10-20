@@ -16,9 +16,11 @@ class CgiHandler
 {
 private:
     std::map<std::string, std::string>	    _environment;
+    std::vector<char*>                      _childEnvp;
 
     void    initialize_environment(Location const &loc, RequestParser const &httprequest);
     void    print_env();
+    void    execute_script();
 
 public:
     CgiHandler(Location const &loc, RequestParser const &httprequest);
@@ -29,6 +31,5 @@ public:
     std::map<std::string, std::string>      get_environment() const;
 };
 
-//void    execute_script();
 
 #endif

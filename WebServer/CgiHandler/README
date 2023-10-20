@@ -5,8 +5,10 @@
 // If cgi is specified in a location block, the path specified is handled as cgi input.
 // If uri from the http request is the same as a cgi path specified in the config files, cgi script will be exectuted
 // SO: if match request & cgi path: execute cgi class
-// Should work with get and post
+// Should work with GET and POST
 
 // works for port 8081
 // works for .php 
 // make sure the php has x rights
+
+// Execution of cgi: create a child process (with fork), then replace the child process wiht the cgi script (with execve)
