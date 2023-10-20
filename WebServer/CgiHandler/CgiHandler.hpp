@@ -18,6 +18,7 @@ private:
     std::map<std::string, std::string>	    _environment;
     std::vector<char*>                      _childEnvp;
     char**                                  _argv;
+    const char*                             _runLoc;
 
     void    initialize_environment(Location const &loc, RequestParser const &httprequest);
     void    print_env();

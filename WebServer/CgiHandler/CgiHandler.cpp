@@ -8,6 +8,7 @@
 
 CgiHandler::CgiHandler(Location const &loc, RequestParser const &httprequest) {
     std::cout << "constructor started for CGI handler " << std::endl;
+    this->_runLoc = "/usr/local/bin/php";
     initialize_environment(loc, httprequest);
     execute_script();
     print_env();
@@ -34,14 +35,15 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
     const std::string& firstKey = it->first;
     const std::string& firstValue = it->second;
    
+   // set environment for execve
     this->_environment["GATEWAY_INTERFACE"] = std::string("CGI/1.1");
     this->_environment["SERVER_PROTOCOL"] = "HTTP/1.1";
     this->_environment["REDIRECT_STATUS"] = "200";              // Hardcoded this as well, means succesfull response
     this->_environment["SERVER_PORT"] = "8081";                 // hardcoded this for now
     this->_environment["SERVER_SOFTWARE"] = "cool_server1.0";
     this->_environment["PATH_INFO"] = loc.root + loc.path + firstValue;      // says so in the subject
-    this->_environment["SCRIPT_NAME"] = firstValue;
-    this->_environment["SCRIPT_FILENAME"] = loc.root + loc.path + firstValue;
+    this->_environment["SCRIPT_NAME"] = firstValue + firstKey;
+    this->_environment["SCRIPT_FILENAME"] = loc.root + loc.path + firstValue + firstKey;
     this->_environment["REQUEST_METHOD"] = httprequest.get_method();
     this->_environment["REQUEST_URI"] = httprequest.get_uri();
     this->_environment["PATH"] = "/Users/thirza/Documents/Codam/webserv/WebServer/www/penguinserv/cgiRoute"; // Replace with the actual path
@@ -49,18 +51,19 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
 
 void    CgiHandler::execute_script() {
     try {
-        // hardcoded this for now
-            char* const argv[] = {
-        const_cast<char*>("coolCgi.php"),
-        const_cast<char*>("/Users/thirza/Documents/Codam/webserv/WebServer/www/penguinserv/cgiRoute/coolCgi.php"),
-        nullptr
+        // Build the argv
+        char* const argv[] = {
+            const_cast<char*>(this->_environment["SCRIPT_NAME"].c_str()), // The path to the script
+            const_cast<char*>(this->_environment["SCRIPT_FILENAME"].c_str()), // The path to the script
+            nullptr
         };
-
+        // start fork to process in a child
         pid_t childPid = fork();
         if (childPid == -1)
             throw CgiException("Fork error");
         if (childPid == 0) {
             // child
+            // Build char array from the _environment variables to pass to execve
             for (std::map<std::string, std::string>::const_iterator it = this->_environment.begin(); it != this->_environment.end(); ++it) {
                 std::string envVar = it->first + "=" + it->second;
                 char *env = new char[envVar.length() + 1];
@@ -68,7 +71,8 @@ void    CgiHandler::execute_script() {
                 this->_childEnvp.push_back(env);
             }
             this->_childEnvp.push_back(nullptr);
-            if (execve("/usr/local/bin/php", argv,
+            // execve to execute the cgi program
+            if (execve(this->_runLoc, argv,
                 &this->_childEnvp[0]) == -1){
                     perror("execve failed");
                     throw CgiException("Execve failed");

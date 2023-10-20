@@ -10,5 +10,6 @@
 // works for port 8081
 // works for .php 
 // make sure the php has x rights
+// Set runLoc to the path of the .php runner (command: which php)
 
 // Execution of cgi: create a child process (with fork), then replace the child process wiht the cgi script (with execve)
