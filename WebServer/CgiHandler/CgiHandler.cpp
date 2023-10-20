@@ -9,11 +9,11 @@
 CgiHandler::CgiHandler(Location const &loc, RequestParser const &httprequest) {
     std::cout << "constructor started for CGI handler " << std::endl;
     initialize_environment(loc, httprequest);
+    execute_script();
     print_env();
 }
 
-CgiHandler::~CgiHandler()
-{
+CgiHandler::~CgiHandler() {
 }
 
 CgiHandler::CgiHandler(const CgiHandler &src) {
@@ -49,24 +49,26 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
 void    CgiHandler::execute_script() {
     try {
         pid_t childPid = fork();
-        if (childPid == -1) {
+        if (childPid == -1)
             throw CgiException("Fork error");
-        }
         if (childPid == 0) {
             // child
             for (std::map<std::string, std::string>::const_iterator it = this->_environment.begin(); it != this->_environment.end(); ++it) {
                 std::string envVar = it->first + "=" + it->second;
-            char *env = new char[envVar.length() + 1];
-            strcpy(env, envVar.c_str());
-            this->_childEnvp.push_back(env);
-        }
-        this->_childEnvp.push_back(nullptr);
-
-        if (execve(this->_environment["SCRIPT_FILENAME"].c_str(), nullptr, &this->_childEnvp[0]) == -1)
-            throw CgiException("Execve failed");
+                char *env = new char[envVar.length() + 1];
+                strcpy(env, envVar.c_str());
+                this->_childEnvp.push_back(env);
+            }
+            this->_childEnvp.push_back(nullptr);
+            if (execve(this->_environment["SCRIPT_FILENAME"].c_str(), nullptr, &this->_childEnvp[0]) == -1)
+                throw CgiException("Execve failed");
+            for (size_t i = 0; i < this->_childEnvp.size(); ++i)
+                delete[] this->_childEnvp[i];
         } else {
-        int status;
-        waitpid(childPid, &status, 0);
+            // Parent
+            int status;
+            waitpid(childPid, &status, 0);
+
         }
     }   catch (const CgiException& e) {
             // HANDLE EXCEPTION: LOGGING?
