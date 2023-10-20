@@ -17,6 +17,7 @@ class CgiHandler
 private:
     std::map<std::string, std::string>	    _environment;
     std::vector<char*>                      _childEnvp;
+    char**                                  _argv;
 
     void    initialize_environment(Location const &loc, RequestParser const &httprequest);
     void    print_env();
