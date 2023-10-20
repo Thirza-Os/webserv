@@ -24,6 +24,9 @@ CgiHandler::CgiHandler(const CgiHandler &src) {
 CgiHandler &CgiHandler::operator=(const CgiHandler &src) {
     if (this != &src) {
         this->_environment = src._environment;
+        this->_childEnvp = src._childEnvp;
+        this->_argv = src._argv;
+        this->_runLoc = src._runLoc;
     }
     return *this;
 }
