@@ -62,7 +62,7 @@ void    CgiHandler::execute_script() {
         }
         this->_childEnvp.push_back(nullptr);
 
-        if (execve(this->_environment["SCRIPT_FILENAME"].c_str(), nullptr, &this->_childEnvp[0]) == -1);
+        if (execve(this->_environment["SCRIPT_FILENAME"].c_str(), nullptr, &this->_childEnvp[0]) == -1)
             throw CgiException("Execve failed");
         } else {
         int status;
