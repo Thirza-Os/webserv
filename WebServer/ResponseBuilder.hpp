@@ -27,8 +27,8 @@ public:
     ~ResponseBuilder();
     ResponseBuilder &operator=(const ResponseBuilder &src);
 
-    std::string     getResponse();
-    std::string     getHeader();
+    std::string     get_response();
+    std::string     get_header();
 };
 
 #endif

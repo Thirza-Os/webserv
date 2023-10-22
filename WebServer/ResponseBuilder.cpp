@@ -181,10 +181,10 @@ void	ResponseBuilder::build_response() {
 	this->_response.append(this->_body);
 }
 
-std::string ResponseBuilder::getResponse() {
+std::string ResponseBuilder::get_response() {
 	return (this->_response);
 }
 
-std::string ResponseBuilder::getHeader() {
+std::string ResponseBuilder::get_header() {
 	return (this->_header);
 }
