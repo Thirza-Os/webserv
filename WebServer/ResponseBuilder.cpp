@@ -157,20 +157,31 @@ void	ResponseBuilder::build_response() {
     std::ifstream htmlFile(uri.c_str());
     if (this->_status_code == 405) {
         std::cout << "Method not allowed" << std::endl;
-        htmlFile.open("WebServer/www/penguinserv/errorPages/405Error.html");
+        htmlFile.close();
+        if (this->_config.get_errorpages().count(this->_status_code)) {
+            htmlFile.open(this->_config.get_errorpages().at(this->_status_code));
+        }
+        else {
+            htmlFile.open("WebServer/ConfigParser/DefaultErrorPages/405MethodNotAllowed.html");
+        }
     }
-    if (!htmlFile.good()) {
+    else if (!htmlFile.good()) {
         htmlFile.close();
         std::cout << "file can't be opened" << std::endl;
         this->_status_code = 404;
-        htmlFile.open("WebServer/www/penguinserv/errorPages/404Error.html");
-        if (!htmlFile.good()) {
-            htmlFile.close();
-            std::cout << "error page can't be opened either" << std::endl;
-            build_header();
-            this->_response = this->_header;
-            return ;
+        if (this->_config.get_errorpages().count(this->_status_code)) {
+            htmlFile.open(this->_config.get_errorpages().at(this->_status_code));
         }
+        else {
+            htmlFile.open("WebServer/ConfigParser/DefaultErrorPages/404NotFound.html");
+        }
+    }
+    if (!htmlFile.good()) {
+        htmlFile.close();
+        std::cout << "error page can't be opened either for some reason" << std::endl;
+        build_header();
+        this->_response = this->_header;
+        return ;
     }
     std::stringstream buffer;
     buffer << htmlFile.rdbuf();
