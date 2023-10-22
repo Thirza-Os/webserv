@@ -185,6 +185,7 @@ void ServerManager::checkTimeout(void)
             }
             _requestServerIndex.erase(it->first);
             it = _timeOutIndex.erase(it);
+            checkTimeout();
             break ;
         }
     }
