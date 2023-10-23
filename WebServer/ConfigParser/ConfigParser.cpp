@@ -349,7 +349,6 @@ void    ConfigParser::read_and_parse_config() {
         // Process each server block
         size_t serverBlockCount = _serverBlocks.size();
         for (size_t i = 0; i < serverBlockCount; ++i) {
-            std::cout << "Processing server block " << i + 1 << " out of " << serverBlockCount << " times." << std::endl;
             std::string& serverBlock = _serverBlocks[i];
             process_server_block(serverBlock);
         }
