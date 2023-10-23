@@ -7,7 +7,9 @@
 #include <cstring>
 
 ResponseBuilder::ResponseBuilder(RequestParser request, ServerConfig config): _request(request), _config(config) {
+    std::cout << "Building response.." << std::endl;
     this->_status_code = this->_request.get_status_code();
+    std::cout << "checking status code.." << std::endl;
     if (this->_request.get_method() == "GET"){
         build_response();
     }
@@ -36,6 +38,7 @@ ResponseBuilder &ResponseBuilder::operator=(const ResponseBuilder &src)
 Location    ResponseBuilder::match_location(std::string uri) {
     Location empty{};
     std::vector<Location> locations = this->_config.get_locations();
+    std::cout << "Locations retrieved.." << std::endl;
     for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++) {
         if (it->path != "/") {
             if (uri.find(it->path, 0) != std::string::npos) {
@@ -48,6 +51,7 @@ Location    ResponseBuilder::match_location(std::string uri) {
             }
         }
     }
+    std::cout << "No match, matching just '/'.." << std::endl;
     //loop again and find a potential match for just a '/'
     for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++) {
         if (it->path == "/") {
@@ -61,6 +65,7 @@ Location    ResponseBuilder::match_location(std::string uri) {
             }
         }
     }
+    std::cout << "No location match.." << std::endl;
     //if there are no locations, return an empty location struct
     return (empty);
 }
@@ -93,12 +98,19 @@ void        ResponseBuilder::build_header() {
 }
 
 std::string ResponseBuilder::process_uri() {
+    std::cout << "Processing uri.." << std::endl;
     std::string uri = this->_request.get_uri();
     Location matched_loc = match_location(uri);
-    std::string dflt_index = this->_config.get_index().front();
+    std::cout << "Location matched.." << std::endl;
+    std::string dflt_index;
+    if (!this->_config.get_index().empty()) {
+        dflt_index = this->_config.get_index().front();
+    }
+    std::cout << "Still ok for now?.." << std::endl;
     if (dflt_index.empty()) {
         dflt_index = "index.html";
     }
+    std::cout << "Erasing possible leading /.." << std::endl;
     if (uri.front() == '/') {
         uri.erase(0, 1);
     }
@@ -120,6 +132,7 @@ std::string ResponseBuilder::process_uri() {
                 }
             }
             std::cout << "what does my uri look like now?: " << uri << std::endl;
+            uri.insert(0, "/");
             if (matched_loc.root.empty()) {
                 uri.insert(0, this->_config.get_rootdirectory());
             }
@@ -137,6 +150,8 @@ std::string ResponseBuilder::process_uri() {
         }
     }
     else {
+        std::cout << "empty location?.." << std::endl;
+        uri.insert(0, "/");
         uri.insert(0, this->_config.get_rootdirectory());
         if (uri.back() == '/') {
             uri.append(dflt_index);
@@ -153,6 +168,7 @@ void	ResponseBuilder::build_response() {
         this->_response = this->_header;
         return ;
     }
+    std::cout << "Request is good it seems.." << std::endl;
     std::string uri = process_uri();
     std::ifstream htmlFile(uri.c_str());
     if (this->_status_code == 405) {

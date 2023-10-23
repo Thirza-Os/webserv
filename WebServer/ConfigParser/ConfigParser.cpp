@@ -69,7 +69,7 @@ bool ConfigParser::file_exists(const char* path) {
 }
 
 bool ConfigParser::index_exists(const std::string& rootDirectory, const std::string& indexFilename) {
-    std::string fullPath = rootDirectory + indexFilename;
+    std::string fullPath = rootDirectory + '/' + indexFilename;
     std::ifstream file(fullPath.c_str());
     return file.good();
 }
