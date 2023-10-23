@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <cstdlib>
 #include <unistd.h>
+#include <cstring>
 
 CgiHandler::CgiHandler(Location const &loc, RequestParser const &httprequest) {
     std::cout << "constructor started for CGI handler " << std::endl;
