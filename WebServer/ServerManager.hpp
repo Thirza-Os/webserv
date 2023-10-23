@@ -23,7 +23,7 @@ public:
     ServerManager(std::vector<ServerConfig> configs);
     ~ServerManager();
 
-    void    exitError(const std::string &str);
+    void    exit_error(const std::string &str);
     void    log(const std::string &message);
 
 private:
@@ -37,14 +37,14 @@ private:
     std::map<int, long>             _timeOutIndex;
 
 
-    int             startServer();
-    void            closeServer();
+    int             start_server();
+    void            close_server();
 
-    void            startListen();
-    void            acceptConnection(int incoming);
+    void            start_listen();
+    void            accept_connection(int incoming);
 
-    int             sendResponse(int socket_fd);
-    void            checkTimeout(void);
+    int             send_response(int socket_fd);
+    void            check_timeout(void);
 };
 
 #endif

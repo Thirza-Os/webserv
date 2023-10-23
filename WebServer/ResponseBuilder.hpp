@@ -19,6 +19,7 @@ private:
     void        build_response();
     void        build_header();
     std::string process_uri();
+    Location    match_location(std::string uri);
 
 public:
     ResponseBuilder(RequestParser request, ServerConfig config);
@@ -26,8 +27,8 @@ public:
     ~ResponseBuilder();
     ResponseBuilder &operator=(const ResponseBuilder &src);
 
-    std::string     getResponse();
-    std::string     getHeader();
+    std::string     get_response();
+    std::string     get_header();
 };
 
 #endif

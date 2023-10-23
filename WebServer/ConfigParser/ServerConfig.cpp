@@ -94,6 +94,10 @@ std::string   ServerConfig::get_rootdirectory() const {
     return (this->_rootDirectory);
 }
 
+std::vector<std::string>    ServerConfig::get_index() const {
+    return (this->_index);
+}
+
 std::vector<Location>   ServerConfig::get_locations() const {
     return (this->_locations);
 }

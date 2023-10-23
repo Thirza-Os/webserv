@@ -21,9 +21,9 @@ public:
     Server();
     ~Server();
 
-	int					getSocket() const;
-	struct sockaddr_in	getSockAddr() const;
-    ServerConfig        getConfig() const;
+	int					get_socket() const;
+	struct sockaddr_in	get_sock_addr() const;
+    ServerConfig        get_config() const;
 
 private:
 
@@ -32,9 +32,8 @@ private:
 
     struct sockaddr_in				_socketAddr;
 
-    void             	startServer();
-    void            	closeServer();
-	void    			exitError(const std::string &str);
+    void             	start_server();
+	void    			exit_error(const std::string &str);
 };
 
 #endif

@@ -13,14 +13,15 @@ const int BUFFER_SIZE = 30720;
 ServerManager::ServerManager(std::vector<ServerConfig> configs): _configs(configs)
 {
     for (std::vector<ServerConfig>::iterator it = _configs.begin(); it != _configs.end() ;it++) {
+        std::cout << "server: " << it->get_servername() << ", root: " << it->get_rootdirectory() << std::endl;
         _servers.push_back(Server(*it));
     }
-    startListen();
+    start_listen();
 }
 
 ServerManager::~ServerManager(){}
 
-void    ServerManager::exitError(const std::string &str)
+void    ServerManager::exit_error(const std::string &str)
 {
     std::cerr << "Error - " << str << std::endl;
     exit(1);
@@ -31,25 +32,25 @@ void    ServerManager::log(const std::string &message)
     std::cout << message << std::endl;
 }
 
-void ServerManager::startListen()
+void ServerManager::start_listen()
 {
     std::vector<int> listeners;
     for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
-        if (listen(it->getSocket(), 20) < 0)
+        if (listen(it->get_socket(), 20) < 0)
         {
-            exitError("Socket listen failed");
+            exit_error("Socket listen failed");
         }
         std::ostringstream ss;
         ss << "\n*** Listening on ADDRESS: " 
-            << inet_ntoa(it->getSockAddr().sin_addr) 
-            << " PORT: " << ntohs(it->getSockAddr().sin_port) 
+            << inet_ntoa(it->get_sock_addr().sin_addr) 
+            << " PORT: " << ntohs(it->get_sock_addr().sin_port) 
             << " ***\n\n";
         log(ss.str());
         struct pollfd listener;
 
-        listener.fd = it->getSocket();
+        listener.fd = it->get_socket();
         listener.events = POLLIN;
-        listeners.push_back(it->getSocket());
+        listeners.push_back(it->get_socket());
         _pollfds.push_back(listener);
     }
     // main webserv loop starts here, the program should never exit this loop
@@ -62,7 +63,7 @@ void ServerManager::startListen()
             for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
                 if (it->revents & POLLIN) {
                     if (std::find(listeners.begin(), listeners.end(), it->fd) != listeners.end()) {
-                        acceptConnection(it->fd);
+                        accept_connection(it->fd);
                         break ;
                     }
                     else {
@@ -92,7 +93,7 @@ void ServerManager::startListen()
                     }
                 }
                 else if (it->revents & POLLOUT) {
-                    if (sendResponse(it->fd)) {
+                    if (send_response(it->fd)) {
                         close(it->fd);
                         it = _pollfds.erase(it);
                     }
@@ -103,21 +104,21 @@ void ServerManager::startListen()
                     break ;
                 }
             }
-            checkTimeout();
+            check_timeout();
         }
 
 }
 
-void ServerManager::acceptConnection(int incoming)
+void ServerManager::accept_connection(int incoming)
 {
     Server correctServer;
     for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
-        if (it->getSocket() == incoming)
+        if (it->get_socket() == incoming)
             correctServer = *it;
     }
-    sockaddr_in socketAddr = correctServer.getSockAddr();
+    sockaddr_in socketAddr = correctServer.get_sock_addr();
     unsigned int socketAddrLen = sizeof(socketAddr);
-    int new_socket = accept4(correctServer.getSocket(), (sockaddr *)&socketAddr,
+    int new_socket = accept4(correctServer.get_socket(), (sockaddr *)&socketAddr,
                         &socketAddrLen, SOCK_NONBLOCK);
     if (new_socket < 0)
     {
@@ -141,12 +142,12 @@ void ServerManager::acceptConnection(int incoming)
 }
 
 //return 1 to close the connection after, 0 to keep it alive
-int ServerManager::sendResponse(int socket_fd)
+int ServerManager::send_response(int socket_fd)
 {
     unsigned long bytesSent;
-    ResponseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).getConfig());
-    std::string serverMessage = response.getResponse();
-    std::cout << response.getHeader() << std::endl;
+    ResponseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).get_config());
+    std::string serverMessage = response.get_response();
+    std::cout << response.get_header() << std::endl;
     bytesSent = write(socket_fd, serverMessage.c_str(), serverMessage.size());
     if (bytesSent == serverMessage.size())
     {
@@ -168,7 +169,7 @@ int ServerManager::sendResponse(int socket_fd)
 }
 
 //Close connections that are idle for 30 seconds or more
-void ServerManager::checkTimeout(void)
+void ServerManager::check_timeout(void)
 {
     long current_time = utility::getCurrentTimeinSec();
     for(std::map<int, long>::iterator it = this->_timeOutIndex.begin(); it != this->_timeOutIndex.end(); it++) {
@@ -184,6 +185,7 @@ void ServerManager::checkTimeout(void)
             }
             _requestServerIndex.erase(it->first);
             it = _timeOutIndex.erase(it);
+            check_timeout();
             break ;
         }
     }

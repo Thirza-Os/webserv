@@ -145,7 +145,7 @@ void ConfigParser::process_errorpages(std::string &line, ServerConfig &server) {
 
     if (pos != std::string::npos) {
         std::string trimmedLine = line.substr(pos + 11);
-
+        utility::stringTrim(trimmedLine, " \t\n\r\f\v;");
         std::istringstream iss(trimmedLine);
         if (iss >> code >> errorPage) {
             server.set_error_pages(code, errorPage);
