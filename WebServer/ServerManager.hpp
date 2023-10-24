@@ -35,6 +35,8 @@ private:
     std::map<int, Server>           _requestServerIndex;
     std::map<int, RequestParser>    _requests;
     std::map<int, long>             _timeOutIndex;
+    std::map<int, int>              _cgiIndex;
+    std::map<int, std::string>      _cgiResponseIndex;
 
 
     int             start_server();

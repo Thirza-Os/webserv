@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <cstdlib>
 #include <unistd.h>
+#include <fcntl.h>
 #include <cstring>
 
 CgiHandler::CgiHandler(Location const &loc, RequestParser const &httprequest) {
@@ -62,9 +63,9 @@ void    CgiHandler::execute_script() {
             nullptr
         };
         // build pipes
-        if (pipe(pipe_in) < 0)
+        if (pipe2(pipe_in, O_NONBLOCK) < 0)
             perror("pipe in failed");
-        if (pipe(pipe_out) < 0)
+        if (pipe2(pipe_out, O_NONBLOCK) < 0)
             perror("pipe out failed");
         // start fork to process in a child
         pid_t childPid = fork();

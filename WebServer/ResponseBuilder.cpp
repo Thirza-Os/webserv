@@ -10,6 +10,7 @@
 
 ResponseBuilder::ResponseBuilder(RequestParser request, ServerConfig config): _request(request), _config(config) {
     std::cout << "Building response.." << std::endl;
+    this->_cgiPipeFd = 0; //default to 0 for not set
     this->_status_code = this->_request.get_status_code();
     if (this->_request.get_method() == "GET"){
         build_response();
@@ -29,6 +30,8 @@ ResponseBuilder &ResponseBuilder::operator=(const ResponseBuilder &src)
         this->_header = src._header;
 		this->_body = src._body;
 		this->_response = src._response;
+        this->_status_code = src._status_code;
+        this->_cgiPipeFd = src._cgiPipeFd;
     }
     return *this;
 }
@@ -141,8 +144,11 @@ std::string ResponseBuilder::process_uri() {
             if (!matched_loc.cgiExtensions.empty()) {
                 std::cout << "cgi found in matched location!" << std::endl;
                 CgiHandler cgi(matched_loc, this->_request);
-                //the output of the script can be read from pipe_end[0],
-                //and set to this->_response to be sent to the client as is
+                //the output of the script can be read from pipe_out[0] (I think?)
+                this->_cgiPipeFd = cgi.pipe_out[0];
+                close(cgi.pipe_out[1]);
+                close(cgi.pipe_in[1]);
+                close(cgi.pipe_in[0]);
                 return ("");
             }
         }
@@ -224,4 +230,8 @@ std::string ResponseBuilder::get_response() {
 
 std::string ResponseBuilder::get_header() {
 	return (this->_header);
+}
+
+int         ResponseBuilder::get_cgiPipeFd() {
+	return (this->_cgiPipeFd);
 }

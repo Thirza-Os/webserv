@@ -15,6 +15,7 @@ private:
     std::string                         _body;
     std::string                         _response;
     int                                 _status_code;
+    int                                 _cgiPipeFd;
 
     void        build_response();
     void        build_header();
@@ -29,6 +30,7 @@ public:
 
     std::string     get_response();
     std::string     get_header();
+    int             get_cgiPipeFd();
 };
 
 #endif
