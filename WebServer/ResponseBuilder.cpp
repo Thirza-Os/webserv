@@ -1,4 +1,5 @@
 #include "ResponseBuilder.hpp"
+#include "CgiHandler/CgiHandler.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -91,7 +92,7 @@ void        ResponseBuilder::build_header() {
         ss << "Content-Type: text/html\n";
     else
         ss << this->_request.get_content_type() << "\n";
-    ss << "Content-Length: " << this->_body.size() << "\n\n";
+    ss << "Content-Length: " << this->_body.size() << "\n\n"; //header ends with an empty line
 	this->_header = ss.str();
 }
 
@@ -137,6 +138,13 @@ std::string ResponseBuilder::process_uri() {
             if (uri.back() == '/') {
                 uri.append(dflt_index);
             }
+            if (!matched_loc.cgiExtensions.empty()) {
+                std::cout << "cgi found in matched location!" << std::endl;
+                CgiHandler cgi(matched_loc, this->_request);
+                //the output of the script can be read from pipe_end[0],
+                //and set to this->_response to be sent to the client as is
+                return ("");
+            }
         }
         else {
             this->_status_code = 405;
@@ -169,6 +177,9 @@ void	ResponseBuilder::build_response() {
         return ;
     }
     std::string uri = process_uri();
+    if (uri.empty()) { //cgi handles response
+        return ;
+    }
     std::ifstream htmlFile(uri.c_str());
     if (this->_status_code == 405) {
         std::cout << "Method not allowed" << std::endl;

@@ -9,7 +9,7 @@
 
 CgiHandler::CgiHandler(Location const &loc, RequestParser const &httprequest) {
     std::cout << "constructor started for CGI handler " << std::endl;
-    this->_runLoc = "/usr/local/bin/php";                                       // Set this to correct location of your php runner
+    this->_runLoc = "/usr/bin/php";                                       // Set this to correct location of your php runner
     initialize_environment(loc, httprequest);
     execute_script();
     print_env();
@@ -42,15 +42,15 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
    // set environment for execve
     this->_environment["GATEWAY_INTERFACE"] = "CGI/1.1";
     this->_environment["SERVER_PROTOCOL"] = "HTTP/1.1";
-    this->_environment["REDIRECT_STATUS"] = "200";              // Hardcoded this as well, means succesfull response
+    this->_environment["REDIRECT_STATUS"] = "200";              // Hardcoded this as well, means succesful response
     this->_environment["SERVER_PORT"] = "8081";                 // hardcoded this for now
     this->_environment["SERVER_SOFTWARE"] = "cool_server1.0";
-    this->_environment["PATH_INFO"] = loc.root + loc.path + firstValue;      // says so in the subject
+    this->_environment["PATH_INFO"] = loc.root + loc.path + "/" + firstValue;      // says so in the subject
     this->_environment["SCRIPT_NAME"] = firstValue + firstKey;
-    this->_environment["SCRIPT_FILENAME"] = loc.root + loc.path + firstValue + firstKey;
+    this->_environment["SCRIPT_FILENAME"] = loc.root + loc.path + "/" + firstValue + firstKey;
     this->_environment["REQUEST_METHOD"] = httprequest.get_method();
     this->_environment["REQUEST_URI"] = httprequest.get_uri();
-    this->_environment["PATH"] = "/Users/thirza/Documents/Codam/webserv/WebServer/www/penguinserv/cgiRoute"; // Replace with the actual path
+    this->_environment["PATH"] = "WebServer/www/penguinserv/cgiRoute"; // Replace with the actual path
 }
 
 void    CgiHandler::execute_script() {
