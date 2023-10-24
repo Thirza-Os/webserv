@@ -72,14 +72,24 @@ void serverManager::startListen()
                             log("Failed to read bytes from client socket connection");
                             break ;
                         }
-                        requestParser request(buffer);
-                        _requests.insert({it->fd, request});
-
-                        std::ostringstream ss;
-                        ss << "------ Received Request from client ------\n\n";
-                        log(ss.str());
-                        it->events = POLLOUT;
-                        break ;
+						//if request doesn't yet exist, create it. If it does, add the remaining bytes from the socket to the request body
+						if (_requests.find(it->fd) != _requests.end()){
+							_requests[it->fd].fill_body(buffer, bytesReceived);
+						}
+						else {
+							requestParser request(buffer);
+							request.fill_body(buffer, bytesReceived - request.get_header_length());
+							_requests.insert({it->fd, request});
+						}
+						
+						// if all bytes are read, POLLOUT the socket
+						if (_requests[it->fd].get_content_remaining() <= 0) {
+							std::ostringstream ss;
+							ss << "------ Received Request from client ------\n\n";
+							log(ss.str());
+							it->events = POLLOUT;
+						}
+						break ;
                     }
                 }
                 else if (it->revents & POLLOUT) {

@@ -8,7 +8,7 @@
 class requestParser
 {
 private:
-    std::string                         _request;
+    const char*                         _request;
 
     std::string                         _method;
     std::string                         _uri;
@@ -16,9 +16,12 @@ private:
 
     std::map<std::string, std::string>  _headers;
 
-    std::string                         _body;
+    std::vector<char>                   _body;
 
     int                                 _status_code;
+
+	int									_content_remaining;
+	size_t								_header_length;
 
     bool                                _ParsingCompleted;
 
@@ -34,19 +37,23 @@ private:
     void        print_request() const;
 
 public:
-    requestParser(std::string request);
+    requestParser(char * request);
     requestParser();
     requestParser(const requestParser &src);
     ~requestParser();
     requestParser &operator=(const requestParser &src);
 
+	void 		fill_body(const char* temp_body, int bytesReceived); 
     bool        parsingCompleted() const;
+	std::string get_content_disposition() const;
     std::string get_method() const;
     std::string get_uri() const;
     std::string get_protocol() const;
-    std::string get_body() const;
+    std::vector<char> get_body() const;
     std::string get_content_type() const;
     size_t      get_content_length() const;
+	int 		get_header_length() const;
+	int	        get_content_remaining() const;
     int         get_status_code() const;
 };
 

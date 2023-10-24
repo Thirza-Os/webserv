@@ -8,10 +8,11 @@
 #include <string>
 #include <algorithm>
 #include <cstdio>
+#include <string.h>
 
 // CHECK: Check if everything looks well with the whitespaces trim, or more chars have to be added.
 
-requestParser::requestParser(std::string request): _request(request), _status_code(200), _ParsingCompleted(false) {
+requestParser::requestParser(char * request): _request(request), _status_code(200), _ParsingCompleted(false) {
     consume_request();
     print_request();
 }
@@ -42,6 +43,7 @@ requestParser &requestParser::operator=(const requestParser &src)
         this->_body = src._body;
         this->_ParsingCompleted = src._ParsingCompleted;
         this->_status_code = src._status_code;
+		this->_content_remaining = src._content_remaining;
     }
     return *this;
 }
@@ -62,8 +64,15 @@ std::string requestParser::get_protocol() const {
     return (this->_protocol);
 }
 
-std::string requestParser::get_body() const {
+int 		requestParser::get_header_length() const {
+	return(this->_header_length);
+}
+
+std::vector<char> requestParser::get_body() const {
     return (this->_body);
+}
+int requestParser::get_content_remaining() const {
+    return (this->_content_remaining);
 }
 
 std::string requestParser::get_content_type() const {
@@ -77,6 +86,14 @@ std::string requestParser::get_content_type() const {
 size_t requestParser::get_content_length() const {
     if (_headers.count("Content-Length") > 0) {
         return std::stoi(_headers.at("Content-Length"));
+    } else {
+        return 0;
+    }
+}
+
+std::string requestParser::get_content_disposition() const {
+	if (_headers.count("Content-Disposition") > 0) {
+        return (_headers.at("Content-Disposition"));
     } else {
         return 0;
     }
@@ -156,10 +173,45 @@ void    requestParser::validate_header(std::string line){
 }
 
 bool    requestParser::validate_content(std::string line){
-    if (line.empty())
-        return(0);
+    if (line.empty()){
+    	return(0);
+	}
+	
+	if (line.find("Content-Disposition:") != std::string::npos || line.find("Content-Type:") != std::string::npos)
+	{
+		size_t colon_pos = line.find(':');
 
+		if (colon_pos != std::string::npos)
+		{
+			std::string header_name = line.substr(0, colon_pos);
+			std::string header_value = line.substr(colon_pos + 1);
+
+			this->_headers.insert(std::make_pair(header_name, header_value));
+		}
+		return(1);
+	}
+	
     return(0);
+}
+
+void requestParser::fill_body(const char *_request, int bytesReceived)
+{
+	const char * temp_body;
+	//if its the first read of the request, skip to the body part 
+	if (_body.size() == 0)
+	{
+		temp_body = strstr(_request, "\r\n\r\n");
+		this->_content_remaining += 4;//adding this up because the seperators are included in bytesreceived
+	}else
+		temp_body = _request;
+
+	//copy amount of bytes read into the body
+	size_t length = bytesReceived;
+	for(size_t i = 0; i < length; i++)
+		_body.push_back(temp_body[i]);
+
+	this->_content_remaining -= bytesReceived;
+
 }
 
 void requestParser::consume_request(){
@@ -210,10 +262,11 @@ void requestParser::consume_request(){
             case BodyParsing:
                 if (validate_content(line))
                     break;
-                this->_body += line + '\n';
                 break;
-        }
+         }
     }
+	this->_header_length = raw_request.find("\r\n\r\n");
+	this->_content_remaining = this->get_content_length();
     this->_ParsingCompleted = true;
 }
 
@@ -227,9 +280,18 @@ void requestParser::print_request() const {
     for (const auto& header : _headers) {
         std::cout << "  " << header.first << ": " << header.second << std::endl;
     }
+	// std::cout << "Body: " << std::endl;
+	// std::vector<char> body = get_body();
+	// std::vector<char>::iterator it = body.begin();
 
-    std::cout << "Body: " << _body << std::endl;
-
+	// for (size_t i = 0; i < this->get_content_length(); i++)
+	// {
+    // 	std::cout << *it;
+	// 	it++;
+	// }
+	std::cout << std::endl;
+	
+	std::cout << "Header length: " << _header_length << std::endl;
     std::cout << "Content length: " << this->get_content_length() << std::endl;
     std::cout << "Content type: " << this->get_content_type() << std::endl;
 

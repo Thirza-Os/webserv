@@ -11,12 +11,13 @@ private:
     requestParser                       _request;
     serverConfig                        _config;
     std::string                         _header;
-    std::string                         _body;
+    std::string               			_body;
     std::string                         _response;
     int                                 _status_code;
 
 
-	void		handle_post();
+	std::string	getContentInfo(std::string content_type, std::string info);
+	void		upload_file();
     void        build_response();
     void        build_header();
     std::string process_uri();
