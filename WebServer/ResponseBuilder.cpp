@@ -157,7 +157,6 @@ std::string ResponseBuilder::process_uri() {
         }
     }
     else {
-        uri.insert(0, "/");
         uri.insert(0, this->_config.get_rootdirectory());
         if (uri.back() == '/') {
             uri.append(dflt_index);

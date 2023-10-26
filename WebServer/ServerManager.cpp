@@ -54,98 +54,98 @@ void ServerManager::start_listen()
         _pollfds.push_back(listener);
     }
     // main webserv loop starts here, the program should never exit this loop
-        while (true)
-        {
-            log("====== Waiting for a new event ======\n\n\n");
-            if (poll(&_pollfds[0], _pollfds.size(), 10000) == -1) {
-                log("Error returned from poll()\n");
-            }
-            for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
-                if (it->revents & POLLIN + POLLHUP) {
-                    if (std::find(listeners.begin(), listeners.end(), it->fd) != listeners.end()) {
-                        accept_connection(it->fd);
+    while (true)
+    {
+        log("====== Waiting for a new event ======\n\n\n");
+        if (poll(&_pollfds[0], _pollfds.size(), 10000) == -1) {
+            log("Error returned from poll()\n");
+        }
+        for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
+            if (it->revents & POLLIN + POLLHUP) {
+                if (std::find(listeners.begin(), listeners.end(), it->fd) != listeners.end()) {
+                    accept_connection(it->fd);
+                    break ;
+                }
+                else if (this->_cgiIndex.count(it->fd)) {
+                    //read cgi response
+                    log("Reading cgi response");
+                    char buffer[BUFFER_SIZE] = {0};
+                    int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
+                    if (bytesReceived < 0)
+                    {
+                        log("Failed to read bytes from pipe connection");
                         break ;
                     }
-                    else if (this->_cgiIndex.count(it->fd)) {
-                        //read cgi response
-                        log("Reading cgi response");
-                        char buffer[BUFFER_SIZE] = {0};
-                        int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
-                        if (bytesReceived < 0)
-                        {
-                            log("Failed to read bytes from pipe connection");
-                            break ;
-                        }
-                        //add bytes read to string and add it to cgi response index
-                        std::string cgiResponse = buffer;
-                        if (_cgiResponseIndex.count(this->_cgiIndex.at(it->fd))) {
-                            this->_cgiResponseIndex.at(this->_cgiIndex.at(it->fd)).append(cgiResponse);
-                        }
-                        else {
-                            this->_cgiResponseIndex.insert({this->_cgiIndex.at(it->fd), cgiResponse});
-                        }
-                        //find the pollfd of cgiIndex.at(it->fd) and set events to POLLOUT
-                        if (bytesReceived == 0) {
-                            for (std::vector<struct pollfd>::iterator iter = _pollfds.begin(); iter < _pollfds.end(); iter++) {
-                                if (iter->fd == this->_cgiIndex.at(it->fd)) {
-                                    iter->events = POLLOUT;
-                                }
-                            }
-                            //close the pipe end
-                            close(it->fd);
-                            it = _pollfds.erase(it);
-                            this->_cgiIndex.erase(it->fd);
-                        }
-                        break ;
+                    //add bytes read to string and add it to cgi response index
+                    std::string cgiResponse = buffer;
+                    if (_cgiResponseIndex.count(this->_cgiIndex.at(it->fd))) {
+                        this->_cgiResponseIndex.at(this->_cgiIndex.at(it->fd)).append(cgiResponse);
                     }
                     else {
-                        char buffer[BUFFER_SIZE] = {0};
-                        int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
-                        if (bytesReceived < 0)
-                        {
-                            log("Failed to read bytes from client socket connection");
-                            break ;
-                        }
-                        if (bytesReceived == 0) {
-                            log("Client closed the connection");
-                            close(it->fd);
-                            it = _pollfds.erase(it);
-                            break ;
-                        }
-                        RequestParser request(buffer);
-                        _requests.insert({it->fd, request});
-                        if (_timeOutIndex.count(it->fd)) {
-                            this->_timeOutIndex.at(it->fd) = utility::getCurrentTimeinSec();
-                        }
-
-                        std::ostringstream ss;
-                        ss << "------ Received Request from client ------\n\n";
-                        log(ss.str());
-                        it->events = POLLOUT;
-                        break ;
+                        this->_cgiResponseIndex.insert({this->_cgiIndex.at(it->fd), cgiResponse});
                     }
-                }
-                else if (it->revents & POLLOUT) {
-                    if (send_response(it->fd)) {
+                    //find the pollfd of cgiIndex.at(it->fd) and set events to POLLOUT
+                    if (bytesReceived == 0) {
+                        for (std::vector<struct pollfd>::iterator iter = _pollfds.begin(); iter < _pollfds.end(); iter++) {
+                            if (iter->fd == this->_cgiIndex.at(it->fd)) {
+                                iter->events = POLLOUT;
+                            }
+                        }
+                        //close the pipe end
                         close(it->fd);
                         it = _pollfds.erase(it);
+                        this->_cgiIndex.erase(it->fd);
                     }
-                    else {
-                        for (std::map<int, int>::iterator iter = _cgiIndex.begin(); iter != _cgiIndex.end() ;iter++) {
-                            if (iter->second == it->fd) {
-                                it->events = 0;
-                            }
-                        }
-                        if (it->events) {
-                            it->events = POLLIN;
-                        }
+                    break ;
+                }
+                else {
+                    char buffer[BUFFER_SIZE] = {0};
+                    int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
+                    if (bytesReceived < 0)
+                    {
+                        log("Failed to read bytes from client socket connection");
+                        break ;
                     }
-                    _requests.erase(it->fd);
+                    if (bytesReceived == 0) {
+                        log("Client closed the connection");
+                        close(it->fd);
+                        it = _pollfds.erase(it);
+                        break ;
+                    }
+                    RequestParser request(buffer);
+                    _requests.insert({it->fd, request});
+                    if (_timeOutIndex.count(it->fd)) {
+                        this->_timeOutIndex.at(it->fd) = utility::getCurrentTimeinSec();
+                    }
+
+                    std::ostringstream ss;
+                    ss << "------ Received Request from client ------\n\n";
+                    log(ss.str());
+                    it->events = POLLOUT;
                     break ;
                 }
             }
-            check_timeout();
+            else if (it->revents & POLLOUT) {
+                if (send_response(it->fd)) {
+                    close(it->fd);
+                    it = _pollfds.erase(it);
+                }
+                else {
+                    for (std::map<int, int>::iterator iter = _cgiIndex.begin(); iter != _cgiIndex.end() ;iter++) {
+                        if (iter->second == it->fd) {
+                            it->events = 0;
+                        }
+                    }
+                    if (it->events) {
+                        it->events = POLLIN;
+                    }
+                }
+                _requests.erase(it->fd);
+                break ;
+            }
         }
+        check_timeout();
+    }
 
 }
 
