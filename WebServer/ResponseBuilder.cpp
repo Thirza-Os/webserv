@@ -1,5 +1,6 @@
 #include "ResponseBuilder.hpp"
 #include "CgiHandler/CgiHandler.hpp"
+#include "Utilities/Utilities.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -72,7 +73,7 @@ Location    ResponseBuilder::match_location(std::string uri) {
     return (empty);
 }
 
-void        ResponseBuilder::build_header() {
+void        ResponseBuilder::build_header(std::string uri) {
     std::ostringstream ss;
     if (this->_request.get_protocol().empty())
         ss << "HTTP/1.1";
@@ -91,10 +92,7 @@ void        ResponseBuilder::build_header() {
         ss << " Method Not Allowed\n";
     else
         ss << " Some Other Status\n"; //expand on this later
-    if (this->_request.get_content_type().empty())
-        ss << "Content-Type: text/html\n";
-    else
-        ss << this->_request.get_content_type() << "\n";
+    ss << "Content-Type: " << utility::getMIMEType(uri) << "\n";
     ss << "Content-Length: " << this->_body.size() << "\n\n"; //header ends with an empty line
 	this->_header = ss.str();
 }
@@ -144,7 +142,7 @@ std::string ResponseBuilder::process_uri() {
             if (!matched_loc.cgiExtensions.empty()) {
                 std::cout << "cgi found in matched location!" << std::endl;
                 CgiHandler cgi(matched_loc, this->_request);
-                //the output of the script can be read from pipe_out[0] (I think?)
+                //the output of the cgi script can be read from pipe_out[0]
                 this->_cgiPipeFd = cgi.pipe_out[0];
                 close(cgi.pipe_out[1]);
                 close(cgi.pipe_in[1]);
@@ -177,7 +175,7 @@ std::string ResponseBuilder::process_uri() {
 void	ResponseBuilder::build_response() {
     if (this->_status_code == 400) {
         std::cout << "Bad request" << std::endl;
-        build_header();
+        build_header("");
         this->_response = this->_header;
         return ;
     }
@@ -188,6 +186,7 @@ void	ResponseBuilder::build_response() {
     std::ifstream htmlFile(uri.c_str());
     if (this->_status_code == 405) {
         std::cout << "Method not allowed" << std::endl;
+        uri = "error.html";
         htmlFile.close();
         if (this->_config.get_errorpages().count(this->_status_code)) {
             htmlFile.open(this->_config.get_errorpages().at(this->_status_code));
@@ -199,6 +198,7 @@ void	ResponseBuilder::build_response() {
     else if (!htmlFile.good()) {
         htmlFile.close();
         std::cout << "file can't be opened" << std::endl;
+        uri = "error.html";
         this->_status_code = 404;
         if (this->_config.get_errorpages().count(this->_status_code)) {
             htmlFile.open(this->_config.get_errorpages().at(this->_status_code));
@@ -210,7 +210,7 @@ void	ResponseBuilder::build_response() {
     if (!htmlFile.good()) {
         htmlFile.close();
         std::cout << "error page can't be opened either for some reason" << std::endl;
-        build_header();
+        build_header("");
         this->_response = this->_header;
         return ;
     }
@@ -218,7 +218,7 @@ void	ResponseBuilder::build_response() {
     buffer << htmlFile.rdbuf();
 	htmlFile.close();
     this->_body = buffer.str();
-    build_header();
+    build_header(uri);
 	this->_response = this->_header;
 	this->_response.append(this->_body);
 }
