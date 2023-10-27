@@ -3,11 +3,13 @@
 #define UTILITY_HPP
 
 #include <string>
+#include "../HttpParser/RequestParser.hpp"
 
 namespace utility {
     void    stringTrim(std::string &str, const char *charset);
     long    getCurrentTimeinSec(void);
     std::string getMIMEType(std::string path);
+	void	upload_file(RequestParser *post_request);
     // Other utility functions if needed
 }
 

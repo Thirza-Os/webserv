@@ -17,6 +17,8 @@ ResponseBuilder::ResponseBuilder(RequestParser request, ServerConfig config): _r
         build_response();
     }
 	if (this->_request.get_method() == "POST"){
+		if (this->_request.get_content_length() > 0)
+			utility::upload_file(&this->_request);
 		build_response();
 	}
 }
@@ -185,60 +187,6 @@ std::string ResponseBuilder::process_uri() {
     }
     std::cout << "attempting to send this uri: " << uri << std::endl;
     return (uri);
-}
-
-std::string ResponseBuilder::getContentInfo(std::string header, std::string info)
-{
-	std::stringstream ss(header);
-	std::string line;
-	while (getline(ss, line, ' '))
-	{
-		if (line.find(info) != std::string::npos){
-			break;
-		}
-	}
-	line.erase(0, info.length());
-	return (line);
-	
-}
-
-void ResponseBuilder::upload_file()
-{
-	std::vector<char> body = this->_request.get_body();
-	std::vector<char>::iterator it = body.begin();
-	int newlines_found = 0;
-	int i = 0;
-
-	std::cout << "sadsadsa" << std::endl;
-
-	//skip the first few lines because they are content-type, disposition and boundary
-	while (it != body.end())
-	{
-		if (*it == '\n')
-			newlines_found++;
-		it++;
-		i++;	
-		if (newlines_found == 6)
-			break;
-	}
-	//get the filename and boundary
-	std::string filename = getContentInfo(this->_request.get_content_disposition(), "filename=");
-	std::string boundary = "--" + getContentInfo(this->_request.get_content_type(), "boundary=") + "--";
-
-	filename.erase(0, 1);
-	filename.erase(filename.size() - 1);
-	std::ofstream newfile("WebServer/Uploaded_files/" + filename, std::ios::out | std::ios::binary);
-	//write all bytes to file except final boundary
-	if (newfile.is_open()) {
-		int length = body.size() - boundary.size() - 4;
-		while (i < length)
-		{
-			i++;
-			newfile << *it;
-			it++;
-		}
-		newfile.close();
-	}//else return error?
 }
 
 void	ResponseBuilder::build_response() {

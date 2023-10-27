@@ -3,6 +3,7 @@
 
 #include "HttpParser/RequestParser.hpp"
 #include "ConfigParser/ServerConfig.hpp"
+#include "Utilities/Utilities.hpp"
 
 #include <string>
 
@@ -17,8 +18,8 @@ private:
     int                                 _status_code;
     int                                 _cgiPipeFd;
 
-	std::string	getContentInfo(std::string content_type, std::string info);
-	void		upload_file();
+	//std::string	getContentInfo(std::string content_type, std::string info);
+	//void		upload_file();
     void        build_response();
     void        build_header(std::string uri);
     std::string process_uri();

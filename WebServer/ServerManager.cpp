@@ -101,9 +101,10 @@ void ServerManager::start_listen()
                     else {
                         char buffer[BUFFER_SIZE] = {0};
                         int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
-                        if (bytesReceived < 0)
-                        {
-                            log("Failed to read bytes from client socket connection");
+                        if (bytesReceived == 0) {
+                            log("Client closed the connection");
+                            close(it->fd);
+                            it = _pollfds.erase(it);
                             break ;
                         }
 						//if request doesn't yet exist, create it. If it does, add the remaining bytes from the socket to the request body
@@ -123,6 +124,9 @@ void ServerManager::start_listen()
 							log(ss.str());
 							it->events = POLLOUT;
 						}
+						if (_timeOutIndex.count(it->fd)) {
+                            this->_timeOutIndex.at(it->fd) = utility::getCurrentTimeinSec();
+                        }
 						break ;
                     }
                 }
