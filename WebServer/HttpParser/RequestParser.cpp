@@ -14,7 +14,7 @@
 
 RequestParser::RequestParser(char * request): _request(request), _status_code(200), _ParsingCompleted(false) {
     consume_request();
-    //print_request();                // FOR TESTING
+    print_request();                // FOR TESTING
 }
 
 RequestParser::RequestParser(): _request(""), _status_code(200), _ParsingCompleted(false) {}
@@ -92,7 +92,7 @@ std::string RequestParser::get_content_disposition() const {
 	if (_headers.count("Content-Disposition") > 0) {
         return (_headers.at("Content-Disposition"));
     } else {
-        return 0;
+        return "";
     }
 }
 
