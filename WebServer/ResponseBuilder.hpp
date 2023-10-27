@@ -18,7 +18,7 @@ private:
     int                                 _cgiPipeFd;
 
     void        build_response();
-    void        build_header();
+    void        build_header(std::string uri);
     std::string process_uri();
     Location    match_location(std::string uri);
 

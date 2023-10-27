@@ -7,6 +7,7 @@
 namespace utility {
     void    stringTrim(std::string &str, const char *charset);
     long    getCurrentTimeinSec(void);
+    std::string getMIMEType(std::string path);
     // Other utility functions if needed
 }
 
