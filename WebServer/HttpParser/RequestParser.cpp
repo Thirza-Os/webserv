@@ -14,7 +14,7 @@
 
 RequestParser::RequestParser(char * request): _request(request), _status_code(200), _ParsingCompleted(false) {
     consume_request();
-    print_request();                // FOR TESTING
+    //print_request();                // FOR TESTING
 }
 
 RequestParser::RequestParser(): _request(""), _status_code(200), _ParsingCompleted(false) {}

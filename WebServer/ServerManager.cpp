@@ -61,17 +61,50 @@ void ServerManager::start_listen()
                 log("Error returned from poll()\n");
             }
             for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
-                if (it->revents & POLLIN) {
+                if (it->revents & POLLIN + POLLHUP) {
                     if (std::find(listeners.begin(), listeners.end(), it->fd) != listeners.end()) {
                         accept_connection(it->fd);
+                        break ;
+                    }
+                    else if (this->_cgiIndex.count(it->fd)) {
+                        //read cgi response
+                        log("Reading cgi response");
+                        char buffer[BUFFER_SIZE] = {0};
+                        int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
+                        if (bytesReceived < 0)
+                        {
+                            log("Failed to read bytes from pipe connection");
+                            break ;
+                        }
+                        //add bytes read to string and add it to cgi response index
+                        std::string cgiResponse = buffer;
+                        if (_cgiResponseIndex.count(this->_cgiIndex.at(it->fd))) {
+                            this->_cgiResponseIndex.at(this->_cgiIndex.at(it->fd)).append(cgiResponse);
+                        }
+                        else {
+                            this->_cgiResponseIndex.insert({this->_cgiIndex.at(it->fd), cgiResponse});
+                        }
+                        //find the pollfd of cgiIndex.at(it->fd) and set events to POLLOUT
+                        if (bytesReceived == 0) {
+                            for (std::vector<struct pollfd>::iterator iter = _pollfds.begin(); iter < _pollfds.end(); iter++) {
+                                if (iter->fd == this->_cgiIndex.at(it->fd)) {
+                                    iter->events = POLLOUT;
+                                }
+                            }
+                            //close the pipe end
+                            close(it->fd);
+                            it = _pollfds.erase(it);
+                            this->_cgiIndex.erase(it->fd);
+                        }
                         break ;
                     }
                     else {
                         char buffer[BUFFER_SIZE] = {0};
                         int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
-                        if (bytesReceived < 0)
-                        {
-                            log("Failed to read bytes from client socket connection");
+                        if (bytesReceived == 0) {
+                            log("Client closed the connection");
+                            close(it->fd);
+                            it = _pollfds.erase(it);
                             break ;
                         }
 						//if request doesn't yet exist, create it. If it does, add the remaining bytes from the socket to the request body
@@ -91,6 +124,9 @@ void ServerManager::start_listen()
 							log(ss.str());
 							it->events = POLLOUT;
 						}
+						if (_timeOutIndex.count(it->fd)) {
+                            this->_timeOutIndex.at(it->fd) = utility::getCurrentTimeinSec();
+                        }
 						break ;
                     }
                 }
@@ -100,7 +136,14 @@ void ServerManager::start_listen()
                         it = _pollfds.erase(it);
                     }
                     else {
-                        it->events = POLLIN;
+                        for (std::map<int, int>::iterator iter = _cgiIndex.begin(); iter != _cgiIndex.end() ;iter++) {
+                            if (iter->second == it->fd) {
+                                it->events = 0;
+                            }
+                        }
+                        if (it->events) {
+                            it->events = POLLIN;
+                        }
                     }
                     _requests.erase(it->fd);
                     break ;
@@ -147,9 +190,27 @@ void ServerManager::accept_connection(int incoming)
 int ServerManager::send_response(int socket_fd)
 {
     unsigned long bytesSent;
-    ResponseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).get_config());
-    std::string serverMessage = response.get_response();
-    std::cout << response.get_header() << std::endl;
+    std::string serverMessage;
+    if (this->_cgiResponseIndex.count(socket_fd)) {
+        //send cgi response instead of normal responsebuilder stuff
+        serverMessage = this->_cgiResponseIndex.at(socket_fd);
+    }
+    else if (_requests.count(socket_fd)) {
+        ResponseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).get_config());
+        if (response.get_cgiPipeFd()) {
+            //we need to read from the pipe and send that instead
+            struct pollfd cgi_fd;
+            cgi_fd.fd = response.get_cgiPipeFd();
+            cgi_fd.events = POLLIN;
+            this->_pollfds.push_back(cgi_fd);
+            //map the socket_fd to send the read output to the cgi_fd
+            _cgiIndex.insert({cgi_fd.fd, socket_fd});
+            _requests.erase(socket_fd);
+            return (0);
+        }
+        serverMessage = response.get_response();
+        std::cout << response.get_header() << std::endl;
+    }
     bytesSent = write(socket_fd, serverMessage.c_str(), serverMessage.size());
     if (bytesSent == serverMessage.size())
     {
@@ -159,15 +220,23 @@ int ServerManager::send_response(int socket_fd)
     {
         log("Error sending response to client");
     }
-    if (_requests.at(socket_fd).find_header("Connection") == " close") {
-        std::cout << "Closing connection" << std::endl;
-        _requestServerIndex.erase(socket_fd);
+    if (this->_cgiResponseIndex.count(socket_fd)) {
+        std::cout << "cgi response sent, closing connection" << std::endl;
+        this->_cgiResponseIndex.erase(socket_fd);
         return (1);
+    }
+    if (_requests.count(socket_fd)) {
+        if (_requests.at(socket_fd).find_header("Connection") == " close") {
+            std::cout << "Closing connection" << std::endl;
+            _requestServerIndex.erase(socket_fd);
+            return (1);
+        }
     }
     else {
         std::cout << "Keeping connection alive" << std::endl;
         return (0);
     }
+    return (0);
 }
 
 //Close connections that are idle for 30 seconds or more
