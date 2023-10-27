@@ -15,11 +15,12 @@ private:
     std::string                         _body;
     std::string                         _response;
     int                                 _status_code;
+    int                                 _cgiPipeFd;
 
 	std::string	getContentInfo(std::string content_type, std::string info);
 	void		upload_file();
     void        build_response();
-    void        build_header();
+    void        build_header(std::string uri);
     std::string process_uri();
     Location    match_location(std::string uri);
 
@@ -31,6 +32,7 @@ public:
 
     std::string     get_response();
     std::string     get_header();
+    int             get_cgiPipeFd();
 };
 
 #endif
