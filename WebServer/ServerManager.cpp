@@ -103,7 +103,9 @@ void ServerManager::start_listen()
                     int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
                     if (bytesReceived < 0)
                     {
-                        log("Failed to read bytes from client socket connection");
+                        log("Failed to read bytes from client socket, connection closed");
+                        close(it->fd);
+                        it = _pollfds.erase(it);
                         break ;
                     }
                     if (bytesReceived == 0) {
@@ -184,6 +186,7 @@ void ServerManager::accept_connection(int incoming)
 //return 1 to close the connection after, 0 to keep it alive
 int ServerManager::send_response(int socket_fd)
 {
+    bool errorOccurred = false;
     unsigned long bytesSent;
     std::string serverMessage;
     if (this->_cgiResponseIndex.count(socket_fd)) {
@@ -214,6 +217,11 @@ int ServerManager::send_response(int socket_fd)
     else
     {
         log("Error sending response to client");
+        errorOccurred = true;
+    }
+    if (bytesSent == 0) {
+        log("Error sending response to client");
+        errorOccurred = true;
     }
     if (this->_cgiResponseIndex.count(socket_fd)) {
         std::cout << "cgi response sent, closing connection" << std::endl;
@@ -221,16 +229,13 @@ int ServerManager::send_response(int socket_fd)
         return (1);
     }
     if (_requests.count(socket_fd)) {
-        if (_requests.at(socket_fd).find_header("Connection") == " close") {
+        if (_requests.at(socket_fd).find_header("Connection") == " close" || errorOccurred) {
             std::cout << "Closing connection" << std::endl;
             _requestServerIndex.erase(socket_fd);
             return (1);
         }
     }
-    else {
-        std::cout << "Keeping connection alive" << std::endl;
-        return (0);
-    }
+    std::cout << "Keeping connection alive" << std::endl;
     return (0);
 }
 
