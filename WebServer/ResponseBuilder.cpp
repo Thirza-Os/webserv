@@ -86,10 +86,22 @@ void        ResponseBuilder::build_header(std::string uri) {
         ss << " Bad Request\n";
     else if (this->_status_code == 401)
         ss << " Unauthorized\n";
+    else if (this->_status_code == 403)
+        ss << " Forbidden\n";
     else if (this->_status_code == 404)
         ss << " Not Found\n";
     else if (this->_status_code == 405)
         ss << " Method Not Allowed\n";
+    else if (this->_status_code == 413)
+        ss << " Payload Too Large\n";
+    else if (this->_status_code == 500)
+        ss << " Internal Server Error\n";
+    else if (this->_status_code == 502)
+        ss << " Bad Gateway\n";
+    else if (this->_status_code == 503)
+        ss << " Service Unavailable\n";
+    else if (this->_status_code == 504)
+        ss << " Gateway Timeout\n";
     else
         ss << " Some Other Status\n"; //expand on this later
     ss << "Content-Type: " << utility::getMIMEType(uri) << "\n";
