@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Welcome to Bird Is The Word!</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: blue;
+            background-color: pink;
             text-align: center;
+            margin: 0; /* Remove default margin */
+            padding: 0; /* Remove default padding */
+            background-image: url("../img/bird.jpg");
+            background-repeat: repeat; /* Repeat the background image */
         }
         .container {
             padding: 20px;
-            background-color: #fff;
+            background-color: rgba(255, 255, 255, 0.8); /* Add transparency to the container background */
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             margin: 50px auto;
@@ -24,21 +27,18 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 300px; /* Set the desired height */
         }
         .image-container img {
-            max-width: 100%; /* Ensure the image doesn't exceed its container's width */
-            max-height: 100%; /* Ensure the image doesn't exceed its container's height */
+            width: 100%; /* Set a fixed width */
+            height: auto; /* Automatically adjust the height to maintain the image's aspect ratio */
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to Bird Is The Word </h1>
         <div class="image-container">
-            <img src="./img/peter.jpg" alt="Index Bird Image">
+            <img src="../img/bird.jpg" alt="Index Penguin Image">
         </div>
-        <p>Don't forget: BIRD IS THE WORD!</p>
     </div>
 </body>
 </html>
