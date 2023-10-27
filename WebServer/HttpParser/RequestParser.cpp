@@ -230,6 +230,7 @@ void RequestParser::consume_request(){
 
     ParseState                  state = RequestLineParsing;
 
+
     if (raw_request.empty())
         parse_error("Bad Request", 400);
     //char first_char = line[0];

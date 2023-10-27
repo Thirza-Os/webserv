@@ -14,6 +14,11 @@ ResponseBuilder::ResponseBuilder(RequestParser request, ServerConfig config): _r
         build_response();
     }
 	if (this->_request.get_method() == "POST"){
+		upload_file();
+		build_response();
+	}
+	if (this->_request.get_method() == "DELETE"){
+		delete_resource();
 		build_response();
 	}
 }
@@ -82,14 +87,20 @@ void        ResponseBuilder::build_header() {
     ss << " " << this->_status_code;
     if (this->_status_code == 200)
         ss << " OK\n";
+	else if(this->_status_code == 201)
+		ss << " Created\n";
     else if (this->_status_code == 400)
         ss << " Bad Request\n";
     else if (this->_status_code == 401)
         ss << " Unauthorized\n";
+	else if(this->_status_code == 403)
+		ss << " Forbidden\n";
     else if (this->_status_code == 404)
         ss << " Not Found\n";
     else if (this->_status_code == 405)
         ss << " Method Not Allowed\n";
+	else if(this->_status_code == 500)
+		ss << " Internal Server Error\n";
     else
         ss << " Some Other Status\n"; //expand on this later
     if (this->_request.get_content_type().empty())
@@ -176,7 +187,16 @@ std::string ResponseBuilder::getContentInfo(std::string header, std::string info
 	}
 	line.erase(0, info.length());
 	return (line);
-	
+}
+
+void ResponseBuilder::delete_resource()
+{
+	std::cout << "uri: " + this->_request.get_uri() << std::endl << "Method: " + this->_request.get_method() << std::endl;
+	if (strncmp(this->_request.get_uri().c_str(), "/WebServer/Uploaded_files/", 27) != 0)
+	{
+		this->_status_code = 403;//forbidden resource
+		return ;
+	}
 }
 
 void ResponseBuilder::upload_file()
@@ -185,8 +205,6 @@ void ResponseBuilder::upload_file()
 	std::vector<char>::iterator it = body.begin();
 	int newlines_found = 0;
 	int i = 0;
-
-	std::cout << "sadsadsa" << std::endl;
 
 	//skip the first few lines because they are content-type, disposition and boundary
 	while (it != body.end())
@@ -215,7 +233,10 @@ void ResponseBuilder::upload_file()
 			it++;
 		}
 		newfile.close();
-	}//else return error?
+		this->_status_code = 201;
+	}
+	else
+		this->_status_code = 500;
 }
 
 void	ResponseBuilder::build_response() {
@@ -227,8 +248,6 @@ void	ResponseBuilder::build_response() {
     }
     std::cout << "Request is good it seems.." << std::endl;
     std::string uri = process_uri();
-	if (this->_request.get_method() == "POST")
-		upload_file();
     std::ifstream htmlFile(uri.c_str());
     if (this->_status_code == 405) {
         std::cout << "Method not allowed" << std::endl;
@@ -240,6 +259,12 @@ void	ResponseBuilder::build_response() {
             htmlFile.open("WebServer/ConfigParser/DefaultErrorPages/405MethodNotAllowed.html");
         }
     }
+	// if (this->_status_code == 403)
+	// {
+	// 	build_header();
+	// 	this->_response = this->_header;
+	// 	return ;
+	// }
     else if (!htmlFile.good()) {
         htmlFile.close();
         std::cout << "file can't be opened" << std::endl;
@@ -251,6 +276,7 @@ void	ResponseBuilder::build_response() {
             htmlFile.open("WebServer/ConfigParser/DefaultErrorPages/404NotFound.html");
         }
     }
+	
     if (!htmlFile.good()) {
         htmlFile.close();
         std::cout << "error page can't be opened either for some reason" << std::endl;
@@ -258,6 +284,8 @@ void	ResponseBuilder::build_response() {
         this->_response = this->_header;
         return ;
     }
+	
+	//if (status code = 201) -> return successful upload?
     std::stringstream buffer;
     buffer << htmlFile.rdbuf();
 	htmlFile.close();

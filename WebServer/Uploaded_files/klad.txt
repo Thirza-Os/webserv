@@ -1,0 +1,148 @@
+Request: POST / HTTP/1.1
+Host: localhost:8081
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/118.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Content-Type: multipart/form-data; boundary=---------------------------335043972235546495231675249260
+Content-Length: 1239
+Origin: http://localhost:8081
+Connection: keep-alive
+Referer: http://localhost:8081/
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: same-origin
+Sec-Fetch-User: ?1
+
+-----------------------------335043972235546495231675249260
+Content-Disposition: form-data; name="myfile"; filename="fff.png"
+Content-Type: image/png
+
+�PNG
+
+
+Method: POST
+URI: /
+Protocol: HTTP/1.1
+Headers:
+  Accept:  text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+  Accept-Encoding:  gzip, deflate, br
+  Accept-Language:  en-US,en;q=0.5
+  Connection:  keep-alive
+  Content-Disposition:  form-data; name="myfile"; filename="fff.png"
+  Content-Length:  1239
+  Content-Type:  multipart/form-data; boundary=---------------------------335043972235546495231675249260
+  Host:  localhost:8081
+  Origin:  http://localhost:8081
+  Referer:  http://localhost:8081/
+  Sec-Fetch-Dest:  document
+  Sec-Fetch-Mode:  navigate
+  Sec-Fetch-Site:  same-origin
+  Sec-Fetch-User:  ?1
+  Upgrade-Insecure-Requests:  1
+  User-Agent:  Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/118.0
+
+Header length: 637
+Content length: 1239
+Content type:  multipart/form-data; boundary=---------------------------335043972235546495231675249260
+------ Received Request from client ------
+
+
+====== Waiting for a new event ======
+
+
+
+Building response..
+checking status code..
+Request is good it seems..
+Processing uri..
+Locations retrieved..
+No match, matching just '/'..
+Location matched..
+Still ok for now?..
+Erasing possible leading /..
+requested uri without a / at the start: 
+matched a location /!!!
+index: index.html
+what does my uri look like now?: 
+attempting to send this uri: WebServer/www/penguinserv/index.html
+HTTP/1.1 201 Created
+ multipart/form-data; boundary=---------------------------335043972235546495231675249260
+Content-Length: 1481
+
+
+------ Server Response sent to client ------
+
+
+Keeping connection alive
+====== Waiting for a new event ======
+
+
+
+Request: GET /img/indexPenguin.jpg HTTP/1.1
+Host: localhost:8081
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/118.0
+Accept: image/avif,image/webp,*/*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+Referer: http://localhost:8081/
+Sec-Fetch-Dest: image
+Sec-Fetch-Mode: no-cors
+Sec-Fetch-Site: same-origin
+
+
+Method: GET
+URI: /img/indexPenguin.jpg
+Protocol: HTTP/1.1
+Headers:
+  Accept:  image/avif,image/webp,*/*
+  Accept-Encoding:  gzip, deflate, br
+  Accept-Language:  en-US,en;q=0.5
+  Connection:  keep-alive
+  Host:  localhost:8081
+  Referer:  http://localhost:8081/
+  Sec-Fetch-Dest:  image
+  Sec-Fetch-Mode:  no-cors
+  Sec-Fetch-Site:  same-origin
+  User-Agent:  Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/118.0
+
+Header length: 386
+Content length: 0
+Content type: 
+------ Received Request from client ------
+
+
+====== Waiting for a new event ======
+
+
+
+Building response..
+checking status code..
+Request is good it seems..
+Processing uri..
+Locations retrieved..
+No match, matching just '/'..
+Location matched..
+Still ok for now?..
+Erasing possible leading /..
+requested uri without a / at the start: img/indexPenguin.jpg
+matched a location /!!!
+index: index.html
+what does my uri look like now?: img/indexPenguin.jpg
+attempting to send this uri: WebServer/www/penguinserv/img/indexPenguin.jpg
+HTTP/1.1 200 OK
+Content-Type: text/html
+Content-Length: 535633
+
+
+------ Server Response sent to client ------
+
+
+Keeping connection alive
+====== Waiting for a new event ======
+
+
+
+====== Waiting for a new event ======

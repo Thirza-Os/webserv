@@ -18,6 +18,8 @@ private:
 
 	std::string	getContentInfo(std::string content_type, std::string info);
 	void		upload_file();
+	void		delete_resource();
+
     void        build_response();
     void        build_header();
     std::string process_uri();

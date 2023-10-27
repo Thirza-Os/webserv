@@ -81,6 +81,7 @@ void ServerManager::start_listen()
 						else {
 							RequestParser request(buffer);
 							request.fill_body(buffer, bytesReceived - request.get_header_length());
+							
 							_requests.insert({it->fd, request});
 						}
 						
@@ -159,7 +160,7 @@ int ServerManager::send_response(int socket_fd)
     {
         log("Error sending response to client");
     }
-    if (_requests.at(socket_fd).find_header("Connection") == " close") {
+    if (_requests.at(socket_fd).find_header("Connection") == " close" || _requests.at(socket_fd).get_method() == "DELETE") {
         std::cout << "Closing connection" << std::endl;
         _requestServerIndex.erase(socket_fd);
         return (1);
