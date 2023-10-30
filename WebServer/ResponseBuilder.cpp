@@ -116,7 +116,6 @@ void        ResponseBuilder::build_header(std::string uri) {
             break;
         default:
             ss << " Some Other Status\n";
-            break;
     }
     ss << "Content-Type: " << utility::getMIMEType(uri) << "\n";
     ss << "Content-Length: " << this->_body.size() << "\n\n"; //header ends with an empty line
@@ -231,7 +230,6 @@ std::ifstream   ResponseBuilder::open_error_page() {
                 break;
             default:
                 errorPageFile.open("WebServer/ConfigParser/DefaultErrorPages/DefaultError.html");
-                break;
         }
     }
     return (errorPageFile);
@@ -239,7 +237,7 @@ std::ifstream   ResponseBuilder::open_error_page() {
 
 void	ResponseBuilder::build_response() {
     std::string uri("");
-    if (this->_status_code != 400) {
+    if (this->_status_code == 200) {
         uri = process_uri();
         if (uri == "URI_MATCHED") { //cgi handles response
             return ;
