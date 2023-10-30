@@ -27,7 +27,7 @@ public:
 
 private:
 
-    ServerConfig					_config;
+    ServerConfig			        _config;
     int                             _socket;
 
     struct sockaddr_in				_socketAddr;

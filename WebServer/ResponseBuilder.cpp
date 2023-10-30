@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <cstring>
 
-ResponseBuilder::ResponseBuilder(RequestParser request, ServerConfig config): _request(request), _config(config) {
+ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _request(request), _config(config) {
     std::cout << "Building response.." << std::endl;
     this->_cgiPipeFd = 0; //default to 0 for not set
     this->_status_code = this->_request.get_status_code();

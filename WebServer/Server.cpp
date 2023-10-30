@@ -55,6 +55,6 @@ struct sockaddr_in  Server::get_sock_addr() const {
     return(this->_socketAddr);
 }
 
-ServerConfig    Server::get_config() const {
+ServerConfig        Server::get_config() const {
     return(this->_config);
 }

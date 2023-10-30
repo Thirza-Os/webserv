@@ -24,7 +24,7 @@ private:
     Location        match_location(std::string uri);
 
 public:
-    ResponseBuilder(RequestParser request, ServerConfig config);
+    ResponseBuilder(RequestParser &request, ServerConfig config);
     ResponseBuilder(const ResponseBuilder &src);
     ~ResponseBuilder();
     ResponseBuilder &operator=(const ResponseBuilder &src);

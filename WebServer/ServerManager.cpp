@@ -10,9 +10,9 @@
 
 const int BUFFER_SIZE = 30720;
 
-ServerManager::ServerManager(std::vector<ServerConfig> configs): _configs(configs)
+ServerManager::ServerManager(const std::vector<ServerConfig> &configs)
 {
-    for (std::vector<ServerConfig>::iterator it = _configs.begin(); it != _configs.end() ;it++) {
+    for (std::vector<ServerConfig>::const_iterator it = configs.begin(); it != configs.end() ;it++) {
         std::cout << "server: " << it->get_servername() << ", root: " << it->get_rootdirectory() << std::endl;
         _servers.push_back(Server(*it));
     }
