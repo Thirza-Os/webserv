@@ -15,7 +15,7 @@ ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _
     this->_status_code = this->_request.get_status_code();
 	if (this->_request.get_method() == "POST"){
 		if (this->_request.get_content_length() > 0)
-			utility::upload_file(&this->_request);
+			this->_status_code = utility::upload_file(&this->_request, match_location(this->_request.get_uri()), this->_config.get_maxsize());
     }
 	build_response();
 }
@@ -85,6 +85,9 @@ void        ResponseBuilder::build_header(std::string uri) {
     switch(this->_status_code) {
         case 200:
             ss << " OK\n";
+            break;
+        case 201:
+            ss << " Created\n";
             break;
         case 400:
             ss << " Bad Request\n";

@@ -130,8 +130,9 @@ void ConfigParser::process_maxsize(std::string &line, ServerConfig &server) {
     if (pos != std::string::npos) {
         std::string trimmedLine = line.substr(pos + 21);
         utility::stringTrim(trimmedLine, " \t\n\r\f\v;");
+		std::cout << "Trimmed line: " + trimmedLine << std::endl;
     try {
-        size_t sizeValue = std::stoull(trimmedLine);
+        size_t sizeValue = utility::get_max_size(trimmedLine);
         server.set_maxsize(sizeValue);
     } catch (const std::exception& e) {
         throw ConfigParserException("Invalid size");
@@ -272,6 +273,7 @@ void ConfigParser::process_location(std::string first_line, std::stringstream& s
 }
 
 void ConfigParser::process_line(std::string &line, ServerConfig &server) {
+
     if (line.find("listen") != std::string::npos)
         process_listen(line, server);
     else if (line.find("server_name") != std::string::npos)

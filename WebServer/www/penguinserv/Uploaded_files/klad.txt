@@ -1,0 +1,38 @@
+HOEREN ENZO
+Method: POST
+URI: /img/indexPenguin.jpg
+Protocol: HTTP/1.1
+Headers:
+  Accept:  */*
+  Connection:  keep-alive
+  Content-Length:  11
+  Content-Type:  application/x-www-form-urlencoded
+  Host:  localhost:8081
+  User-Agent:  curl/7.81.0
+Header length: 188
+Content length: 11
+Content type:  application/x-www-form-urlencoded
+
+Method: POST
+URI: /
+Protocol: HTTP/1.1
+Headers:
+  Accept:  text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+  Accept-Encoding:  gzip, deflate, br
+  Accept-Language:  en-US,en;q=0.5
+  Connection:  keep-alive
+  Content-Disposition:  form-data; name="myfile"; filename=""
+  Content-Length:  224
+  Content-Type:  multipart/form-data; boundary=---------------------------3132089402834106782135863508
+  Host:  localhost:8081
+  Origin:  http://localhost:8081
+  Referer:  http://localhost:8081/
+  Sec-Fetch-Dest:  document
+  Sec-Fetch-Mode:  navigate
+  Sec-Fetch-Site:  same-origin
+  Sec-Fetch-User:  ?1
+  Upgrade-Insecure-Requests:  1
+  User-Agent:  Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/118.0
+Header length: 634
+Content length: 224
+Content type:  multipart/form-data; boundary=---------------------------3132089402834106782135863508
