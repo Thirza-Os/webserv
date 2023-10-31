@@ -13,9 +13,7 @@ ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _
     std::cout << "Building response.." << std::endl;
     this->_cgiPipeFd = 0; //default to 0 for not set
     this->_status_code = this->_request.get_status_code();
-    if (this->_request.get_method() == "GET"){
-        build_response();
-    }
+    build_response();
 }
 
 ResponseBuilder::ResponseBuilder(const ResponseBuilder &src) {
@@ -244,14 +242,14 @@ void	ResponseBuilder::build_response() {
         }
     }
     std::ifstream htmlFile(uri.c_str());
-    if (!htmlFile.good()) {
+    if (!htmlFile.good() && this->_status_code == 200) {
         htmlFile.close();
         std::cout << "file can't be opened" << std::endl;
-        uri = "error.html";
         this->_status_code = 404;
     }
     if (this->_status_code != 200) {
         htmlFile.close();
+        uri = "error.html";
         htmlFile = open_error_page();
     }
     if (!htmlFile.good()) {

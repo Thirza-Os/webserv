@@ -153,14 +153,14 @@ void ServerManager::start_listen()
 
 void ServerManager::accept_connection(int incoming)
 {
-    Server correctServer;
+    std::vector<Server>::iterator correctServer;
     for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
         if (it->get_socket() == incoming)
-            correctServer = *it;
+            correctServer = it;
     }
-    sockaddr_in socketAddr = correctServer.get_sock_addr();
+    sockaddr_in socketAddr = correctServer->get_sock_addr();
     unsigned int socketAddrLen = sizeof(socketAddr);
-    int new_socket = accept4(correctServer.get_socket(), (sockaddr *)&socketAddr,
+    int new_socket = accept4(correctServer->get_socket(), (sockaddr *)&socketAddr,
                         &socketAddrLen, SOCK_NONBLOCK);
     if (new_socket < 0)
     {
@@ -176,7 +176,7 @@ void ServerManager::accept_connection(int incoming)
     new_socket_fd.fd = new_socket;
     new_socket_fd.events = POLLIN;
     this->_pollfds.push_back(new_socket_fd);
-    this->_requestServerIndex.insert({new_socket, correctServer});
+    this->_requestServerIndex.insert({new_socket, *correctServer});
     this->_timeOutIndex.insert({new_socket, utility::getCurrentTimeinSec()});
     std::ostringstream ss;
     ss << "------ New connection established ------\n\n";
