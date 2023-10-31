@@ -13,10 +13,6 @@ ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _
     std::cout << "Building response.." << std::endl;
     this->_cgiPipeFd = 0; //default to 0 for not set
     this->_status_code = this->_request.get_status_code();
-	if (this->_request.get_method() == "POST"){
-		if (this->_request.get_content_length() > 0)
-			this->_status_code = utility::upload_file(&this->_request, match_location(this->_request.get_uri()), this->_config.get_maxsize());
-    }
 	build_response();
 }
 
@@ -242,17 +238,30 @@ std::ifstream   ResponseBuilder::open_error_page() {
 
 void	ResponseBuilder::build_response() {
     std::string uri("");
+    std::ifstream htmlFile;
     if (this->_status_code == 200) {
         uri = process_uri();
         if (uri == "URI_MATCHED") { //cgi handles response
             return ;
         }
     }
-    std::ifstream htmlFile(uri.c_str());
-    if (!htmlFile.good() && this->_status_code == 200) {
-        htmlFile.close();
-        std::cout << "file can't be opened" << std::endl;
-        this->_status_code = 404;
+    if (this->_request.get_method() == "POST"){
+		if (this->_request.get_content_length() > 0)
+			this->_status_code = utility::upload_file(&this->_request, match_location(this->_request.get_uri()), this->_config.get_maxsize());
+        build_header(uri);
+        this->_response = this->_header;
+        return;
+    }
+    else if (this->_request.get_method() == "GET") {
+        htmlFile.open(uri.c_str());
+        if (!htmlFile.good() && this->_status_code == 200) {
+            htmlFile.close();
+            std::cout << "file can't be opened" << std::endl;
+            this->_status_code = 404;
+        }
+    }
+    else {
+        this->_status_code = 405; //or maybe 501 instead, method not implemented
     }
     if (this->_status_code != 200) {
         htmlFile.close();
