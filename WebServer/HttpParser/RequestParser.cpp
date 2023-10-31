@@ -8,12 +8,13 @@
 #include <string>
 #include <algorithm>
 #include <cstdio>
+#include <string.h>
 
 // CHECK: Check if everything looks well with the whitespaces trim, or more chars have to be added.
 
-RequestParser::RequestParser(std::string request): _request(request), _status_code(200), _ParsingCompleted(false) {
+RequestParser::RequestParser(char * request): _request(request), _status_code(200), _ParsingCompleted(false) {
     consume_request();
-    //print_request();                // FOR TESTING
+    print_request();                // FOR TESTING
 }
 
 RequestParser::RequestParser(): _request(""), _status_code(200), _ParsingCompleted(false) {}
@@ -39,11 +40,12 @@ RequestParser &RequestParser::operator=(const RequestParser &src)
         this->_body = src._body;
         this->_ParsingCompleted = src._ParsingCompleted;
         this->_status_code = src._status_code;
+		this->_content_remaining = src._content_remaining;
     }
     return *this;
 }
 
-bool    RequestParser::parsing_completed() const {
+bool    RequestParser::parsingCompleted() const {
     return this->_ParsingCompleted;
 }
 
@@ -59,8 +61,15 @@ std::string RequestParser::get_protocol() const {
     return (this->_protocol);
 }
 
-std::string RequestParser::get_body() const {
+int 		RequestParser::get_header_length() const {
+	return(this->_header_length);
+}
+
+std::vector<char> RequestParser::get_body() const {
     return (this->_body);
+}
+int RequestParser::get_content_remaining() const {
+    return (this->_content_remaining);
 }
 
 std::string RequestParser::get_content_type() const {
@@ -76,6 +85,14 @@ size_t RequestParser::get_content_length() const {
         return std::stoi(_headers.at("Content-Length"));
     } else {
         return 0;
+    }
+}
+
+std::string RequestParser::get_content_disposition() const {
+	if (_headers.count("Content-Disposition") > 0) {
+        return (_headers.at("Content-Disposition"));
+    } else {
+        return "";
     }
 }
 
@@ -161,10 +178,45 @@ void    RequestParser::validate_header(std::string line){
 }
 
 bool    RequestParser::validate_content(std::string line){
-    if (line.empty())
-        return(0);
+    if (line.empty()){
+    	return(0);
+	}
+	
+	if (line.find("Content-Disposition:") != std::string::npos || line.find("Content-Type:") != std::string::npos)
+	{
+		size_t colon_pos = line.find(':');
 
+		if (colon_pos != std::string::npos)
+		{
+			std::string header_name = line.substr(0, colon_pos);
+			std::string header_value = line.substr(colon_pos + 1);
+
+			this->_headers.insert(std::make_pair(header_name, header_value));
+		}
+		return(1);
+	}
+	
     return(0);
+}
+
+void RequestParser::fill_body(const char *_request, int bytesReceived)
+{
+	const char * temp_body;
+	//if its the first read of the request, skip to the body part 
+	if (_body.size() == 0)
+	{
+		temp_body = strstr(_request, "\r\n\r\n");
+		this->_content_remaining += 4;//adding this up because the seperators are included in bytesreceived
+	}else
+		temp_body = _request;
+
+	//copy amount of bytes read into the body
+	size_t length = bytesReceived;
+	for(size_t i = 0; i < length; i++)
+		_body.push_back(temp_body[i]);
+
+	this->_content_remaining -= bytesReceived;
+
 }
 
 void RequestParser::consume_request(){
@@ -214,10 +266,11 @@ void RequestParser::consume_request(){
             case BodyParsing:
                 if (validate_content(line))
                     break;
-                this->_body += line + '\n';
                 break;
-        }
+         }
     }
+	this->_header_length = raw_request.find("\r\n\r\n");
+	this->_content_remaining = this->get_content_length();
     this->_ParsingCompleted = true;
 }
 
@@ -231,9 +284,18 @@ void RequestParser::print_request() const {
     for (const auto& header : _headers) {
         std::cout << "  " << header.first << ": " << header.second << std::endl;
     }
+	// std::cout << "Body: " << std::endl;
+	// std::vector<char> body = get_body();
+	// std::vector<char>::iterator it = body.begin();
 
-    std::cout << "Body: " << _body << std::endl;
-
+	// for (size_t i = 0; i < this->get_content_length(); i++)
+	// {
+    // 	std::cout << *it;
+	// 	it++;
+	// }
+	std::cout << std::endl;
+	
+	std::cout << "Header length: " << _header_length << std::endl;
     std::cout << "Content length: " << this->get_content_length() << std::endl;
     std::cout << "Content type: " << this->get_content_type() << std::endl;
 

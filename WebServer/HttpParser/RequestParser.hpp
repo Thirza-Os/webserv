@@ -1,5 +1,5 @@
-#ifndef REQUESTPARSER_HPP
-# define REQUESTPARSER_HPP
+#ifndef RequestParser_HPP
+# define RequestParser_HPP
 
 #include <string>
 #include <map>
@@ -8,7 +8,7 @@
 class RequestParser
 {
 private:
-    std::string                         _request;
+    const char*                         _request;
 
     std::string                         _method;
     std::string                         _uri;
@@ -16,9 +16,12 @@ private:
 
     std::map<std::string, std::string>  _headers;
 
-    std::string                         _body;
+    std::vector<char>                   _body;
 
     int                                 _status_code;
+
+	int									_content_remaining;
+	size_t								_header_length;
 
     bool                                _ParsingCompleted;
 
@@ -34,19 +37,23 @@ private:
     void        print_request() const;
 
 public:
-    RequestParser(std::string request);
+    RequestParser(char * request);
     RequestParser();
     RequestParser(const RequestParser &src);
     ~RequestParser();
     RequestParser &operator=(const RequestParser &src);
 
-    bool        parsing_completed() const;
+	void 		fill_body(const char* temp_body, int bytesReceived); 
+    bool        parsingCompleted() const;
+	std::string get_content_disposition() const;
     std::string get_method() const;
     std::string get_uri() const;
     std::string get_protocol() const;
-    std::string get_body() const;
+    std::vector<char> get_body() const;
     std::string get_content_type() const;
     size_t      get_content_length() const;
+	int 		get_header_length() const;
+	int	        get_content_remaining() const;
     int         get_status_code() const;
 
     std::string find_header(std::string key);

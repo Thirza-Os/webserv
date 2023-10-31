@@ -114,16 +114,26 @@ void ServerManager::start_listen()
                         it = _pollfds.erase(it);
                         break ;
                     }
-                    RequestParser request(buffer);
-                    _requests.insert({it->fd, request});
+                    //if request doesn't yet exist, create it. If it does, add the remaining bytes from the socket to the request body
+                    if (_requests.find(it->fd) != _requests.end()){
+                        _requests[it->fd].fill_body(buffer, bytesReceived);
+                    }
+                    else {
+                        RequestParser request(buffer);
+                        request.fill_body(buffer, bytesReceived - request.get_header_length());
+                        _requests.insert({it->fd, request});
+                    }
+                    
+                    // if all bytes are read, POLLOUT the socket
+                    if (_requests[it->fd].get_content_remaining() <= 0) {
+                        std::ostringstream ss;
+                        ss << "------ Received Request from client ------\n\n";
+                        log(ss.str());
+                        it->events = POLLOUT;
+                    }
                     if (_timeOutIndex.count(it->fd)) {
                         this->_timeOutIndex.at(it->fd) = utility::getCurrentTimeinSec();
                     }
-
-                    std::ostringstream ss;
-                    ss << "------ Received Request from client ------\n\n";
-                    log(ss.str());
-                    it->events = POLLOUT;
                     break ;
                 }
             }

@@ -13,7 +13,11 @@ ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _
     std::cout << "Building response.." << std::endl;
     this->_cgiPipeFd = 0; //default to 0 for not set
     this->_status_code = this->_request.get_status_code();
-    build_response();
+	if (this->_request.get_method() == "POST"){
+		if (this->_request.get_content_length() > 0)
+			utility::upload_file(&this->_request);
+    }
+	build_response();
 }
 
 ResponseBuilder::ResponseBuilder(const ResponseBuilder &src) {
