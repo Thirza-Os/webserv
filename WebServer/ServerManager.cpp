@@ -101,6 +101,7 @@ void ServerManager::start_listen()
                     else {
                         char buffer[BUFFER_SIZE] = {0};
                         int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
+						printf("----%d----%d\n", bytesReceived, it->fd);
                         if (bytesReceived == 0) {
                             log("Client closed the connection");
                             close(it->fd);
@@ -226,16 +227,17 @@ int ServerManager::send_response(int socket_fd)
         return (1);
     }
     if (_requests.count(socket_fd)) {
-        if (_requests.at(socket_fd).find_header("Connection") == " close") {
+        if (_requests.at(socket_fd).find_header("Connection") != " keep-alive" ) {
             std::cout << "Closing connection" << std::endl;
             _requestServerIndex.erase(socket_fd);
-            return (1);
+			return(1);
         }
+	    else {
+    	    std::cout << "Keeping connection alive" << std::endl;
+        	return (0);
+    	}
     }
-    else {
-        std::cout << "Keeping connection alive" << std::endl;
-        return (0);
-    }
+
     return (0);
 }
 

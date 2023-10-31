@@ -4,12 +4,14 @@
 
 #include <string>
 #include "../HttpParser/RequestParser.hpp"
+#include "../ConfigParser/ServerConfig.hpp"
 
 namespace utility {
+	unsigned long long	get_max_size(std::string size);
     void    stringTrim(std::string &str, const char *charset);
     long    getCurrentTimeinSec(void);
     std::string getMIMEType(std::string path);
-	void	upload_file(RequestParser *post_request);
+	int		upload_file(RequestParser *post_request, Location location, unsigned long long maxSize);
     // Other utility functions if needed
 }
 

@@ -101,7 +101,7 @@ int RequestParser::get_status_code() const {
 }
 
 std::string RequestParser::find_header(std::string key) {
-    if (_headers.count("Content-Length") > 0) {
+    if (_headers.find(key) != _headers.end()) {
         return (_headers.at(key));
     } else {
         return "";
@@ -201,6 +201,7 @@ bool    RequestParser::validate_content(std::string line){
 
 void RequestParser::fill_body(const char *_request, int bytesReceived)
 {
+
 	const char * temp_body;
 	//if its the first read of the request, skip to the body part 
 	if (_body.size() == 0)
@@ -218,7 +219,7 @@ void RequestParser::fill_body(const char *_request, int bytesReceived)
 	this->_content_remaining -= bytesReceived;
 
 }
-
+//TO DO: body parsen van deze functie los maken zodat hij multiparts ook via curl kan doen.
 void RequestParser::consume_request(){
 
     std::string                 raw_request = this->_request;
@@ -293,7 +294,7 @@ void RequestParser::print_request() const {
     // 	std::cout << *it;
 	// 	it++;
 	// }
-	std::cout << std::endl;
+	//std::cout << std::endl;
 	
 	std::cout << "Header length: " << _header_length << std::endl;
     std::cout << "Content length: " << this->get_content_length() << std::endl;

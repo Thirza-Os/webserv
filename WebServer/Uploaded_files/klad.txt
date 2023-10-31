@@ -1,5 +1,0 @@
-			advance(it, 4);			advance(it, 4);			advance(it, 4);			advance(it, 4);
-
-						advance(it, 4);			advance(it, 4);			advance(it, 4);
-									advance(it, 4);			advance(it, 4);
-									

@@ -6,8 +6,39 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <exception>
 
 namespace utility {
+	struct invalid_size: public std::exception {
+	const char * what () const throw () {
+		return "";
+	}
+	};
+
+	unsigned long long		get_max_size(std::string size)
+	{
+		int multiplier = 0;
+		if(size.size() == 0)
+			return(1000000);
+		size_t i = 0;
+		for(; i < size.length() - 1; i++)
+		{
+			if (!isdigit(size[i]))
+				throw invalid_size();
+		}
+		if (isdigit(size[i]))
+			multiplier = 1;
+		else if (size[i] == 'k' || size[i] == 'K')
+			multiplier = 1000;
+		else if (size[i] == 'm' || size[i] == 'M')
+			multiplier = 1000000;
+		else if (size[i] == 'g' || size[i] == 'G')
+			multiplier = 1000000000;
+		unsigned long long size_in_bytes = stoull(size) * multiplier;
+
+		return size_in_bytes;
+	}
+
     void    stringTrim(std::string &str, const char *charset) {
 
         size_t firstNonSpace = str.find_first_not_of(charset);
@@ -78,7 +109,8 @@ namespace utility {
 	
 	}
 
-	void upload_file(RequestParser *post_request)
+	//CURL REQUESTS DOEN
+	int upload_file(RequestParser *post_request, Location location, unsigned long long maxSize)
 	{
 		
 		std::vector<char> body = post_request->get_body();
@@ -88,6 +120,11 @@ namespace utility {
 		int newlines_found = 0;
 		int i = 0;
 		int length;
+
+		if (location.methods[1] != 1)
+			return (405);
+		if (post_request->get_content_length() > maxSize)
+			return (413);
 
 		//skip the first few lines because they are content-type, disposition and boundary.
 		//only do this if 
@@ -108,7 +145,6 @@ namespace utility {
 
 			filename.erase(0, 1);
 			filename.erase(filename.size() - 1);
-			//length = body.size() - boundary.size() - 4;
 			length = post_request->get_content_length() - boundary.size();
 		}
 		else {
@@ -116,8 +152,7 @@ namespace utility {
 			length = post_request->get_content_length();
 			advance(it, 4);
 		}
-
-		std::ofstream newfile("WebServer/Uploaded_files/" + filename, std::ios::out | std::ios::binary);
+		std::ofstream newfile(location.root + "/Uploaded_files/" + filename, std::ios::out | std::ios::binary);
 		//write all bytes to file except final boundary
 		if (newfile.is_open()) {
 			while (i < length)
@@ -127,6 +162,9 @@ namespace utility {
 				it++;
 			}
 			newfile.close();
-		}//else return error?
+			return (201);
+		}
+		else
+			return(500);
 	}
 };

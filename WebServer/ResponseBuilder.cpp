@@ -13,12 +13,13 @@ ResponseBuilder::ResponseBuilder(RequestParser request, ServerConfig config): _r
     std::cout << "Building response.." << std::endl;
     this->_cgiPipeFd = 0; //default to 0 for not set
     this->_status_code = this->_request.get_status_code();
+
     if (this->_request.get_method() == "GET"){
         build_response();
     }
 	if (this->_request.get_method() == "POST"){
 		if (this->_request.get_content_length() > 0)
-			utility::upload_file(&this->_request);
+			this->_status_code = utility::upload_file(&this->_request, match_location(this->_request.get_uri()), this->_config.get_maxsize());
 		build_response();
 	}
 }
@@ -87,6 +88,8 @@ void        ResponseBuilder::build_header(std::string uri) {
     ss << " " << this->_status_code;
     if (this->_status_code == 200)
         ss << " OK\n";
+	else if (this->_status_code == 201)
+        ss << " Created\n";
     else if (this->_status_code == 400)
         ss << " Bad Request\n";
     else if (this->_status_code == 401)
