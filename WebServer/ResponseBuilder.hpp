@@ -17,6 +17,7 @@ private:
     std::string                         _response;
     int                                 _status_code;
     int                                 _cgiPipeFd;
+    Location                            _matched_location;
 
 	//std::string	getContentInfo(std::string content_type, std::string info);
 	//void		upload_file();

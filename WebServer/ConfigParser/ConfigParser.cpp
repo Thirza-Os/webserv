@@ -110,8 +110,8 @@ std::bitset<3>  ConfigParser::process_methods(std::string &line)
     if (line.find("POST") != std::string::npos) {
        methods.set(1, true); // Set the second bit for POST
     }
-    if (line.find("PUT") != std::string::npos) {
-        methods.set(2, true); // Set the third bit for PUT
+    if (line.find("DELETE") != std::string::npos) {
+        methods.set(2, true); // Set the third bit for DELETE
     }
     return (methods);
 }

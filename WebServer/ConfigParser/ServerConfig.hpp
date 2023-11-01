@@ -67,11 +67,11 @@ public:
 #endif
 
 // if (_methods[0]) {
-//     // PUT method is supported
+//     // GET method is supported
 // }
 // if (_methods[1]) {
 //     // POST method is supported
 // }
 // if (_methods[2]) {
-//     // GET method is supported
+//     // DELETE method is supported
 // }
