@@ -18,7 +18,7 @@ ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _
         build_response();
     }
 	if (this->_request.get_method() == "POST"){
-		utility::upload_file(&this->_request, match_location(this->_request.get_uri(), _config);
+		this->_status_code = utility::upload_file(&this->_request, match_location(this->_request.get_uri()), this->_config.get_maxsize());
 		build_response();
 	}
 	// if (this->_request.get_method() == "DELETE"){
