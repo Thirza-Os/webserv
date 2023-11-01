@@ -233,6 +233,9 @@ std::ifstream   ResponseBuilder::open_error_page() {
 }
 
 void	ResponseBuilder::build_response() {
+    bool location_matched = true;
+    if (this->_matched_location.path.empty())
+        location_matched = false;
     std::string uri("");
     std::ifstream htmlFile;
     if (this->_status_code == 200) {
@@ -242,19 +245,26 @@ void	ResponseBuilder::build_response() {
         }
     }
     if (this->_request.get_method() == "POST"){
-        if (this->_matched_location.methods[1]) {
+        if (location_matched) {
+            if (!this->_matched_location.methods[1]) {
+                this->_status_code = 405;
+            }
+        }
+        if (this->_status_code == 200) {
             if (this->_request.get_content_length() > 0)
                 this->_status_code = utility::upload_file(&this->_request, this->_matched_location, this->_config.get_maxsize());
             build_header(uri);
             this->_response = this->_header;
             return;
         }
-        else {
-            this->_status_code = 405;
-        }
     }
     else if (this->_request.get_method() == "GET") {
-        if (this->_matched_location.methods[0]) {
+        if (location_matched) {
+            if (!this->_matched_location.methods[0]) {
+                this->_status_code = 405;
+            }
+        }
+        if (this->_status_code == 200) {
             htmlFile.open(uri.c_str());
             if (!htmlFile.good() && this->_status_code == 200) {
                 htmlFile.close();
@@ -262,18 +272,17 @@ void	ResponseBuilder::build_response() {
                 this->_status_code = 404;
             }
         }
-        else {
-            this->_status_code = 405;
-        }
     }
     else if (this->_request.get_method() == "DELETE") {
-        if (this->_matched_location.methods[2]) {
+        if (location_matched) {
+            if (!this->_matched_location.methods[2]) {
+                this->_status_code = 405;
+            }
+        }
+        if (this->_status_code == 200) {
             std::cout << "DELETE request received" << std::endl;
             //todo: handle delete
             return;
-        }
-        else {
-            this->_status_code = 405;
         }
     }
     else {
