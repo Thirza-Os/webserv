@@ -13,6 +13,7 @@ ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _
     std::cout << "Building response.." << std::endl;
     this->_cgiPipeFd = 0; //default to 0 for not set
     this->_status_code = this->_request.get_status_code();
+    this->_matched_location = match_location(this->_request.get_uri());
 	build_response();
 }
 
@@ -126,7 +127,6 @@ void        ResponseBuilder::build_header(std::string uri) {
 std::string ResponseBuilder::process_uri() {
     std::cout << "Processing uri.." << std::endl;
     std::string uri = this->_request.get_uri();
-    Location matched_loc = match_location(uri);
     std::string dflt_index;
     if (!this->_config.get_index().empty()) {
         dflt_index = this->_config.get_index().front();
@@ -134,12 +134,12 @@ std::string ResponseBuilder::process_uri() {
     if (dflt_index.empty()) {
         dflt_index = "index.html";
     }
-    if (!matched_loc.path.empty()) {
-        if (matched_loc.methods[0]) { //check if GET method is even allowed or not
-        std::cout << "matched a location " << matched_loc.path << "!" << std::endl;
-        std::cout << "index: " << matched_loc.index << std::endl;
+    if (!this->_matched_location.path.empty()) {
+        if (this->_matched_location.methods[0]) { //check if GET method is even allowed or not
+        std::cout << "matched a location " << this->_matched_location.path << "!" << std::endl;
+        std::cout << "index: " << this->_matched_location.index << std::endl;
         std::cout << "requested uri: " << uri << std::endl;
-            if (uri.find(matched_loc.path, 0) == std::string::npos) {
+            if (uri.find(this->_matched_location.path, 0) == std::string::npos) {
                 //if uri and path don't match, this was a redirect
                 //and we should change the uri accordingly
                 //erase until a slash then add path instead
@@ -149,25 +149,25 @@ std::string ResponseBuilder::process_uri() {
                 }
                 if (uri.find_first_of('/') != std::string::npos) {
                     uri.erase(0, uri.find_first_of('/'));
-                    uri.insert(0, matched_loc.path);
+                    uri.insert(0, this->_matched_location.path);
                 }
                 else {
-                    uri = matched_loc.path;
+                    uri = this->_matched_location.path;
                 }
             }
-            if (matched_loc.root.empty()) {
+            if (this->_matched_location.root.empty()) {
                 uri.insert(0, this->_config.get_rootdirectory());
             }
-            uri.insert(0, matched_loc.root);
-            if (!matched_loc.index.empty()) {
-                dflt_index = matched_loc.index;
+            uri.insert(0, this->_matched_location.root);
+            if (!this->_matched_location.index.empty()) {
+                dflt_index = this->_matched_location.index;
             }
             if (uri.back() == '/') {
                 uri.append(dflt_index);
             }
-            if (!matched_loc.cgiExtensions.empty()) {
+            if (!this->_matched_location.cgiExtensions.empty()) {
                 std::cout << "cgi found in matched location!" << std::endl;
-                CgiHandler cgi(matched_loc, this->_request);
+                CgiHandler cgi(this->_matched_location, this->_request);
                 //the output of the cgi script can be read from pipe_out[0]
                 this->_cgiPipeFd = cgi.pipe_out[0];
                 close(cgi.pipe_out[1]);
@@ -247,7 +247,7 @@ void	ResponseBuilder::build_response() {
     }
     if (this->_request.get_method() == "POST"){
 		if (this->_request.get_content_length() > 0)
-			this->_status_code = utility::upload_file(&this->_request, match_location(this->_request.get_uri()), this->_config.get_maxsize());
+			this->_status_code = utility::upload_file(&this->_request, this->_matched_location, this->_config.get_maxsize());
         build_header(uri);
         this->_response = this->_header;
         return;
