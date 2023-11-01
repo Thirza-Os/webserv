@@ -10,9 +10,9 @@
 
 const int BUFFER_SIZE = 30720;
 
-ServerManager::ServerManager(std::vector<ServerConfig> configs): _configs(configs)
+ServerManager::ServerManager(const std::vector<ServerConfig> &configs)
 {
-    for (std::vector<ServerConfig>::iterator it = _configs.begin(); it != _configs.end() ;it++) {
+    for (std::vector<ServerConfig>::const_iterator it = configs.begin(); it != configs.end() ;it++) {
         std::cout << "server: " << it->get_servername() << ", root: " << it->get_rootdirectory() << std::endl;
         _servers.push_back(Server(*it));
     }
@@ -54,74 +54,124 @@ void ServerManager::start_listen()
         _pollfds.push_back(listener);
     }
     // main webserv loop starts here, the program should never exit this loop
-        while (true)
-        {
-            log("====== Waiting for a new event ======\n\n\n");
-            if (poll(&_pollfds[0], _pollfds.size(), 10000) == -1) {
-                log("Error returned from poll()\n");
-            }
-            for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
-                if (it->revents & POLLIN) {
-                    if (std::find(listeners.begin(), listeners.end(), it->fd) != listeners.end()) {
-                        accept_connection(it->fd);
+    while (true)
+    {
+        log("====== Waiting for a new event ======\n\n\n");
+        if (poll(&_pollfds[0], _pollfds.size(), 10000) == -1) {
+            log("Error returned from poll()\n");
+        }
+        for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
+            if (it->revents & POLLIN + POLLHUP) {
+                if (std::find(listeners.begin(), listeners.end(), it->fd) != listeners.end()) {
+                    accept_connection(it->fd);
+                    break ;
+                }
+                else if (this->_cgiIndex.count(it->fd)) {
+                    //read cgi response
+                    log("Reading cgi response");
+                    char buffer[BUFFER_SIZE] = {0};
+                    int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
+                    if (bytesReceived < 0)
+                    {
+                        log("Failed to read bytes from pipe connection");
                         break ;
                     }
-                    else {
-                        char buffer[BUFFER_SIZE] = {0};
-                        int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
-                        if (bytesReceived < 0)
-                        {
-                            log("Failed to read bytes from client socket connection");
-                            break ;
-                        }
-						//if request doesn't yet exist, create it. If it does, add the remaining bytes from the socket to the request body
-						if (_requests.find(it->fd) != _requests.end()){
-							_requests[it->fd].fill_body(buffer, bytesReceived);
-						}
-						else {
-							RequestParser request(buffer);
-							request.fill_body(buffer, bytesReceived - request.get_header_length());
-							
-							_requests.insert({it->fd, request});
-						}
-						
-						// if all bytes are read, POLLOUT the socket
-						if (_requests[it->fd].get_content_remaining() <= 0) {
-							std::ostringstream ss;
-							ss << "------ Received Request from client ------\n\n";
-							log(ss.str());
-							it->events = POLLOUT;
-						}
-						break ;
+                    //add bytes read to string and add it to cgi response index
+                    std::string cgiResponse = buffer;
+                    if (_cgiResponseIndex.count(this->_cgiIndex.at(it->fd))) {
+                        this->_cgiResponseIndex.at(this->_cgiIndex.at(it->fd)).append(cgiResponse);
                     }
-                }
-                else if (it->revents & POLLOUT) {
-                    if (send_response(it->fd)) {
+                    else {
+                        this->_cgiResponseIndex.insert({this->_cgiIndex.at(it->fd), cgiResponse});
+                    }
+                    //find the pollfd of cgiIndex.at(it->fd) and set events to POLLOUT
+                    if (bytesReceived == 0) {
+                        for (std::vector<struct pollfd>::iterator iter = _pollfds.begin(); iter < _pollfds.end(); iter++) {
+                            if (iter->fd == this->_cgiIndex.at(it->fd)) {
+                                iter->events = POLLOUT;
+                            }
+                        }
+                        //close the pipe end
                         close(it->fd);
                         it = _pollfds.erase(it);
+                        this->_cgiIndex.erase(it->fd);
+                    }
+                    break ;
+                }
+                else {
+                    char buffer[BUFFER_SIZE] = {0};
+                    int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
+                    printf("----%d----%d\n", bytesReceived, it->fd);
+                    if (bytesReceived < 0)
+                    {
+                        log("Failed to read bytes from client socket, connection closed");
+                        close(it->fd);
+                        it = _pollfds.erase(it);
+                        break ;
+                    }
+                    if (bytesReceived == 0) {
+                        log("Client closed the connection");
+                        close(it->fd);
+                        it = _pollfds.erase(it);
+                        break ;
+                    }
+                    //if request doesn't yet exist, create it. If it does, add the remaining bytes from the socket to the request body
+                    if (_requests.find(it->fd) != _requests.end()){
+                        _requests[it->fd].fill_body(buffer, bytesReceived);
                     }
                     else {
-                        it->events = POLLIN;
+                        RequestParser request(buffer);
+                        request.fill_body(buffer, bytesReceived - request.get_header_length());
+                        _requests.insert({it->fd, request});
                     }
-                    _requests.erase(it->fd);
+                    
+                    // if all bytes are read, POLLOUT the socket
+                    if (_requests[it->fd].get_content_remaining() <= 0) {
+                        std::ostringstream ss;
+                        ss << "------ Received Request from client ------\n\n";
+                        log(ss.str());
+                        it->events = POLLOUT;
+                    }
+                    if (_timeOutIndex.count(it->fd)) {
+                        this->_timeOutIndex.at(it->fd) = utility::getCurrentTimeinSec();
+                    }
                     break ;
                 }
             }
-            check_timeout();
+            else if (it->revents & POLLOUT) {
+                if (send_response(it->fd)) {
+                    close(it->fd);
+                    it = _pollfds.erase(it);
+                }
+                else {
+                    for (std::map<int, int>::iterator iter = _cgiIndex.begin(); iter != _cgiIndex.end() ;iter++) {
+                        if (iter->second == it->fd) {
+                            it->events = 0;
+                        }
+                    }
+                    if (it->events) {
+                        it->events = POLLIN;
+                    }
+                }
+                _requests.erase(it->fd);
+                break ;
+            }
         }
+        check_timeout();
+    }
 
 }
 
 void ServerManager::accept_connection(int incoming)
 {
-    Server correctServer;
+    std::vector<Server>::iterator correctServer;
     for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
         if (it->get_socket() == incoming)
-            correctServer = *it;
+            correctServer = it;
     }
-    sockaddr_in socketAddr = correctServer.get_sock_addr();
+    sockaddr_in socketAddr = correctServer->get_sock_addr();
     unsigned int socketAddrLen = sizeof(socketAddr);
-    int new_socket = accept4(correctServer.get_socket(), (sockaddr *)&socketAddr,
+    int new_socket = accept4(correctServer->get_socket(), (sockaddr *)&socketAddr,
                         &socketAddrLen, SOCK_NONBLOCK);
     if (new_socket < 0)
     {
@@ -137,7 +187,7 @@ void ServerManager::accept_connection(int incoming)
     new_socket_fd.fd = new_socket;
     new_socket_fd.events = POLLIN;
     this->_pollfds.push_back(new_socket_fd);
-    this->_requestServerIndex.insert({new_socket, correctServer});
+    this->_requestServerIndex.insert({new_socket, *correctServer});
     this->_timeOutIndex.insert({new_socket, utility::getCurrentTimeinSec()});
     std::ostringstream ss;
     ss << "------ New connection established ------\n\n";
@@ -147,10 +197,29 @@ void ServerManager::accept_connection(int incoming)
 //return 1 to close the connection after, 0 to keep it alive
 int ServerManager::send_response(int socket_fd)
 {
+    bool errorOccurred = false;
     unsigned long bytesSent;
-    ResponseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).get_config());
-    std::string serverMessage = response.get_response();
-    std::cout << response.get_header() << std::endl;
+    std::string serverMessage;
+    if (this->_cgiResponseIndex.count(socket_fd)) {
+        //send cgi response instead of normal responsebuilder stuff
+        serverMessage = this->_cgiResponseIndex.at(socket_fd);
+    }
+    else if (_requests.count(socket_fd)) {
+        ResponseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).get_config());
+        if (response.get_cgiPipeFd()) {
+            //we need to read from the pipe and send that instead
+            struct pollfd cgi_fd;
+            cgi_fd.fd = response.get_cgiPipeFd();
+            cgi_fd.events = POLLIN;
+            this->_pollfds.push_back(cgi_fd);
+            //map the socket_fd to send the read output to the cgi_fd
+            _cgiIndex.insert({cgi_fd.fd, socket_fd});
+            _requests.erase(socket_fd);
+            return (0);
+        }
+        serverMessage = response.get_response();
+        std::cout << response.get_header() << std::endl;
+    }
     bytesSent = write(socket_fd, serverMessage.c_str(), serverMessage.size());
     if (bytesSent == serverMessage.size())
     {
@@ -159,16 +228,30 @@ int ServerManager::send_response(int socket_fd)
     else
     {
         log("Error sending response to client");
+        errorOccurred = true;
     }
-    if (_requests.at(socket_fd).find_header("Connection") == " close" || _requests.at(socket_fd).get_method() == "DELETE") {
-        std::cout << "Closing connection" << std::endl;
-        _requestServerIndex.erase(socket_fd);
+    if (bytesSent == 0) {
+        log("Error sending response to client");
+        errorOccurred = true;
+    }
+    if (this->_cgiResponseIndex.count(socket_fd)) {
+        std::cout << "cgi response sent, closing connection" << std::endl;
+        this->_cgiResponseIndex.erase(socket_fd);
         return (1);
     }
-    else {
-        std::cout << "Keeping connection alive" << std::endl;
-        return (0);
+    if (_requests.count(socket_fd)) {
+        if (_requests.at(socket_fd).find_header("Connection") != " keep-alive" ) {
+            std::cout << "Closing connection" << std::endl;
+            _requestServerIndex.erase(socket_fd);
+			return(1);
+        }
+	    else {
+    	    std::cout << "Keeping connection alive" << std::endl;
+        	return (0);
+    	}
     }
+
+    return (0);
 }
 
 //Close connections that are idle for 30 seconds or more

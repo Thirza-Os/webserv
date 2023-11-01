@@ -7,8 +7,9 @@ ServerConfig::ServerConfig():
     _port(80),
     _host(0),
     _serverName(""),
-    _maxSize(0),
+    _maxSize(1000000),
     _rootDirectory("") {}
+
 
 ServerConfig::~ServerConfig() {}
 

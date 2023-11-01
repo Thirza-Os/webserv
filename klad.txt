@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Request: POST / HTTP/1.1
 Host: localhost:8081
 User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/118.0
@@ -146,3 +147,85 @@ Keeping connection alive
 
 
 ====== Waiting for a new event ======
+=======
+Method: POST
+URI: /img/indexPenguin.jpg
+Protocol: HTTP/1.1
+Headers:
+  Accept:  */*
+  Connection:  keep-alive
+  Content-Disposition:  form-data; name="test"; filename="klad.txt"
+  Content-Length:  198
+  Content-Type:  multipart/form-data; boundary=------------------------4762b6ec44e05dea
+  Host:  localhost:8081
+  User-Agent:  curl/7.81.0
+Header length: 226
+Content length: 198
+Content type:  multipart/form-data; boundary=------------------------4762b6ec44e05dea
+Method: POST
+URI: /img/indexPenguin.jpg
+Protocol: HTTP/1.1
+Headers:
+  Accept:  */*
+  Connection:  keep-alive
+  Content-Disposition:  form-data; name="test"; filename="klad.txt"
+  Content-Length:  198
+  Content-Type:  multipart/form-data; boundary=------------------------4762b6ec44e05dea
+  Host:  localhost:8081
+  User-Agent:  curl/7.81.0
+Header length: 226
+Content length: 198
+Content type:  multipart/form-data; boundary=------------------------4762b6ec44e05deaMethod: POST
+URI: /img/indexPenguin.jpg
+Protocol: HTTP/1.1
+Headers:
+  Accept:  */*
+  Connection:  keep-alive
+  Content-Disposition:  form-data; name="test"; filename="klad.txt"
+  Content-Length:  198
+  Content-Type:  multipart/form-data; boundary=------------------------4762b6ec44e05dea
+  Host:  localhost:8081
+  User-Agent:  curl/7.81.0
+Header length: 226
+Content length: 198
+Content type:  multipart/form-data; boundary=------------------------4762b6ec44e05deaMethod: POST
+URI: /img/indexPenguin.jpg
+Protocol: HTTP/1.1
+Headers:
+  Accept:  */*
+  Connection:  keep-alive
+  Content-Disposition:  form-data; name="test"; filename="klad.txt"
+  Content-Length:  198
+  Content-Type:  multipart/form-data; boundary=------------------------4762b6ec44e05dea
+  Host:  localhost:8081
+  User-Agent:  curl/7.81.0
+Header length: 226
+Content length: 198
+Content type:  multipart/form-data; boundary=------------------------4762b6ec44e05deaMethod: POST
+URI: /img/indexPenguin.jpg
+Protocol: HTTP/1.1
+Headers:
+  Accept:  */*
+  Connection:  keep-alive
+  Content-Disposition:  form-data; name="test"; filename="klad.txt"
+  Content-Length:  198
+  Content-Type:  multipart/form-data; boundary=------------------------4762b6ec44e05dea
+  Host:  localhost:8081
+  User-Agent:  curl/7.81.0
+Header length: 226
+Content length: 198
+Content type:  multipart/form-data; boundary=------------------------4762b6ec44e05deaMethod: POST
+URI: /img/indexPenguin.jpg
+Protocol: HTTP/1.1
+Headers:
+  Accept:  */*
+  Connection:  keep-alive
+  Content-Disposition:  form-data; name="test"; filename="klad.txt"
+  Content-Length:  198
+  Content-Type:  multipart/form-data; boundary=------------------------4762b6ec44e05dea
+  Host:  localhost:8081
+  User-Agent:  curl/7.81.0
+Header length: 226
+Content length: 198
+Content type:  multipart/form-data; boundary=------------------------4762b6ec44e05dea
+>>>>>>> e442fc56ead34240337bc49e59c1e38ac9cb0a1e
