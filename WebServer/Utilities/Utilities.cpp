@@ -111,7 +111,7 @@ namespace utility {
 	}
 
 	//CURL REQUESTS DOEN
-	int upload_file(RequestParser *post_request, Location location, unsigned long long maxSize)
+	int upload_file(RequestParser *post_request, std::string uri, unsigned long long maxSize)
 	{
 		
 		std::vector<char> body = post_request->get_body();
@@ -122,8 +122,6 @@ namespace utility {
 		int i = 0;
 		int length;
 
-		if (location.methods[1] != 1)
-			return (405);
 		if (post_request->get_content_length() > maxSize)
 			return (413);
 
@@ -153,7 +151,7 @@ namespace utility {
 			length = post_request->get_content_length();
 			advance(it, 4);
 		}
-		std::ofstream newfile(location.root + "/Uploaded_files/" + filename, std::ios::out | std::ios::binary);
+		std::ofstream newfile(uri + filename, std::ios::out | std::ios::binary);
 		//write all bytes to file except final boundary
 		if (newfile.is_open()) {
 			while (i < length)

@@ -11,7 +11,7 @@ namespace utility {
     void    stringTrim(std::string &str, const char *charset);
     long    getCurrentTimeinSec(void);
     std::string getMIMEType(std::string path);
-	int		upload_file(RequestParser *post_request, Location location, unsigned long long maxSize);
+	int		upload_file(RequestParser *post_request, std::string uri, unsigned long long maxSize);
     // Other utility functions if needed
 }
 

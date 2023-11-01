@@ -261,10 +261,12 @@ void	ResponseBuilder::build_response() {
         }
         if (this->_status_code == 200) {
             if (this->_request.get_content_length() > 0)
-                this->_status_code = utility::upload_file(&this->_request, this->_matched_location, this->_config.get_maxsize());
-            build_header(uri);
-            this->_response = this->_header;
-            return;
+                this->_status_code = utility::upload_file(&this->_request, uri, this->_config.get_maxsize());
+            if (this->_status_code == 201) {
+                build_header(uri);
+                this->_response = this->_header;
+                return;
+            }
         }
     }
     else if (this->_request.get_method() == "GET") {
