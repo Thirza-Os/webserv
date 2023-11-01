@@ -153,7 +153,8 @@ namespace utility {
 			length = post_request->get_content_length();
 			advance(it, 4);
 		}
-		std::ofstream newfile(location.root + "/Uploaded_files/" + filename, std::ios::out | std::ios::binary);
+		std::cout << location.root + filename << std::endl;
+		std::ofstream newfile(location.root + "/" + filename, std::ios::out | std::ios::binary);
 		//write all bytes to file except final boundary
 		if (newfile.is_open()) {
 			while (i < length)
