@@ -161,8 +161,11 @@ std::string ResponseBuilder::process_uri() {
         if (!this->_matched_location.index.empty()) {
             dflt_index = this->_matched_location.index;
         }
-        if (uri.back() == '/') {
-            uri.append(dflt_index);
+        if (this->_request.get_method() == "GET") {
+            if (uri.back() == '/') {
+                //check if autoindex is specified in location too?
+                uri.append(dflt_index);
+            }
         }
         if (!this->_matched_location.cgiExtensions.empty()) {
             std::cout << "cgi found in matched location!" << std::endl;
@@ -172,22 +175,28 @@ std::string ResponseBuilder::process_uri() {
             close(cgi.pipe_out[1]);
             close(cgi.pipe_in[1]);
             close(cgi.pipe_in[0]);
-            return ("URI_MATCHED");
+            return ("CGI_MATCHED");
         }
     }
     else {
         //no location match
         uri.insert(0, this->_config.get_rootdirectory());
-        if (uri.back() == '/') {
-            uri.append(dflt_index);
+        if (this->_request.get_method() == "GET") {
+            if (uri.back() == '/') {
+                //also need to check autoindex in config here?
+                uri.append(dflt_index);
+            }
         }
     }
     struct stat s;
     if (lstat(uri.c_str(), &s) == 0) {
         if (S_ISDIR(s.st_mode)) {
             std::cout << "is a directory" << std::endl;
-            uri.append("/");
-            uri.append(dflt_index);
+            if (this->_request.get_method() == "GET") {
+                //check autoindex in both possible matched location AND config?
+                uri.append("/");
+                uri.append(dflt_index);
+            }
         }
     }
     std::cout << "attempting to send this uri: " << uri << std::endl;
@@ -240,7 +249,7 @@ void	ResponseBuilder::build_response() {
     std::ifstream htmlFile;
     if (this->_status_code == 200) {
         uri = process_uri();
-        if (uri == "URI_MATCHED") { //cgi handles response
+        if (uri == "CGI_MATCHED") { //cgi handles response
             return ;
         }
     }
