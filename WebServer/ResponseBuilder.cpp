@@ -9,19 +9,11 @@
 #include <sys/stat.h>
 #include <cstring>
 
-ResponseBuilder::ResponseBuilder(RequestParser request, ServerConfig config): _request(request), _config(config) {
+ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _request(request), _config(config) {
     std::cout << "Building response.." << std::endl;
     this->_cgiPipeFd = 0; //default to 0 for not set
     this->_status_code = this->_request.get_status_code();
-
-    if (this->_request.get_method() == "GET"){
-        build_response();
-    }
-	if (this->_request.get_method() == "POST"){
-		if (this->_request.get_content_length() > 0)
-			this->_status_code = utility::upload_file(&this->_request, match_location(this->_request.get_uri()), this->_config.get_maxsize());
-		build_response();
-	}
+	build_response();
 }
 
 ResponseBuilder::ResponseBuilder(const ResponseBuilder &src) {
@@ -86,32 +78,46 @@ void        ResponseBuilder::build_header(std::string uri) {
     else
         ss << this->_request.get_protocol();
     ss << " " << this->_status_code;
-    if (this->_status_code == 200)
-        ss << " OK\n";
-	else if (this->_status_code == 201)
-        ss << " Created\n";
-    else if (this->_status_code == 400)
-        ss << " Bad Request\n";
-    else if (this->_status_code == 401)
-        ss << " Unauthorized\n";
-    else if (this->_status_code == 403)
-        ss << " Forbidden\n";
-    else if (this->_status_code == 404)
-        ss << " Not Found\n";
-    else if (this->_status_code == 405)
-        ss << " Method Not Allowed\n";
-    else if (this->_status_code == 413)
-        ss << " Payload Too Large\n";
-    else if (this->_status_code == 500)
-        ss << " Internal Server Error\n";
-    else if (this->_status_code == 502)
-        ss << " Bad Gateway\n";
-    else if (this->_status_code == 503)
-        ss << " Service Unavailable\n";
-    else if (this->_status_code == 504)
-        ss << " Gateway Timeout\n";
-    else
-        ss << " Some Other Status\n"; //expand on this later
+    switch(this->_status_code) {
+        case 200:
+            ss << " OK\n";
+            break;
+        case 201:
+            ss << " Created\n";
+            break;
+        case 400:
+            ss << " Bad Request\n";
+            break;
+        case 401:
+            ss << " Unauthorized\n";
+            break;
+        case 403:
+            ss << " Forbidden\n";
+            break;
+        case 404:
+            ss << " Not Found\n";
+            break;
+        case 405:
+            ss << " Method Not Allowed\n";
+            break;
+        case 413:
+            ss << " Payload Too Large\n";
+            break;
+        case 500:
+            ss << " Internal Server Error\n";
+            break;
+        case 502:
+            ss << " Bad Gateway\n";
+            break;
+        case 503:
+            ss << " Service Unavailable\n";
+            break;
+        case 504:
+            ss << " Gateway Timeout\n";
+            break;
+        default:
+            ss << " Some Other Status\n";
+    }
     ss << "Content-Type: " << utility::getMIMEType(uri) << "\n";
     ss << "Content-Length: " << this->_body.size() << "\n\n"; //header ends with an empty line
 	this->_header = ss.str();
@@ -167,7 +173,7 @@ std::string ResponseBuilder::process_uri() {
                 close(cgi.pipe_out[1]);
                 close(cgi.pipe_in[1]);
                 close(cgi.pipe_in[0]);
-                return ("");
+                return ("URI_MATCHED");
             }
         }
         else {
@@ -192,44 +198,79 @@ std::string ResponseBuilder::process_uri() {
     return (uri);
 }
 
+std::ifstream   ResponseBuilder::open_error_page() {
+    std::ifstream errorPageFile;
+    if (this->_config.get_errorpages().count(this->_status_code)) {
+        errorPageFile.open(this->_config.get_errorpages().at(this->_status_code));
+    }
+    else {
+        switch(this->_status_code) {
+            case 400:
+                errorPageFile.open("WebServer/ConfigParser/DefaultErrorPages/400BadRequest.html");
+                break;
+            case 401:
+                errorPageFile.open("WebServer/ConfigParser/DefaultErrorPages/401Unauthorized.html");
+                break;
+            case 404:
+                errorPageFile.open("WebServer/ConfigParser/DefaultErrorPages/404NotFound.html");
+                break;
+            case 405:
+                errorPageFile.open("WebServer/ConfigParser/DefaultErrorPages/405MethodNotAllowed.html");
+                break;
+            case 500:
+                errorPageFile.open("WebServer/ConfigParser/DefaultErrorPages/500InternalServer.html");
+                break;
+            case 502:
+                errorPageFile.open("WebServer/ConfigParser/DefaultErrorPages/502BadGateway.html");
+                break;
+            case 503:
+                errorPageFile.open("WebServer/ConfigParser/DefaultErrorPages/503ServiceUnavailable.html");
+                break;
+            case 504:
+                errorPageFile.open("WebServer/ConfigParser/DefaultErrorPages/504GatewayTimeout.html");
+                break;
+            default:
+                errorPageFile.open("WebServer/ConfigParser/DefaultErrorPages/DefaultError.html");
+        }
+    }
+    return (errorPageFile);
+}
+
 void	ResponseBuilder::build_response() {
-    if (this->_status_code == 400) {
-        std::cout << "Bad request" << std::endl;
-        build_header("");
+    std::string uri("");
+    std::ifstream htmlFile;
+    if (this->_status_code == 200) {
+        uri = process_uri();
+        if (uri == "URI_MATCHED") { //cgi handles response
+            return ;
+        }
+    }
+    if (this->_request.get_method() == "POST"){
+		if (this->_request.get_content_length() > 0)
+			this->_status_code = utility::upload_file(&this->_request, match_location(this->_request.get_uri()), this->_config.get_maxsize());
+        build_header(uri);
         this->_response = this->_header;
-        return ;
+        return;
     }
-    std::string uri = process_uri();
-    if (uri.empty()) { //cgi handles response
-        return ;
+    else if (this->_request.get_method() == "GET") {
+        htmlFile.open(uri.c_str());
+        if (!htmlFile.good() && this->_status_code == 200) {
+            htmlFile.close();
+            std::cout << "file can't be opened" << std::endl;
+            this->_status_code = 404;
+        }
     }
-    std::ifstream htmlFile(uri.c_str());
-    if (this->_status_code == 405) {
-        std::cout << "Method not allowed" << std::endl;
-        uri = "error.html";
+    else {
+        this->_status_code = 405; //or maybe 501 instead, method not implemented
+    }
+    if (this->_status_code != 200) {
         htmlFile.close();
-        if (this->_config.get_errorpages().count(this->_status_code)) {
-            htmlFile.open(this->_config.get_errorpages().at(this->_status_code));
-        }
-        else {
-            htmlFile.open("WebServer/ConfigParser/DefaultErrorPages/405MethodNotAllowed.html");
-        }
-    }
-    else if (!htmlFile.good()) {
-        htmlFile.close();
-        std::cout << "file can't be opened" << std::endl;
         uri = "error.html";
-        this->_status_code = 404;
-        if (this->_config.get_errorpages().count(this->_status_code)) {
-            htmlFile.open(this->_config.get_errorpages().at(this->_status_code));
-        }
-        else {
-            htmlFile.open("WebServer/ConfigParser/DefaultErrorPages/404NotFound.html");
-        }
+        htmlFile = open_error_page();
     }
     if (!htmlFile.good()) {
         htmlFile.close();
-        std::cout << "error page can't be opened either for some reason" << std::endl;
+        std::cout << "error page can't be opened for some reason" << std::endl;
         build_header("");
         this->_response = this->_header;
         return ;

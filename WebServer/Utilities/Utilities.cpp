@@ -94,6 +94,7 @@ namespace utility {
         }
         return ("text/plain");
     }
+	
 	std::string getContentInfo(std::string header, std::string info)
 	{
 		std::stringstream ss(header);

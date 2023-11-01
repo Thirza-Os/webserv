@@ -13,9 +13,22 @@ Server::Server(ServerConfig config): _config(config) {
 	start_server();
 }
 
+Server::Server(const Server &src) {
+    *this = src;
+}
+
 Server::Server(){}
 
 Server::~Server(){}
+
+Server & Server::operator=(Server const &rhs) {
+    if (this != &rhs) {
+        this->_config = rhs._config;
+        this->_socket = rhs._socket;
+        this->_socketAddr = rhs._socketAddr;
+    }
+    return (*this);
+}
 
 void    Server::exit_error(const std::string &str)
 {
@@ -55,6 +68,6 @@ struct sockaddr_in  Server::get_sock_addr() const {
     return(this->_socketAddr);
 }
 
-ServerConfig    Server::get_config() const {
+ServerConfig        Server::get_config() const {
     return(this->_config);
 }

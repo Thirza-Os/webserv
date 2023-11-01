@@ -20,7 +20,7 @@ class ServerManager
 {
 public:
 
-    ServerManager(std::vector<ServerConfig> configs);
+    ServerManager(const std::vector<ServerConfig> &configs);
     ~ServerManager();
 
     void    exit_error(const std::string &str);
@@ -28,15 +28,14 @@ public:
 
 private:
 
-    std::vector<ServerConfig>       _configs;
-    std::vector<Server>             _servers;
+    std::vector<Server>                 _servers;
 
-    std::vector<struct pollfd>      _pollfds;
-    std::map<int, Server>           _requestServerIndex;
-    std::map<int, RequestParser>    _requests;
-    std::map<int, long>             _timeOutIndex;
-    std::map<int, int>              _cgiIndex;
-    std::map<int, std::string>      _cgiResponseIndex;
+    std::vector<struct pollfd>          _pollfds;
+    std::map<int, Server>               _requestServerIndex;
+    std::map<int, RequestParser>        _requests;
+    std::map<int, long>                 _timeOutIndex;
+    std::map<int, int>                  _cgiIndex;
+    std::map<int, std::string>          _cgiResponseIndex;
 
 
     int             start_server();

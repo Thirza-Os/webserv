@@ -18,8 +18,11 @@ class Server
 
 public:
     Server(ServerConfig config);
+    Server(const Server &src);
     Server();
     ~Server();
+
+    Server & operator=(Server const &rhs);
 
 	int					get_socket() const;
 	struct sockaddr_in	get_sock_addr() const;
@@ -27,7 +30,7 @@ public:
 
 private:
 
-    ServerConfig					_config;
+    ServerConfig			        _config;
     int                             _socket;
 
     struct sockaddr_in				_socketAddr;

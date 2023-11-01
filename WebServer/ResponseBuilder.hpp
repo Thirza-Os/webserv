@@ -20,13 +20,14 @@ private:
 
 	//std::string	getContentInfo(std::string content_type, std::string info);
 	//void		upload_file();
-    void        build_response();
-    void        build_header(std::string uri);
-    std::string process_uri();
-    Location    match_location(std::string uri);
+    void            build_response();
+    void            build_header(std::string uri);
+    std::ifstream   open_error_page();
+    std::string     process_uri();
+    Location        match_location(std::string uri);
 
 public:
-    ResponseBuilder(RequestParser request, ServerConfig config);
+    ResponseBuilder(RequestParser &request, ServerConfig config);
     ResponseBuilder(const ResponseBuilder &src);
     ~ResponseBuilder();
     ResponseBuilder &operator=(const ResponseBuilder &src);
