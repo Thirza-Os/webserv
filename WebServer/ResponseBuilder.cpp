@@ -127,17 +127,8 @@ void        ResponseBuilder::build_header(std::string uri) {
 std::string ResponseBuilder::process_uri() {
     std::cout << "Processing uri.." << std::endl;
     std::string uri = this->_request.get_uri();
-    std::string dflt_index;
-    if (!this->_config.get_index().empty()) {
-        dflt_index = this->_config.get_index().front();
-    }
-    if (dflt_index.empty()) {
-        dflt_index = "index.html";
-    }
     if (!this->_matched_location.path.empty()) {
         std::cout << "matched a location " << this->_matched_location.path << "!" << std::endl;
-        std::cout << "index: " << this->_matched_location.index << std::endl;
-        std::cout << "requested uri: " << uri << std::endl;
         if (uri.find(this->_matched_location.path, 0) == std::string::npos) {
             //if uri and path don't match, this was a redirect
             //and we should change the uri accordingly
@@ -158,15 +149,6 @@ std::string ResponseBuilder::process_uri() {
             uri.insert(0, this->_config.get_rootdirectory());
         }
         uri.insert(0, this->_matched_location.root);
-        if (!this->_matched_location.index.empty()) {
-            dflt_index = this->_matched_location.index;
-        }
-        if (this->_request.get_method() == "GET") {
-            if (uri.back() == '/') {
-                //check if autoindex is specified in location too?
-                uri.append(dflt_index);
-            }
-        }
         if (!this->_matched_location.cgiExtensions.empty()) {
             std::cout << "cgi found in matched location!" << std::endl;
             CgiHandler cgi(this->_matched_location, this->_request);
@@ -181,25 +163,17 @@ std::string ResponseBuilder::process_uri() {
     else {
         //no location match
         uri.insert(0, this->_config.get_rootdirectory());
-        if (this->_request.get_method() == "GET") {
-            if (uri.back() == '/') {
-                //also need to check autoindex in config here?
-                uri.append(dflt_index);
-            }
-        }
     }
     struct stat s;
     if (lstat(uri.c_str(), &s) == 0) {
         if (S_ISDIR(s.st_mode)) {
             std::cout << "is a directory" << std::endl;
             if (this->_request.get_method() == "GET") {
-                //check autoindex in both possible matched location AND config?
                 uri.append("/");
-                uri.append(dflt_index);
             }
         }
     }
-    std::cout << "attempting to send this uri: " << uri << std::endl;
+    std::cout << "final processed uri: " << uri << std::endl;
     return (uri);
 }
 
@@ -261,10 +235,12 @@ void	ResponseBuilder::build_response() {
         }
         if (this->_status_code == 200) {
             if (this->_request.get_content_length() > 0)
-                this->_status_code = utility::upload_file(&this->_request, this->_matched_location, this->_config.get_maxsize());
-            build_header(uri);
-            this->_response = this->_header;
-            return;
+                this->_status_code = utility::upload_file(&this->_request, uri, this->_config.get_maxsize());
+            if (this->_status_code == 201) {
+                build_header(uri);
+                this->_response = this->_header;
+                return;
+            }
         }
     }
     else if (this->_request.get_method() == "GET") {
@@ -274,11 +250,35 @@ void	ResponseBuilder::build_response() {
             }
         }
         if (this->_status_code == 200) {
-            htmlFile.open(uri.c_str());
-            if (!htmlFile.good() && this->_status_code == 200) {
-                htmlFile.close();
-                std::cout << "file can't be opened" << std::endl;
-                this->_status_code = 404;
+            std::string dflt_index;
+            if (location_matched) {
+                dflt_index = this->_matched_location.index;
+            }
+            if (dflt_index.empty()) {
+                if (!this->_config.get_index().empty()) {
+                    dflt_index = this->_config.get_index().front();
+                }
+            }
+            if (dflt_index.empty()) {
+                dflt_index = "index.html";
+            }
+            if (uri.back() == '/') {
+                uri.append(dflt_index);
+                htmlFile.open(uri.c_str());
+                if (!htmlFile.good() && this->_status_code == 200) {
+                    htmlFile.close();
+                    std::cout << "no index file found" << std::endl;
+                    //if autoindex is on or not specified (defaults to on?), send directory listing here instead
+                    this->_status_code = 403;
+                }
+            }
+            else {
+                htmlFile.open(uri.c_str());
+                if (!htmlFile.good() && this->_status_code == 200) {
+                    htmlFile.close();
+                    std::cout << "file can't be opened" << std::endl;
+                    this->_status_code = 404;
+                }
             }
         }
     }
