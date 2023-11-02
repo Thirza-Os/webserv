@@ -54,8 +54,10 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
     this->_environment["REQUEST_URI"] = httprequest.get_uri();
     this->_environment["PATH"] = "WebServer/www/penguinserv/cgiRoute"; // Replace with the actual path
 
-        // for post requests
-    this->_environment["CONTENT_LENGTH"] = std::to_string(httprequest.get_content_length());
+    // for post requests
+
+//    this->_environment["CONTENT_LENGTH"] = std::to_string(contentLength);
+
     this->_environment["CONTENT_TYPE"] = httprequest.get_content_type();
 
 
@@ -76,10 +78,12 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
 
         // for post requests: set buffer
         std::vector<char> bodyVector = httprequest.get_body();
+        bodyVector.push_back('\0');
         if (!bodyVector.empty()){
             postBuffer = new char[bodyVector.size() + 1];
             std::copy(bodyVector.begin() + 4, bodyVector.end(), postBuffer);
             postBuffer[bodyVector.size()] = '\0';
+            this->_environment["CONTENT_LENGTH"] = std::to_string(bodyVector.size() - 4);
         }
         // build pipes
         if (pipe2(pipe_in, O_NONBLOCK) < 0)
