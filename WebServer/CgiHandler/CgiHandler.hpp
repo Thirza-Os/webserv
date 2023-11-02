@@ -22,7 +22,7 @@ private:
 
     void    initialize_environment(Location const &loc, RequestParser const &httprequest);
     void    print_env();
-    void    execute_script();
+    void    execute_script(RequestParser const &httprequest);
 
 public:
     CgiHandler(Location const &loc, RequestParser const &httprequest);

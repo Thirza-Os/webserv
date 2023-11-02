@@ -7,12 +7,13 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <cstring>
+#include "../Utilities/Utilities.hpp"
 
 CgiHandler::CgiHandler(Location const &loc, RequestParser const &httprequest) {
     std::cout << "constructor started for CGI handler " << std::endl;
     this->_runLoc = "/usr/bin/php";                                       // Set this to correct location of your php runner
     initialize_environment(loc, httprequest);
-    execute_script();
+    execute_script(httprequest);
     print_env();
 }
 
@@ -52,9 +53,18 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
     this->_environment["REQUEST_METHOD"] = httprequest.get_method();
     this->_environment["REQUEST_URI"] = httprequest.get_uri();
     this->_environment["PATH"] = "WebServer/www/penguinserv/cgiRoute"; // Replace with the actual path
+
+        // for post requests
+    this->_environment["CONTENT_LENGTH"] = std::to_string(httprequest.get_content_length());
+    this->_environment["CONTENT_TYPE"] = httprequest.get_content_type();
+
+
+    std::cout << "Tis type" << httprequest.get_content_type() << std::endl << std::endl;
 }
 
-void    CgiHandler::execute_script() {
+void    CgiHandler::execute_script(RequestParser const &httprequest) {
+        char *postBuffer = nullptr;
+
     try {
         // Build the argv
         char* const argv[] = {
@@ -62,6 +72,15 @@ void    CgiHandler::execute_script() {
             const_cast<char*>(this->_environment["SCRIPT_FILENAME"].c_str()), // The path to the script
             nullptr
         };
+
+
+        // for post requests: set buffer
+        std::vector<char> bodyVector = httprequest.get_body();
+        if (!bodyVector.empty()){
+            postBuffer = new char[bodyVector.size() + 1];
+            std::copy(bodyVector.begin() + 4, bodyVector.end(), postBuffer);
+            postBuffer[bodyVector.size()] = '\0';
+        }
         // build pipes
         if (pipe2(pipe_in, O_NONBLOCK) < 0)
             perror("pipe in failed");
@@ -71,6 +90,7 @@ void    CgiHandler::execute_script() {
         pid_t childPid = fork();
         if (childPid == -1)
             throw CgiException("Fork error");
+
         if (childPid == 0) {
             // child
             // Build char array from the _environment variables to pass to execve
@@ -81,30 +101,48 @@ void    CgiHandler::execute_script() {
                 this->_childEnvp.push_back(env);
             }
             this->_childEnvp.push_back(nullptr);
-            // pipes for std: redirecting std in/out to the pipe ends and close unused
-            // necessary for file upload
-            	dup2(pipe_in[0], STDIN_FILENO);
-                dup2(pipe_out[1], STDOUT_FILENO);
-                close(pipe_in[0]);
+
+
                 close(pipe_in[1]);
                 close(pipe_out[0]);
-                close(pipe_out[1]);
-            // execve to execute the cgi program
-            if (execve(this->_runLoc, argv,
-                &this->_childEnvp[0]) == -1){
-                    perror("execve failed");
-                    throw CgiException("Execve failed");
-            }
-            for (size_t i = 0; i < this->_childEnvp.size(); ++i)
-                delete[] this->_childEnvp[i];
-        } else {
-            // Parent
-            // int status;
-            // waitpid(childPid, &status, 0);
 
+            	dup2(pipe_in[0], STDIN_FILENO);
+                dup2(pipe_out[1], STDOUT_FILENO);
+
+                close(pipe_in[0]);
+                close(pipe_out[1]);
+
+                // execve to execute the cgi program
+                if (execve(this->_runLoc, argv,
+                    &this->_childEnvp[0]) == -1){
+                        perror("execve failed");
+                        throw CgiException("Execve failed");
+                }
+                for (size_t i = 0; i < this->_childEnvp.size(); ++i)
+                    delete[] this->_childEnvp[i];
+        } else {
+            std::cout << "\"" << postBuffer << "\"" << std::endl;
+            if (postBuffer != nullptr) {
+                write(pipe_in[1], postBuffer, strlen(postBuffer));
+                close(pipe_in[1]);
+            }
+
+            int status;
+            // for POST requests: should probably close this again, since this is the parent
+            close(pipe_in[0]);
+            close(pipe_out[1]);
+            waitpid(childPid, &status, 0);
+
+        if (postBuffer != nullptr)
+            delete[] postBuffer;
         }
+    
     }   catch (const CgiException& e) {
             // HANDLE EXCEPTION: LOGGING?
+            if (postBuffer != nullptr) 
+                delete[] postBuffer;
+            for (size_t i = 0; i < this->_childEnvp.size(); ++i)
+                delete[] this->_childEnvp[i];
             std::cerr << "Error: " << e.what() << std::endl;
             exit(1);
     }
