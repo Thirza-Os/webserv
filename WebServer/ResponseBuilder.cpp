@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <cstring>
+#include <sys/types.h>
+#include <dirent.h>
 
 ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _request(request), _config(config) {
     std::cout << "Building response.." << std::endl;
@@ -34,6 +36,48 @@ ResponseBuilder &ResponseBuilder::operator=(const ResponseBuilder &src)
         this->_cgiPipeFd = src._cgiPipeFd;
     }
     return *this;
+}
+
+//build a directory listing for when autoindex is on
+void        ResponseBuilder::build_dir_listing(std::string uri) {
+    //build html string and set to this->_body at the end
+    DIR             *directory;
+
+    uri = uri.substr(0, uri.find_last_of('/'));
+    std::cout << "attempting to open: " << uri << std::endl;
+    directory = opendir(uri.c_str());
+    if (!directory) {
+        std::cout << "Could not open directory" << std::endl;
+        this->_status_code = 500;
+        uri = "error.html";
+        std::ifstream htmlFile = open_error_page();
+        if (!htmlFile.good()) {
+            htmlFile.close();
+            std::cout << "error page can't be opened for some reason" << std::endl;
+            build_header("");
+            this->_response = this->_header;
+            return;
+        }
+        std::stringstream buffer;
+        buffer << htmlFile.rdbuf();
+	    htmlFile.close();
+        this->_body = buffer.str();
+        build_header(uri);
+	    this->_response = this->_header;
+	    this->_response.append(this->_body);
+        return;
+    }
+    this->_body = "<html><head><title> Index of " + this->_request.get_uri();
+    this->_body.append("</title></head><body><h1> Index of " + this->_request.get_uri());
+    this->_body.append("</h1><br>");
+    for (struct dirent *entry = readdir(directory); entry; entry = readdir(directory)) {
+        this->_body.append("<a href=\"./" + std::string(entry->d_name) + "\">" + std::string(entry->d_name) + "</a></br>");
+    }
+    this->_body.append("</body></html>");
+    build_header("autoindex.html");
+    this->_response = this->_header;
+	this->_response.append(this->_body);
+    closedir(directory);
 }
 
 //if a config file has 2 locations with returns pointing at each other
@@ -168,7 +212,7 @@ std::string ResponseBuilder::process_uri() {
     if (lstat(uri.c_str(), &s) == 0) {
         if (S_ISDIR(s.st_mode)) {
             std::cout << "is a directory" << std::endl;
-            if (this->_request.get_method() == "GET") {
+            if (this->_request.get_method() == "GET" && uri.back() != '/') {
                 uri.append("/");
             }
         }
@@ -268,7 +312,14 @@ void	ResponseBuilder::build_response() {
                 if (!htmlFile.good() && this->_status_code == 200) {
                     htmlFile.close();
                     std::cout << "no index file found" << std::endl;
-                    //if autoindex is on or not specified (defaults to on?), send directory listing here instead
+                    //if autoindex is on for the matched location, send directory listing instead
+                    if (location_matched) {
+                        if (this->_matched_location.autoindex) {
+                            std::cout << "autoindex is on!" << std::endl;
+                            build_dir_listing(uri);
+                            return;
+                        }
+                    }
                     this->_status_code = 403;
                 }
             }
@@ -291,12 +342,14 @@ void	ResponseBuilder::build_response() {
         if (this->_status_code == 200) {
             std::cout << "DELETE request received" << std::endl;
             //todo: handle delete
+            //build header, set header to response, etc
             return;
         }
     }
     else {
         this->_status_code = 501; //method not implemented
     }
+    //might need some changing, if POST and DELETE responses should be more than just a header?
     if (this->_status_code != 200) {
         htmlFile.close();
         uri = "error.html";
