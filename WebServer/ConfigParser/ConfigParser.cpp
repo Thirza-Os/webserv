@@ -233,9 +233,9 @@ void ConfigParser::process_location(std::string first_line, std::stringstream& s
             size_t pos = line.find("autoindex");
             std::string trimmedLine = line.substr(pos + 9);
             utility::stringTrim(trimmedLine, " \t\n\r\f\v;");
-            if (trimmedLine == "off")
+            if (trimmedLine == "on")
                 loc.autoindex = true;
-            else if (trimmedLine == "on")
+            else if (trimmedLine == "off")
                 loc.autoindex = false; 
             else
                 throw ConfigParserException("Route: Wrong autoindex input");

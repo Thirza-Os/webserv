@@ -26,6 +26,7 @@ private:
     std::ifstream   open_error_page();
     std::string     process_uri();
     Location        match_location(std::string uri);
+    void            build_dir_listing(std::string uri);
 
 public:
     ResponseBuilder(RequestParser &request, ServerConfig config);
