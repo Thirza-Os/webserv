@@ -33,6 +33,7 @@ private:
     std::vector<struct pollfd>          _pollfds;
     std::map<int, Server>               _requestServerIndex;
     std::map<int, RequestParser>        _requests;
+    std::map<int, std::string>          _responses;
     std::map<int, long>                 _timeOutIndex;
     std::map<int, int>                  _cgiIndex;
     std::map<int, std::string>          _cgiResponseIndex;

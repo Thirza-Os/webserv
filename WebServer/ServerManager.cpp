@@ -144,13 +144,18 @@ void ServerManager::start_listen()
                     it = _pollfds.erase(it);
                 }
                 else {
+                    if (_timeOutIndex.count(it->fd)) {
+                        this->_timeOutIndex.at(it->fd) = utility::getCurrentTimeinSec();
+                    }
                     for (std::map<int, int>::iterator iter = _cgiIndex.begin(); iter != _cgiIndex.end() ;iter++) {
                         if (iter->second == it->fd) {
                             it->events = 0;
                         }
                     }
                     if (it->events) {
-                        it->events = POLLIN;
+                        if (!this->_responses.count(it->fd)) {
+                            it->events = POLLIN;
+                        }
                     }
                 }
                 _requests.erase(it->fd);
@@ -197,12 +202,10 @@ void ServerManager::accept_connection(int incoming)
 //return 1 to close the connection after, 0 to keep it alive
 int ServerManager::send_response(int socket_fd)
 {
-    bool errorOccurred = false;
     unsigned long bytesSent;
-    std::string serverMessage;
     if (this->_cgiResponseIndex.count(socket_fd)) {
         //send cgi response instead of normal responsebuilder stuff
-        serverMessage = this->_cgiResponseIndex.at(socket_fd);
+        this->_responses.insert({socket_fd, this->_cgiResponseIndex.at(socket_fd)});
     }
     else if (_requests.count(socket_fd)) {
         ResponseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).get_config());
@@ -217,40 +220,44 @@ int ServerManager::send_response(int socket_fd)
             _requests.erase(socket_fd);
             return (0);
         }
-        serverMessage = response.get_response();
+        this->_responses.insert({socket_fd, response.get_response()});
         std::cout << response.get_header() << std::endl;
     }
-    bytesSent = write(socket_fd, serverMessage.c_str(), serverMessage.size());
-    if (bytesSent == serverMessage.size())
+    bytesSent = write(socket_fd, this->_responses.at(socket_fd).c_str(), this->_responses.at(socket_fd).size());
+    if (bytesSent <= 0) {
+        log("Error sending response to client, closing connection");
+        _requestServerIndex.erase(socket_fd);
+        this->_responses.erase(socket_fd);
+        return (1);
+    }
+    else if (bytesSent == this->_responses.at(socket_fd).size())
     {
+        this->_responses.erase(socket_fd);
         log("------ Server Response sent to client ------\n\n");
     }
-    else
-    {
-        log("Error sending response to client");
-        errorOccurred = true;
-    }
-    if (bytesSent == 0) {
-        log("Error sending response to client");
-        errorOccurred = true;
+    else {
+        //write was incomplete, need to handle that!
+        std::cout << "incomplete response written to socket" << std::endl;
+        this->_responses.at(socket_fd) = this->_responses.at(socket_fd).substr(bytesSent, this->_responses.at(socket_fd).size());
+        return (0);
     }
     if (this->_cgiResponseIndex.count(socket_fd)) {
         std::cout << "cgi response sent, closing connection" << std::endl;
         this->_cgiResponseIndex.erase(socket_fd);
+        _requestServerIndex.erase(socket_fd);
         return (1);
     }
     if (_requests.count(socket_fd)) {
         if (_requests.at(socket_fd).find_header("Connection") != " keep-alive" ) {
             std::cout << "Closing connection" << std::endl;
             _requestServerIndex.erase(socket_fd);
-			return(1);
+			return (1);
         }
 	    else {
     	    std::cout << "Keeping connection alive" << std::endl;
         	return (0);
     	}
     }
-
     return (0);
 }
 

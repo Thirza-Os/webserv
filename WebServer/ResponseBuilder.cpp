@@ -151,6 +151,9 @@ void        ResponseBuilder::build_header(std::string uri) {
         case 500:
             ss << " Internal Server Error\n";
             break;
+        case 501:
+            ss << " Not Implemented\n";
+            break;
         case 502:
             ss << " Bad Gateway\n";
             break;
