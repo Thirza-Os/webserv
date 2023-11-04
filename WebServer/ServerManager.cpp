@@ -101,7 +101,6 @@ void ServerManager::start_listen()
                 else {
                     char buffer[BUFFER_SIZE] = {0};
                     int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
-                    printf("----%d----%d\n", bytesReceived, it->fd);
                     if (bytesReceived < 0)
                     {
                         log("Failed to read bytes from client socket, connection closed");

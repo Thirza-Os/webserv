@@ -14,17 +14,7 @@ ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _
     this->_cgiPipeFd = 0; //default to 0 for not set
     this->_status_code = this->_request.get_status_code();
     std::cout << "checking status code.." << std::endl;
-    if (this->_request.get_method() == "GET"){
-        build_response();
-    }
-	if (this->_request.get_method() == "POST"){
-		this->_status_code = utility::upload_file(&this->_request, match_location(this->_request.get_uri()), this->_config.get_maxsize());
-		build_response();
-	}
-	// if (this->_request.get_method() == "DELETE"){
-	// 	delete_resource();
-	// 	build_response();
-	// }
+	build_response();
 }
 
 ResponseBuilder::ResponseBuilder(const ResponseBuilder &src) {
@@ -111,9 +101,15 @@ void        ResponseBuilder::build_header(std::string uri) {
         case 405:
             ss << " Method Not Allowed\n";
             break;
+		case 409:
+			ss << " Conflict\n";
+			break;
         case 413:
             ss << " Payload Too Large\n";
             break;
+		case 422:
+			ss << " Unprocessable Entity\n";
+			break;
         case 500:
             ss << " Internal Server Error\n";
             break;
@@ -271,6 +267,13 @@ void	ResponseBuilder::build_response() {
             this->_status_code = 404;
         }
     }
+	else if (this->_request.get_method() == "DELETE")
+	{
+		this->_status_code = utility::delete_resource(uri, match_location(this->_request.get_uri()));
+		build_header(uri);
+		this->_response = this->_header;
+		return;
+	}
     else {
         this->_status_code = 405; //or maybe 501 instead, method not implemented
     }
