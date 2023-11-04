@@ -199,6 +199,27 @@ bool    RequestParser::validate_content(std::string line){
     return(0);
 }
 
+void RequestParser::set_content_disposition(const char *request)
+{
+	std::string line;
+	std::istringstream raw_body(request);
+	while (std::getline(raw_body, line))
+	{
+		if (line.find("Content-Disposition:") != std::string::npos)
+		{
+			size_t colon_pos = line.find(':');
+
+			if (colon_pos != std::string::npos)
+			{
+				std::string header_name = line.substr(0, colon_pos);
+				std::string header_value = line.substr(colon_pos + 1);
+
+				this->_headers.insert(std::make_pair(header_name, header_value));
+			}
+		}
+	}
+}
+
 void RequestParser::fill_body(const char *_request, int bytesReceived)
 {
 
@@ -210,12 +231,15 @@ void RequestParser::fill_body(const char *_request, int bytesReceived)
 		this->_content_remaining += 4;//adding this up because the seperators are included in bytesreceived
 	}else
 		temp_body = _request;
+	
+	set_content_disposition(_request);
 
 	//copy amount of bytes read into the body
 	size_t length = bytesReceived;
 	for(size_t i = 0; i < length; i++)
+	{
 		_body.push_back(temp_body[i]);
-
+	}
 	this->_content_remaining -= bytesReceived;
 
 }

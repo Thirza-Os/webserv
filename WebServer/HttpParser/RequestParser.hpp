@@ -33,7 +33,7 @@ private:
     void        decode_uri();
     void        validate_header(std::string line);
     bool        validate_content(std::string line);
-
+	void 		set_content_disposition(const char *request);
     void        print_request() const;
 
 public:
