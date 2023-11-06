@@ -16,6 +16,8 @@ ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _
     this->_cgiPipeFd = 0; //default to 0 for not set
     this->_status_code = this->_request.get_status_code();
     this->_matched_location = match_location(this->_request.get_uri());
+	if (_request.find_header("Transfer-Encoding") == " chunked")
+		_request.unchunk_body();
 	build_response();
 }
 
@@ -288,7 +290,7 @@ void	ResponseBuilder::build_response() {
         }
         if (this->_status_code == 200) {
             if (!this->_request.find_header("Content-Length").empty())
-				this->_status_code = utility::upload_file(&this->_request, match_location(this->_request.get_uri()), this->_config.get_maxsize());
+				this->_status_code = utility::upload_file(&this->_request, uri, this->_config.get_maxsize());
 			else 
 				this->_status_code = 411;
             if (this->_status_code == 201) {

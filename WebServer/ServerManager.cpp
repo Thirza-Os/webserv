@@ -125,7 +125,7 @@ void ServerManager::start_listen()
                     }
                     
                     // if all bytes are read, POLLOUT the socket
-                    if (_requests[it->fd].get_content_remaining() <= 0) {
+                    if (_requests[it->fd].get_content_remaining() <= 0) { //To do: checken met chunked requests
                         std::ostringstream ss;
                         ss << "------ Received Request from client ------\n\n";
                         log(ss.str());
@@ -202,6 +202,7 @@ int ServerManager::send_response(int socket_fd)
     if (this->_cgiResponseIndex.count(socket_fd)) {
         //send cgi response instead of normal responsebuilder stuff
         serverMessage = this->_cgiResponseIndex.at(socket_fd);
+		std::cout << serverMessage << std::endl;
     }
     else if (_requests.count(socket_fd)) {
         ResponseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).get_config());
