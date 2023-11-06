@@ -1,9 +1,8 @@
-#ifndef RESPONSEBIULDER_HPP
-# define RESPONSEBIULDER_HPP
+#ifndef RESPONSEBUILDER_HPP
+# define RESPONSEBUILDER_HPP
 
 #include "HttpParser/RequestParser.hpp"
 #include "ConfigParser/ServerConfig.hpp"
-#include "Utilities/Utilities.hpp"
 
 #include <string>
 

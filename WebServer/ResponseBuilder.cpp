@@ -3,12 +3,9 @@
 #include "Utilities/Utilities.hpp"
 
 #include <iostream>
-#include <fstream>
 #include <sstream>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <cstring>
-#include <sys/types.h>
 #include <dirent.h>
 
 ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _request(request), _config(config) {

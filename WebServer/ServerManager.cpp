@@ -2,10 +2,8 @@
 #include "Utilities/Utilities.hpp"
 
 #include <iostream>
-#include <fstream>
 #include <sstream>
 #include <unistd.h>
-#include <cstring>
 #include <algorithm>
 
 const int BUFFER_SIZE = 30720;
@@ -27,11 +25,6 @@ void    ServerManager::exit_error(const std::string &str)
     exit(1);
 }
 
-void    ServerManager::log(const std::string &message)
-{
-    std::cout << message << std::endl;
-}
-
 void ServerManager::start_listen()
 {
     std::vector<int> listeners;
@@ -45,7 +38,7 @@ void ServerManager::start_listen()
             << inet_ntoa(it->get_sock_addr().sin_addr) 
             << " PORT: " << ntohs(it->get_sock_addr().sin_port) 
             << " ***\n\n";
-        log(ss.str());
+        std::cout << ss.str();
         struct pollfd listener;
 
         listener.fd = it->get_socket();
@@ -56,29 +49,29 @@ void ServerManager::start_listen()
     // main webserv loop starts here, the program should never exit this loop
     while (true)
     {
-        log("====== Waiting for a new event ======\n\n\n");
-        if (poll(&_pollfds[0], _pollfds.size(), 10000) == -1) {
-            log("Error returned from poll()\n");
+        std::cout << "====== Waiting for a new event ======" << std::endl << std::endl;
+        if (poll(&this->_pollfds[0], this->_pollfds.size(), 10000) == -1) {
+            std::cout << "Error returned from poll()" << std::endl;
         }
-        for (std::vector<struct pollfd>::iterator it = _pollfds.begin(); it < _pollfds.end(); it++) {
+        for (std::vector<struct pollfd>::iterator it = this->_pollfds.begin(); it < this->_pollfds.end(); it++) {
             if (it->revents & POLLIN + POLLHUP) {
                 if (std::find(listeners.begin(), listeners.end(), it->fd) != listeners.end()) {
                     accept_connection(it->fd);
-                    break ;
+                    break;
                 }
                 else if (this->_cgiIndex.count(it->fd)) {
                     //read cgi response
-                    log("Reading cgi response");
+                    std::cout << "Reading cgi response" << std::endl;
                     char buffer[BUFFER_SIZE] = {0};
                     int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
                     if (bytesReceived < 0)
                     {
-                        log("Failed to read bytes from pipe connection");
-                        break ;
+                        std::cout << "Failed to read bytes from pipe connection" << std::endl;
+                        break;
                     }
                     //add bytes read to string and add it to cgi response index
                     std::string cgiResponse = buffer;
-                    if (_cgiResponseIndex.count(this->_cgiIndex.at(it->fd))) {
+                    if (this->_cgiResponseIndex.count(this->_cgiIndex.at(it->fd))) {
                         this->_cgiResponseIndex.at(this->_cgiIndex.at(it->fd)).append(cgiResponse);
                     }
                     else {
@@ -86,17 +79,17 @@ void ServerManager::start_listen()
                     }
                     //find the pollfd of cgiIndex.at(it->fd) and set events to POLLOUT
                     if (bytesReceived == 0) {
-                        for (std::vector<struct pollfd>::iterator iter = _pollfds.begin(); iter < _pollfds.end(); iter++) {
+                        for (std::vector<struct pollfd>::iterator iter = this->_pollfds.begin(); iter < this->_pollfds.end(); iter++) {
                             if (iter->fd == this->_cgiIndex.at(it->fd)) {
                                 iter->events = POLLOUT;
                             }
                         }
                         //close the pipe end
                         close(it->fd);
-                        it = _pollfds.erase(it);
+                        it = this->_pollfds.erase(it);
                         this->_cgiIndex.erase(it->fd);
                     }
-                    break ;
+                    break;
                 }
                 else {
                     char buffer[BUFFER_SIZE] = {0};
@@ -104,50 +97,47 @@ void ServerManager::start_listen()
                     printf("----%d----%d\n", bytesReceived, it->fd);
                     if (bytesReceived < 0)
                     {
-                        log("Failed to read bytes from client socket, connection closed");
+                        std::cout << "Failed to read from client socket, connection closed" << std::endl;
                         close(it->fd);
-                        it = _pollfds.erase(it);
-                        break ;
+                        it = this->_pollfds.erase(it);
+                        break;
                     }
                     if (bytesReceived == 0) {
-                        log("Client closed the connection");
+                        std::cout << "Client closed the connection" << std::endl;
                         close(it->fd);
-                        it = _pollfds.erase(it);
-                        break ;
+                        it = this->_pollfds.erase(it);
+                        break;
                     }
                     //if request doesn't yet exist, create it. If it does, add the remaining bytes from the socket to the request body
-                    if (_requests.find(it->fd) != _requests.end()){
-                        _requests[it->fd].fill_body(buffer, bytesReceived);
+                    if (this->_requests.find(it->fd) != this->_requests.end()){
+                        this->_requests[it->fd].fill_body(buffer, bytesReceived);
                     }
                     else {
                         RequestParser request(buffer);
                         request.fill_body(buffer, bytesReceived - request.get_header_length());
-                        _requests.insert({it->fd, request});
+                        this->_requests.insert({it->fd, request});
                     }
-                    
                     // if all bytes are read, POLLOUT the socket
-                    if (_requests[it->fd].get_content_remaining() <= 0) {
-                        std::ostringstream ss;
-                        ss << "------ Received Request from client ------\n\n";
-                        log(ss.str());
+                    if (this->_requests[it->fd].get_content_remaining() <= 0) {
+                        std::cout << "------ Received Request from client ------" << std::endl << std::endl;
                         it->events = POLLOUT;
                     }
-                    if (_timeOutIndex.count(it->fd)) {
+                    if (this->_timeOutIndex.count(it->fd)) {
                         this->_timeOutIndex.at(it->fd) = utility::getCurrentTimeinSec();
                     }
-                    break ;
+                    break;
                 }
             }
             else if (it->revents & POLLOUT) {
                 if (send_response(it->fd)) {
                     close(it->fd);
-                    it = _pollfds.erase(it);
+                    it = this->_pollfds.erase(it);
                 }
                 else {
-                    if (_timeOutIndex.count(it->fd)) {
+                    if (this->_timeOutIndex.count(it->fd)) {
                         this->_timeOutIndex.at(it->fd) = utility::getCurrentTimeinSec();
                     }
-                    for (std::map<int, int>::iterator iter = _cgiIndex.begin(); iter != _cgiIndex.end() ;iter++) {
+                    for (std::map<int, int>::iterator iter = this->_cgiIndex.begin(); iter != this->_cgiIndex.end() ;iter++) {
                         if (iter->second == it->fd) {
                             it->events = 0;
                         }
@@ -158,7 +148,7 @@ void ServerManager::start_listen()
                         }
                     }
                 }
-                _requests.erase(it->fd);
+                this->_requests.erase(it->fd);
                 break ;
             }
         }
@@ -180,12 +170,9 @@ void ServerManager::accept_connection(int incoming)
                         &socketAddrLen, SOCK_NONBLOCK);
     if (new_socket < 0)
     {
-        std::ostringstream ss;
-        ss <<
-        "Server failed to accept incoming connection from ADDRESS: "
+        std::cout << "Server failed to accept incoming connection from ADDRESS: "
         << inet_ntoa(socketAddr.sin_addr) << "; PORT: "
-        << ntohs(socketAddr.sin_port);
-        log(ss.str());
+        << ntohs(socketAddr.sin_port) << std::endl;
         return ;
     }
     struct pollfd new_socket_fd;
@@ -194,9 +181,7 @@ void ServerManager::accept_connection(int incoming)
     this->_pollfds.push_back(new_socket_fd);
     this->_requestServerIndex.insert({new_socket, *correctServer});
     this->_timeOutIndex.insert({new_socket, utility::getCurrentTimeinSec()});
-    std::ostringstream ss;
-    ss << "------ New connection established ------\n\n";
-    log(ss.str());
+    std::cout << "------ New connection established ------" << std::endl << std::endl;
 }
 
 //return 1 to close the connection after, 0 to keep it alive
@@ -225,7 +210,7 @@ int ServerManager::send_response(int socket_fd)
     }
     bytesSent = write(socket_fd, this->_responses.at(socket_fd).c_str(), this->_responses.at(socket_fd).size());
     if (bytesSent <= 0) {
-        log("Error sending response to client, closing connection");
+        std::cout << "Error sending response to client, closing connection" << std::endl;
         _requestServerIndex.erase(socket_fd);
         this->_responses.erase(socket_fd);
         return (1);
@@ -233,7 +218,7 @@ int ServerManager::send_response(int socket_fd)
     else if (bytesSent == this->_responses.at(socket_fd).size())
     {
         this->_responses.erase(socket_fd);
-        log("------ Server Response sent to client ------\n\n");
+        std::cout << "------ Server Response sent to client ------" << std::endl << std::endl;
     }
     else {
         //write was incomplete, need to handle that!

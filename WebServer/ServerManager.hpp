@@ -6,14 +6,9 @@
 #include "Server.hpp"
 #include "ConfigParser/ServerConfig.hpp"
 
-#include <stdio.h>
-#include <sys/socket.h>
-#include <stdlib.h>
 #include <string>
 #include <vector>
 #include <map>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <poll.h>
 
 class ServerManager
@@ -24,7 +19,6 @@ public:
     ~ServerManager();
 
     void    exit_error(const std::string &str);
-    void    log(const std::string &message);
 
 private:
 
