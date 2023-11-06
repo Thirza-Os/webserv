@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <algorithm>
 
-const int BUFFER_SIZE = 300;
+const int BUFFER_SIZE = 30720;
 
 ServerManager::ServerManager(const std::vector<ServerConfig> &configs)
 {
@@ -112,6 +112,7 @@ void ServerManager::start_listen()
                     }
                     else {
                         RequestParser request(buffer);
+						//idee : content remaining gelijk zetten aan de laatst gelezen chunk
                         request.fill_body(buffer, bytesReceived - request.get_header_length());
                         this->_requests.insert({it->fd, request});
                     }
