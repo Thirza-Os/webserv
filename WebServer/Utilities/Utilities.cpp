@@ -84,11 +84,9 @@ namespace utility {
         };
         std::size_t pos = filepath.find_last_of(".");
         if (pos == std::string::npos) {
-            std::cout << "No extension!" << std::endl;
             return ("text/plain");
         }
         std::string extension = filepath.substr(pos + 1);
-        std::cout << "extension is " << extension << std::endl;
         if (lookup.count(extension)) {
             return (lookup.at(extension));
         }

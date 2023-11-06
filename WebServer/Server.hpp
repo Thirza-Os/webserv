@@ -3,15 +3,8 @@
 
 #include "ConfigParser/ServerConfig.hpp"
 
-#include <stdio.h>
 #include <sys/socket.h>
-#include <stdlib.h>
 #include <string>
-#include <vector>
-#include <map>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <poll.h>
 
 class Server
 {
