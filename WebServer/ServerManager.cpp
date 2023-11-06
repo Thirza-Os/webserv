@@ -61,7 +61,6 @@ void ServerManager::start_listen()
                 }
                 else if (this->_cgiIndex.count(it->fd)) {
                     //read cgi response
-                    std::cout << "Reading cgi response" << std::endl;
                     char buffer[BUFFER_SIZE] = {0};
                     int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
                     if (bytesReceived < 0)
@@ -192,8 +191,8 @@ int ServerManager::send_response(int socket_fd)
         //send cgi response instead of normal responsebuilder stuff
         this->_responses.insert({socket_fd, this->_cgiResponseIndex.at(socket_fd)});
     }
-    else if (_requests.count(socket_fd)) {
-        ResponseBuilder response(_requests.at(socket_fd), _requestServerIndex.at(socket_fd).get_config());
+    else if (this->_requests.count(socket_fd)) {
+        ResponseBuilder response(this->_requests.at(socket_fd), this->_requestServerIndex.at(socket_fd).get_config());
         if (response.get_cgiPipeFd()) {
             //we need to read from the pipe and send that instead
             struct pollfd cgi_fd;
@@ -201,8 +200,8 @@ int ServerManager::send_response(int socket_fd)
             cgi_fd.events = POLLIN;
             this->_pollfds.push_back(cgi_fd);
             //map the socket_fd to send the read output to the cgi_fd
-            _cgiIndex.insert({cgi_fd.fd, socket_fd});
-            _requests.erase(socket_fd);
+            this->_cgiIndex.insert({cgi_fd.fd, socket_fd});
+            this->_requests.erase(socket_fd);
             return (0);
         }
         this->_responses.insert({socket_fd, response.get_response()});
@@ -211,7 +210,7 @@ int ServerManager::send_response(int socket_fd)
     bytesSent = write(socket_fd, this->_responses.at(socket_fd).c_str(), this->_responses.at(socket_fd).size());
     if (bytesSent <= 0) {
         std::cout << "Error sending response to client, closing connection" << std::endl;
-        _requestServerIndex.erase(socket_fd);
+        this->_requestServerIndex.erase(socket_fd);
         this->_responses.erase(socket_fd);
         return (1);
     }
@@ -222,20 +221,19 @@ int ServerManager::send_response(int socket_fd)
     }
     else {
         //write was incomplete, need to handle that!
-        std::cout << "incomplete response written to socket" << std::endl;
         this->_responses.at(socket_fd) = this->_responses.at(socket_fd).substr(bytesSent, this->_responses.at(socket_fd).size());
         return (0);
     }
     if (this->_cgiResponseIndex.count(socket_fd)) {
         std::cout << "cgi response sent, closing connection" << std::endl;
         this->_cgiResponseIndex.erase(socket_fd);
-        _requestServerIndex.erase(socket_fd);
+        this->_requestServerIndex.erase(socket_fd);
         return (1);
     }
-    if (_requests.count(socket_fd)) {
-        if (_requests.at(socket_fd).find_header("Connection") != " keep-alive" ) {
+    if (this->_requests.count(socket_fd)) {
+        if (this->_requests.at(socket_fd).find_header("Connection") != " keep-alive" ) {
             std::cout << "Closing connection" << std::endl;
-            _requestServerIndex.erase(socket_fd);
+            this->_requestServerIndex.erase(socket_fd);
 			return (1);
         }
 	    else {
@@ -255,16 +253,16 @@ void ServerManager::check_timeout(void)
         if (time_elapsed >= 30) {
             std::cout << "Connection timed out after " << time_elapsed << "seconds" << std::endl;
             close(it->first);
-            for (std::vector<struct pollfd>::iterator it2 = _pollfds.begin(); it2 != _pollfds.end() ; it2++) {
+            for (std::vector<struct pollfd>::iterator it2 = this->_pollfds.begin(); it2 != this->_pollfds.end() ; it2++) {
                 if (it2->fd == it->first) {
-                    it2 = _pollfds.erase(it2);
+                    it2 = this->_pollfds.erase(it2);
                     break;
                 }
             }
-            _requestServerIndex.erase(it->first);
-            it = _timeOutIndex.erase(it);
+            this->_requestServerIndex.erase(it->first);
+            it = this->_timeOutIndex.erase(it);
             check_timeout();
-            break ;
+            break;
         }
     }
 }
