@@ -1,10 +1,15 @@
+#!/usr/bin/php
 <?php
+$entityBody = stream_get_contents(STDIN);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Access POST data
+// Parse the data from the request body into the $_POST array
+parse_str($entityBody, $_POST);
+
+if (isset($_POST['name'])) {
+    // Access the 'name' value
     $name = $_POST['name'];
     echo "Hello, $name!";
 } else {
-    echo "This script expects a POST request.";
+    echo "The 'name' key is not defined in the POST data.";
 }
 ?>

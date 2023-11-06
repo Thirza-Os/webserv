@@ -8,12 +8,14 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <cstring>
+#include <sys/types.h>
+#include <dirent.h>
 
 ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _request(request), _config(config) {
     std::cout << "Building response.." << std::endl;
     this->_cgiPipeFd = 0; //default to 0 for not set
     this->_status_code = this->_request.get_status_code();
-    std::cout << "checking status code.." << std::endl;
+    this->_matched_location = match_location(this->_request.get_uri());
 	build_response();
 }
 
@@ -34,6 +36,48 @@ ResponseBuilder &ResponseBuilder::operator=(const ResponseBuilder &src)
         this->_cgiPipeFd = src._cgiPipeFd;
     }
     return *this;
+}
+
+//build a directory listing for when autoindex is on
+void        ResponseBuilder::build_dir_listing(std::string uri) {
+    //build html string and set to this->_body at the end
+    DIR             *directory;
+
+    uri = uri.substr(0, uri.find_last_of('/'));
+    std::cout << "attempting to open: " << uri << std::endl;
+    directory = opendir(uri.c_str());
+    if (!directory) {
+        std::cout << "Could not open directory" << std::endl;
+        this->_status_code = 500;
+        uri = "error.html";
+        std::ifstream htmlFile = open_error_page();
+        if (!htmlFile.good()) {
+            htmlFile.close();
+            std::cout << "error page can't be opened for some reason" << std::endl;
+            build_header("");
+            this->_response = this->_header;
+            return;
+        }
+        std::stringstream buffer;
+        buffer << htmlFile.rdbuf();
+	    htmlFile.close();
+        this->_body = buffer.str();
+        build_header(uri);
+	    this->_response = this->_header;
+	    this->_response.append(this->_body);
+        return;
+    }
+    this->_body = "<html><head><title> Index of " + this->_request.get_uri();
+    this->_body.append("</title></head><body><h1> Index of " + this->_request.get_uri());
+    this->_body.append("</h1><br>");
+    for (struct dirent *entry = readdir(directory); entry; entry = readdir(directory)) {
+        this->_body.append("<a href=\"./" + std::string(entry->d_name) + "\">" + std::string(entry->d_name) + "</a></br>");
+    }
+    this->_body.append("</body></html>");
+    build_header("autoindex.html");
+    this->_response = this->_header;
+	this->_response.append(this->_body);
+    closedir(directory);
 }
 
 //if a config file has 2 locations with returns pointing at each other
@@ -136,75 +180,53 @@ void        ResponseBuilder::build_header(std::string uri) {
 std::string ResponseBuilder::process_uri() {
     std::cout << "Processing uri.." << std::endl;
     std::string uri = this->_request.get_uri();
-    Location matched_loc = match_location(uri);
-    std::string dflt_index;
-    if (!this->_config.get_index().empty()) {
-        dflt_index = this->_config.get_index().front();
-    }
-    if (dflt_index.empty()) {
-        dflt_index = "index.html";
-    }
-    if (!matched_loc.path.empty()) {
-        if (matched_loc.methods[0]) { //check if GET method is even allowed or not
-        std::cout << "matched a location " << matched_loc.path << "!" << std::endl;
-        std::cout << "index: " << matched_loc.index << std::endl;
-        std::cout << "requested uri: " << uri << std::endl;
-            if (uri.find(matched_loc.path, 0) == std::string::npos) {
-                //if uri and path don't match, this was a redirect
-                //and we should change the uri accordingly
-                //erase until a slash then add path instead
-                //if there are no slashes, replace whole uri with path
-                if (uri.front() == '/') {
-                    uri.erase(0, 1);
-                }
-                if (uri.find_first_of('/') != std::string::npos) {
-                    uri.erase(0, uri.find_first_of('/'));
-                    uri.insert(0, matched_loc.path);
-                }
-                else {
-                    uri = matched_loc.path;
-                }
+    if (!this->_matched_location.path.empty()) {
+        std::cout << "matched a location " << this->_matched_location.path << "!" << std::endl;
+        if (uri.find(this->_matched_location.path, 0) == std::string::npos) {
+            //if uri and path don't match, this was a redirect
+            //and we should change the uri accordingly
+            //erase until a slash then add path instead
+            //if there are no slashes, replace whole uri with path
+            if (uri.front() == '/') {
+                uri.erase(0, 1);
             }
-            if (matched_loc.root.empty()) {
-                uri.insert(0, this->_config.get_rootdirectory());
+            if (uri.find_first_of('/') != std::string::npos) {
+                uri.erase(0, uri.find_first_of('/'));
+                uri.insert(0, this->_matched_location.path);
             }
-            uri.insert(0, matched_loc.root);
-            if (!matched_loc.index.empty()) {
-                dflt_index = matched_loc.index;
-            }
-            if (uri.back() == '/') {
-                uri.append(dflt_index);
-            }
-            if (!matched_loc.cgiExtensions.empty()) {
-                std::cout << "cgi found in matched location!" << std::endl;
-                CgiHandler cgi(matched_loc, this->_request);
-                //the output of the cgi script can be read from pipe_out[0]
-                this->_cgiPipeFd = cgi.pipe_out[0];
-                close(cgi.pipe_out[1]);
-                close(cgi.pipe_in[1]);
-                close(cgi.pipe_in[0]);
-                return ("URI_MATCHED");
+            else {
+                uri = this->_matched_location.path;
             }
         }
-        else {
-            this->_status_code = 405;
+        if (this->_matched_location.root.empty()) {
+            uri.insert(0, this->_config.get_rootdirectory());
+        }
+        uri.insert(0, this->_matched_location.root);
+        if (!this->_matched_location.cgiExtensions.empty()) {
+            std::cout << "cgi found in matched location!" << std::endl;
+            CgiHandler cgi(this->_matched_location, this->_request);
+            //the output of the cgi script can be read from pipe_out[0]
+            this->_cgiPipeFd = cgi.pipe_out[0];
+            close(cgi.pipe_out[1]);
+            close(cgi.pipe_in[1]);
+            close(cgi.pipe_in[0]);
+            return ("CGI_MATCHED");
         }
     }
     else {
+        //no location match
         uri.insert(0, this->_config.get_rootdirectory());
-        if (uri.back() == '/') {
-            uri.append(dflt_index);
-        }
     }
     struct stat s;
     if (lstat(uri.c_str(), &s) == 0) {
         if (S_ISDIR(s.st_mode)) {
             std::cout << "is a directory" << std::endl;
-            uri.append("/");
-            uri.append(dflt_index);
+            if (this->_request.get_method() == "GET" && uri.back() != '/') {
+                uri.append("/");
+            }
         }
     }
-    std::cout << "attempting to send this uri: " << uri << std::endl;
+    std::cout << "final processed uri: " << uri << std::endl;
     return (uri);
 }
 
@@ -247,29 +269,92 @@ std::ifstream   ResponseBuilder::open_error_page() {
 }
 
 void	ResponseBuilder::build_response() {
+    bool location_matched = true;
+    if (this->_matched_location.path.empty())
+        location_matched = false;
     std::string uri("");
     std::ifstream htmlFile;
     if (this->_status_code == 200) {
         uri = process_uri();
-        if (uri == "URI_MATCHED") { //cgi handles response
+        if (uri == "CGI_MATCHED") { //cgi handles response
             return ;
         }
     }
     if (this->_request.get_method() == "POST"){
-		if (!this->_request.find_header("Content-Length").empty())
-			this->_status_code = utility::upload_file(&this->_request, match_location(this->_request.get_uri()), this->_config.get_maxsize());
-		else 
-			this->_status_code = 411;
-        build_header(uri);
-        this->_response = this->_header;
-        return;
+        if (location_matched) {
+            if (!this->_matched_location.methods[1]) {
+                this->_status_code = 405;
+            }
+        }
+        if (this->_status_code == 200) {
+            if (!this->_request.find_header("Content-Length").empty())
+				this->_status_code = utility::upload_file(&this->_request, match_location(this->_request.get_uri()), this->_config.get_maxsize());
+			else 
+				this->_status_code = 411;
+            if (this->_status_code == 201) {
+                build_header(uri);
+                this->_response = this->_header;
+                return;
+            }
+        }
     }
     else if (this->_request.get_method() == "GET") {
-        htmlFile.open(uri.c_str());
-        if (!htmlFile.good() && this->_status_code == 200) {
-            htmlFile.close();
-            std::cout << "file can't be opened" << std::endl;
-            this->_status_code = 404;
+        if (location_matched) {
+            if (!this->_matched_location.methods[0]) {
+                this->_status_code = 405;
+            }
+        }
+        if (this->_status_code == 200) {
+            std::string dflt_index;
+            if (location_matched) {
+                dflt_index = this->_matched_location.index;
+            }
+            if (dflt_index.empty()) {
+                if (!this->_config.get_index().empty()) {
+                    dflt_index = this->_config.get_index().front();
+                }
+            }
+            if (dflt_index.empty()) {
+                dflt_index = "index.html";
+            }
+            if (uri.back() == '/') {
+                uri.append(dflt_index);
+                htmlFile.open(uri.c_str());
+                if (!htmlFile.good() && this->_status_code == 200) {
+                    htmlFile.close();
+                    std::cout << "no index file found" << std::endl;
+                    //if autoindex is on for the matched location, send directory listing instead
+                    if (location_matched) {
+                        if (this->_matched_location.autoindex) {
+                            std::cout << "autoindex is on!" << std::endl;
+                            build_dir_listing(uri);
+                            return;
+                        }
+                    }
+                    this->_status_code = 403;
+                }
+            }
+            else {
+                htmlFile.open(uri.c_str());
+                if (!htmlFile.good() && this->_status_code == 200) {
+                    htmlFile.close();
+                    std::cout << "file can't be opened" << std::endl;
+                    this->_status_code = 404;
+                }
+            }
+        }
+    }
+    else if (this->_request.get_method() == "DELETE") {
+        if (location_matched) {
+            if (!this->_matched_location.methods[2]) {
+                this->_status_code = 405;
+            }
+        }
+        if (this->_status_code == 200) {
+            std::cout << "DELETE request received" << std::endl;
+            //todo: handle delete
+            //build header, set header to response, etc
+            return;
         }
     }
 	else if (this->_request.get_method() == "DELETE")
@@ -280,8 +365,9 @@ void	ResponseBuilder::build_response() {
 		return;
 	}
     else {
-        this->_status_code = 405; //or maybe 501 instead, method not implemented
+        this->_status_code = 501; //method not implemented
     }
+    //might need some changing, if POST and DELETE responses should be more than just a header?
     if (this->_status_code != 200) {
         htmlFile.close();
         uri = "error.html";
