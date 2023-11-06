@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <algorithm>
 
-const int BUFFER_SIZE = 30720;
+const int BUFFER_SIZE = 300;
 
 ServerManager::ServerManager(const std::vector<ServerConfig> &configs)
 {
