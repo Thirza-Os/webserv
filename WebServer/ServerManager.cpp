@@ -93,7 +93,6 @@ void ServerManager::start_listen()
                 else {
                     char buffer[BUFFER_SIZE] = {0};
                     int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
-                    printf("----%d----%d\n", bytesReceived, it->fd);
                     if (bytesReceived < 0)
                     {
                         std::cout << "Failed to read from client socket, connection closed" << std::endl;
@@ -135,11 +134,6 @@ void ServerManager::start_listen()
                 else {
                     if (this->_timeOutIndex.count(it->fd)) {
                         this->_timeOutIndex.at(it->fd) = utility::getCurrentTimeinSec();
-                    }
-                    for (std::map<int, int>::iterator iter = this->_cgiIndex.begin(); iter != this->_cgiIndex.end() ;iter++) {
-                        if (iter->second == it->fd) {
-                            it->events = 0;
-                        }
                     }
                     if (it->events) {
                         if (!this->_responses.count(it->fd)) {
@@ -202,6 +196,11 @@ int ServerManager::send_response(int socket_fd)
             //map the socket_fd to send the read output to the cgi_fd
             this->_cgiIndex.insert({cgi_fd.fd, socket_fd});
             this->_requests.erase(socket_fd);
+            for (std::vector<struct pollfd>::iterator it = this->_pollfds.begin(); it != this->_pollfds.end() ;it++) {
+                if (it->fd == socket_fd) {
+                    it->events = 0;
+                }
+            }
             return (0);
         }
         this->_responses.insert({socket_fd, response.get_response()});
