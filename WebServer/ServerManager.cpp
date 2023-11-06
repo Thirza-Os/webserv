@@ -12,7 +12,7 @@ ServerManager::ServerManager(const std::vector<ServerConfig> &configs)
 {
     for (std::vector<ServerConfig>::const_iterator it = configs.begin(); it != configs.end() ;it++) {
         std::cout << "server: " << it->get_servername() << ", root: " << it->get_rootdirectory() << std::endl;
-        _servers.push_back(Server(*it));
+        this->_servers.push_back(Server(*it));
     }
     start_listen();
 }
@@ -28,7 +28,7 @@ void    ServerManager::exit_error(const std::string &str)
 void ServerManager::start_listen()
 {
     std::vector<int> listeners;
-    for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end() ;it++) {
+    for (std::vector<Server>::iterator it = this->_servers.begin(); it != this->_servers.end() ;it++) {
         if (listen(it->get_socket(), 20) < 0)
         {
             exit_error("Socket listen failed");
@@ -44,7 +44,7 @@ void ServerManager::start_listen()
         listener.fd = it->get_socket();
         listener.events = POLLIN;
         listeners.push_back(it->get_socket());
-        _pollfds.push_back(listener);
+        this->_pollfds.push_back(listener);
     }
     // main webserv loop starts here, the program should never exit this loop
     while (true)

@@ -3,6 +3,7 @@
 #include "Utilities/Utilities.hpp"
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <unistd.h>
 #include <sys/stat.h>
