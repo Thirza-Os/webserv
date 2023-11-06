@@ -13,7 +13,7 @@ CgiHandler::CgiHandler(Location const &loc, RequestParser const &httprequest) {
     std::cout << "constructor started for CGI handler " << std::endl;
     this->_runLoc = "/usr/bin/php";                                       // Set this to correct location of your php runner
     initialize_environment(loc, httprequest);
-    execute_script();
+    execute_script(httprequest);
     print_env();
 }
 

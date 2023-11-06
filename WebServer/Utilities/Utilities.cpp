@@ -189,7 +189,7 @@ namespace utility {
 			return(500);
 	}
 
-	int delete_resource( std::string uri, Location location)
+	int delete_resource(std::string uri, Location location)
 	{
 		if (location.methods[2] != 1)
 			return (405);

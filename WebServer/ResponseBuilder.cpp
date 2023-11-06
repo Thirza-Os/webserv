@@ -104,6 +104,9 @@ void        ResponseBuilder::build_header(std::string uri) {
 		case 409:
 			ss << " Conflict\n";
 			break;
+		case 411:
+			ss << " Length Required\n";
+			break;
         case 413:
             ss << " Payload Too Large\n";
             break;
@@ -253,8 +256,10 @@ void	ResponseBuilder::build_response() {
         }
     }
     if (this->_request.get_method() == "POST"){
-		if (this->_request.get_content_length() > 0)
+		if (!this->_request.find_header("Content-Length").empty())
 			this->_status_code = utility::upload_file(&this->_request, match_location(this->_request.get_uri()), this->_config.get_maxsize());
+		else 
+			this->_status_code = 411;
         build_header(uri);
         this->_response = this->_header;
         return;
