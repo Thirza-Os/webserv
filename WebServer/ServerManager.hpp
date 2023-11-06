@@ -6,14 +6,9 @@
 #include "Server.hpp"
 #include "ConfigParser/ServerConfig.hpp"
 
-#include <stdio.h>
-#include <sys/socket.h>
-#include <stdlib.h>
 #include <string>
 #include <vector>
 #include <map>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <poll.h>
 
 class ServerManager
@@ -24,7 +19,6 @@ public:
     ~ServerManager();
 
     void    exit_error(const std::string &str);
-    void    log(const std::string &message);
 
 private:
 
@@ -33,6 +27,7 @@ private:
     std::vector<struct pollfd>          _pollfds;
     std::map<int, Server>               _requestServerIndex;
     std::map<int, RequestParser>        _requests;
+    std::map<int, std::string>          _responses;
     std::map<int, long>                 _timeOutIndex;
     std::map<int, int>                  _cgiIndex;
     std::map<int, std::string>          _cgiResponseIndex;

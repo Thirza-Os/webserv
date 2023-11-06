@@ -1,10 +1,6 @@
 #include "Server.hpp"
 
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <unistd.h>
-#include <cstring>
 
 Server::Server(ServerConfig config): _config(config) {
 	_socketAddr.sin_family = AF_INET;

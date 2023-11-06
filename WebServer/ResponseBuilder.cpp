@@ -7,12 +7,9 @@
 #include <sstream>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <cstring>
-#include <sys/types.h>
 #include <dirent.h>
 
 ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _request(request), _config(config) {
-    std::cout << "Building response.." << std::endl;
     this->_cgiPipeFd = 0; //default to 0 for not set
     this->_status_code = this->_request.get_status_code();
     this->_matched_location = match_location(this->_request.get_uri());
@@ -46,7 +43,6 @@ void        ResponseBuilder::build_dir_listing(std::string uri) {
     DIR             *directory;
 
     uri = uri.substr(0, uri.find_last_of('/'));
-    std::cout << "attempting to open: " << uri << std::endl;
     directory = opendir(uri.c_str());
     if (!directory) {
         std::cout << "Could not open directory" << std::endl;
@@ -92,7 +88,6 @@ Location    ResponseBuilder::match_location(std::string uri) {
         if (it->path != "/") {
             if (uri.find(it->path, 0) != std::string::npos) {
                 if (it->returnPath.empty()) {
-                    std::cout << "Location matched" << std::endl;
                     return (*it);
                 }
                 else {
@@ -105,7 +100,6 @@ Location    ResponseBuilder::match_location(std::string uri) {
     for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++) {
         if (it->path == "/") {
             if (it->returnPath.empty()) {
-                std::cout << "Location matched, just /" << std::endl;
                 return (*it);
             }
             else {
@@ -113,7 +107,6 @@ Location    ResponseBuilder::match_location(std::string uri) {
             }
         }
     }
-    std::cout << "No location match" << std::endl;
     //if there are no locations or no matches, return an empty location struct
     return (empty);
 }
@@ -162,6 +155,9 @@ void        ResponseBuilder::build_header(std::string uri) {
         case 500:
             ss << " Internal Server Error\n";
             break;
+        case 501:
+            ss << " Not Implemented\n";
+            break;
         case 502:
             ss << " Bad Gateway\n";
             break;
@@ -180,7 +176,6 @@ void        ResponseBuilder::build_header(std::string uri) {
 }
 
 std::string ResponseBuilder::process_uri() {
-    std::cout << "Processing uri.." << std::endl;
     std::string uri = this->_request.get_uri();
     if (!this->_matched_location.path.empty()) {
         std::cout << "matched a location " << this->_matched_location.path << "!" << std::endl;
@@ -328,7 +323,6 @@ void	ResponseBuilder::build_response() {
                     //if autoindex is on for the matched location, send directory listing instead
                     if (location_matched) {
                         if (this->_matched_location.autoindex) {
-                            std::cout << "autoindex is on!" << std::endl;
                             build_dir_listing(uri);
                             return;
                         }
@@ -353,7 +347,6 @@ void	ResponseBuilder::build_response() {
             }
         }
         if (this->_status_code == 200) {
-            std::cout << "DELETE request received" << std::endl;
             //todo: handle delete
             //build header, set header to response, etc
             return;
