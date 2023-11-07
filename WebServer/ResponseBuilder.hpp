@@ -18,11 +18,10 @@ private:
     int                                 _cgiPipeFd;
     Location                            _matched_location;
 
-	//std::string	getContentInfo(std::string content_type, std::string info);
-	//void		upload_file();
-    void            build_response();
-    void            build_header(std::string uri);
+	std::string		getContentInfo(std::string content_type, std::string info);
     std::ifstream   open_error_page();
+    void        	build_header(std::string uri);
+    void        	build_response();
     std::string     process_uri();
     Location        match_location(std::string uri);
     void            build_dir_listing(std::string uri);

@@ -20,6 +20,8 @@ private:
     char**                                  _argv;
     const char*                             _runLoc;
 
+    static const size_t CGI_BUFSIZE = 4096;  // Adjust the size as needed
+
     void    initialize_environment(Location const &loc, RequestParser const &httprequest);
     void    print_env();
     void    execute_script(RequestParser const &httprequest);

@@ -150,6 +150,7 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
             std::cerr << "Error: " << e.what() << std::endl;
             exit(1);
     }
+
 }
 
 std::map<std::string, std::string>  CgiHandler::get_environment() const {

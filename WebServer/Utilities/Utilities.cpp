@@ -7,6 +7,8 @@
 #include <fstream>
 #include <iostream>
 #include <exception>
+#include <unistd.h>
+#include <algorithm>
 
 namespace utility {
 	struct invalid_size: public std::exception {
@@ -97,12 +99,15 @@ namespace utility {
 	{
 		std::stringstream ss(header);
 		std::string line;
+		int info_found = 0;
 		while (getline(ss, line, ' '))
 		{
 			if (line.find(info) != std::string::npos){
-				break;
+				info_found = 1;
 			}
 		}
+		if (info_found == 0)
+			return ("");
 		line.erase(0, info.length());
 		return (line);
 	
@@ -138,19 +143,33 @@ namespace utility {
 			}
 			//get the filename and boundary
 			filename = getContentInfo(post_request->get_content_disposition(), "filename=");
-			boundary = "--" + getContentInfo(post_request->get_content_type(), "boundary=") + "--";
-
-			filename.erase(0, 1);
-			filename.erase(filename.size() - 1);
-			length = post_request->get_content_length() - boundary.size();
+			if (!filename.empty())//remove first and last quote
+			{
+				filename.erase(0,1);
+				for (int i = filename.size(); i > 0; i--)
+				{
+					if (filename[i] == '\"')
+					{
+						filename.erase(i, filename.size());
+						break;
+					}
+				}
+			} else {
+				return (422);
+			}
+			boundary = getContentInfo(post_request->get_content_type(), "boundary=");
+			if (!boundary.empty())
+			{
+				boundary = "--" + boundary + "--";
+				length = post_request->get_content_length() - boundary.size();
+			}
 		}
-		else {
-			filename = "unknown_file";
-			length = post_request->get_content_length();
-			advance(it, 4);
+		else {// means not enough info is given
+			return (422);
 		}
 		std::ofstream newfile(uri + filename, std::ios::out | std::ios::binary);
 		//write all bytes to file except final boundary
+
 		if (newfile.is_open()) {
 			while (i < length)
 			{
@@ -163,5 +182,29 @@ namespace utility {
 		}
 		else
 			return(500);
+	}
+
+	int delete_resource(std::string uri, Location location)
+	{
+		if (location.methods[2] != 1)
+			return (405);
+
+		std::string filepath = location.root + uri;
+
+		if (access(filepath.c_str(), F_OK) != 0)
+			return (404);//check if exists
+		if (access(filepath.c_str(), W_OK) != 0)
+			return (403);//check for write permissions
+
+		std::ofstream file(filepath);
+		if (file.is_open())
+			file.close();//check if file is not in use
+		else
+			return (409);//send 409 Conflict
+		
+		const int result = remove(filepath.c_str());// try to remove the resource
+		if (result != 0)
+			return (500);//internal server error
+		return(200);//complete!
 	}
 };

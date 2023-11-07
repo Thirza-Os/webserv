@@ -13,6 +13,8 @@ ResponseBuilder::ResponseBuilder(RequestParser &request, ServerConfig config): _
     this->_cgiPipeFd = 0; //default to 0 for not set
     this->_status_code = this->_request.get_status_code();
     this->_matched_location = match_location(this->_request.get_uri());
+	if (_request.find_header("Transfer-Encoding") == " chunked")
+		_request.unchunk_body();
 	build_response();
 }
 
@@ -138,9 +140,18 @@ void        ResponseBuilder::build_header(std::string uri) {
         case 405:
             ss << " Method Not Allowed\n";
             break;
+		case 409:
+			ss << " Conflict\n";
+			break;
+		case 411:
+			ss << " Length Required\n";
+			break;
         case 413:
             ss << " Payload Too Large\n";
             break;
+		case 422:
+			ss << " Unprocessable Entity\n";
+			break;
         case 500:
             ss << " Internal Server Error\n";
             break;
@@ -273,8 +284,10 @@ void	ResponseBuilder::build_response() {
             }
         }
         if (this->_status_code == 200) {
-            if (this->_request.get_content_length() > 0)
-                this->_status_code = utility::upload_file(&this->_request, uri, this->_config.get_maxsize());
+            if (!this->_request.find_header("Content-Length").empty())
+				this->_status_code = utility::upload_file(&this->_request, uri, this->_config.get_maxsize());
+			else 
+				this->_status_code = 411;
             if (this->_status_code == 201) {
                 build_header(uri);
                 this->_response = this->_header;
@@ -339,6 +352,13 @@ void	ResponseBuilder::build_response() {
             return;
         }
     }
+	else if (this->_request.get_method() == "DELETE")
+	{
+		this->_status_code = utility::delete_resource(uri, match_location(this->_request.get_uri()));
+		build_header(uri);
+		this->_response = this->_header;
+		return;
+	}
     else {
         this->_status_code = 501; //method not implemented
     }
@@ -348,6 +368,7 @@ void	ResponseBuilder::build_response() {
         uri = "error.html";
         htmlFile = open_error_page();
     }
+	
     if (!htmlFile.good()) {
         htmlFile.close();
         std::cout << "error page can't be opened for some reason" << std::endl;
@@ -355,6 +376,8 @@ void	ResponseBuilder::build_response() {
         this->_response = this->_header;
         return ;
     }
+	
+	//if (status code = 201) -> return successful upload?
     std::stringstream buffer;
     buffer << htmlFile.rdbuf();
 	htmlFile.close();

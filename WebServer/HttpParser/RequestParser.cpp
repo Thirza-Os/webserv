@@ -80,6 +80,7 @@ std::string RequestParser::get_content_type() const {
     }
 }
 
+
 size_t RequestParser::get_content_length() const {
     if (_headers.count("Content-Length") > 0) {
         return std::stoi(_headers.at("Content-Length"));
@@ -100,7 +101,7 @@ int RequestParser::get_status_code() const {
     return (this->_status_code);
 }
 
-std::string RequestParser::find_header(std::string key) {
+std::string RequestParser::find_header(std::string key) const{
     if (_headers.find(key) != _headers.end()) {
         return (_headers.at(key));
     } else {
@@ -199,6 +200,27 @@ bool    RequestParser::validate_content(std::string line){
     return(0);
 }
 
+void RequestParser::set_content_disposition(const char *request)
+{
+	std::string line;
+	std::istringstream raw_body(request);
+	while (std::getline(raw_body, line))
+	{
+		if (line.find("Content-Disposition:") != std::string::npos)
+		{
+			size_t colon_pos = line.find(':');
+
+			if (colon_pos != std::string::npos)
+			{
+				std::string header_name = line.substr(0, colon_pos);
+				std::string header_value = line.substr(colon_pos + 1);
+
+				this->_headers.insert(std::make_pair(header_name, header_value));
+			}
+		}
+	}
+}
+
 void RequestParser::fill_body(const char *_request, int bytesReceived)
 {
 
@@ -210,15 +232,59 @@ void RequestParser::fill_body(const char *_request, int bytesReceived)
 		this->_content_remaining += 4;//adding this up because the seperators are included in bytesreceived
 	}else
 		temp_body = _request;
+	
+	set_content_disposition(_request);
 
 	//copy amount of bytes read into the body
 	size_t length = bytesReceived;
 	for(size_t i = 0; i < length; i++)
+	{
 		_body.push_back(temp_body[i]);
-
+	}
 	this->_content_remaining -= bytesReceived;
 
 }
+
+void	RequestParser::unchunk_body()
+{
+	std::string 		result;
+	std::stringstream 	stream;
+	size_t 				total_size = 0;
+
+	for (size_t i = 4; i < this->_body.size(); i++)
+		stream << this->_body[i];
+	while (true)
+	{
+  		std::string chunkSizeLine;
+        std::getline(stream, chunkSizeLine); // Read the chunk size line
+        if (chunkSizeLine.empty()) {
+            break; // End of chunked data
+        }
+
+        // Parse the chunk size from the line
+        size_t chunkSize = std::stoul(chunkSizeLine, 0, 16);
+		total_size += chunkSize;
+        // Read the chunk data
+        std::vector<char> chunkData(chunkSize);
+        stream.read(&chunkData[0], chunkSize);
+
+        // Skip the CRLF after the chunk data
+        char crlf[2];
+        stream.read(crlf, 2);
+
+        // Append the chunk data to the result
+        result.append(chunkData.begin(), chunkData.end());
+    }
+	this->_body.clear();
+	this->_body.push_back('\r');
+	this->_body.push_back('\n');
+	this->_body.push_back('\r');
+	this->_body.push_back('\n');
+	for(size_t i = 0; i < total_size; i++)
+		this->_body.push_back(result[i]);
+
+}
+
 //TO DO: body parsen van deze functie los maken zodat hij multiparts ook via curl kan doen.
 void RequestParser::consume_request(){
 
@@ -230,6 +296,7 @@ void RequestParser::consume_request(){
     //size_t                      colon_pos;
 
     ParseState                  state = RequestLineParsing;
+
 
     if (raw_request.empty())
         parse_error("Bad Request", 400);

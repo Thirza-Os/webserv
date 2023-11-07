@@ -112,11 +112,12 @@ void ServerManager::start_listen()
                     }
                     else {
                         RequestParser request(buffer);
+						//idee : content remaining gelijk zetten aan de laatst gelezen chunk
                         request.fill_body(buffer, bytesReceived - request.get_header_length());
                         this->_requests.insert({it->fd, request});
                     }
                     // if all bytes are read, POLLOUT the socket
-                    if (this->_requests[it->fd].get_content_remaining() <= 0) {
+                    if (this->_requests[it->fd].get_content_remaining() <= 0) { //to do: checken voor chunked requests?
                         std::cout << "------ Received Request from client ------" << std::endl << std::endl;
                         it->events = POLLOUT;
                     }

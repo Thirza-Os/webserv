@@ -33,7 +33,7 @@ private:
     void        decode_uri();
     void        validate_header(std::string line);
     bool        validate_content(std::string line);
-
+	void 		set_content_disposition(const char *request);
     void        print_request() const;
 
 public:
@@ -43,7 +43,8 @@ public:
     ~RequestParser();
     RequestParser &operator=(const RequestParser &src);
 
-	void 		fill_body(const char* temp_body, int bytesReceived); 
+	void 		fill_body(const char* temp_body, int bytesReceived);
+	void		unchunk_body();
     bool        parsingCompleted() const;
 	std::string get_content_disposition() const;
     std::string get_method() const;
@@ -56,7 +57,7 @@ public:
 	int	        get_content_remaining() const;
     int         get_status_code() const;
 
-    std::string find_header(std::string key);
+    std::string find_header(std::string key) const;
 };
 
 enum ParseState {
