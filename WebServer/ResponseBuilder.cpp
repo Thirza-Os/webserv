@@ -347,18 +347,12 @@ void	ResponseBuilder::build_response() {
             }
         }
         if (this->_status_code == 200) {
-            //todo: handle delete
-            //build header, set header to response, etc
+            this->_status_code = utility::delete_resource(uri, match_location(this->_request.get_uri()));
+		    build_header(uri);
+		    this->_response = this->_header;
             return;
         }
     }
-	else if (this->_request.get_method() == "DELETE")
-	{
-		this->_status_code = utility::delete_resource(uri, match_location(this->_request.get_uri()));
-		build_header(uri);
-		this->_response = this->_header;
-		return;
-	}
     else {
         this->_status_code = 501; //method not implemented
     }
