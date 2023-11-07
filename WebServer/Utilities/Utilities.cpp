@@ -184,24 +184,21 @@ namespace utility {
 			return(500);
 	}
 
-	int delete_resource(std::string uri, Location location)
+	int delete_resource(std::string uri)
 	{
-		std::string filepath = location.root + uri;
 
-		std::cout << filepath << std::endl;
-
-		if (access(filepath.c_str(), F_OK) != 0)
+		if (access(uri.c_str(), F_OK) != 0)
 			return (404);//check if exists
-		if (access(filepath.c_str(), W_OK) != 0)
+		if (access(uri.c_str(), W_OK) != 0)
 			return (403);//check for write permissions
 
-		std::ofstream file(filepath);
+		std::ofstream file(uri);
 		if (file.is_open())
 			file.close();//check if file is not in use
 		else
 			return (409);//send 409 Conflict
 		
-		const int result = remove(filepath.c_str());// try to remove the resource
+		const int result = remove(uri.c_str());// try to remove the resource
 		if (result != 0)
 			return (500);//internal server error
 		return(200);//complete!
