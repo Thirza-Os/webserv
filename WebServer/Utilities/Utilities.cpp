@@ -186,10 +186,9 @@ namespace utility {
 
 	int delete_resource(std::string uri, Location location)
 	{
-		if (location.methods[2] != 1)
-			return (405);
-
 		std::string filepath = location.root + uri;
+
+		std::cout << filepath << std::endl;
 
 		if (access(filepath.c_str(), F_OK) != 0)
 			return (404);//check if exists
