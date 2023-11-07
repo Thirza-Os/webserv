@@ -347,7 +347,7 @@ void	ResponseBuilder::build_response() {
             }
         }
         if (this->_status_code == 200) {
-            this->_status_code = utility::delete_resource(uri, match_location(this->_request.get_uri()));
+            this->_status_code = utility::delete_resource(uri);
 		    build_header(uri);
 		    this->_response = this->_header;
             return;

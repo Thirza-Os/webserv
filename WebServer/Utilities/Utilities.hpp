@@ -12,7 +12,7 @@ namespace utility {
     long                    getCurrentTimeinSec(void);
     std::string             getMIMEType(std::string path);
 	int		                upload_file(RequestParser *post_request, std::string uri, unsigned long long maxSize);
-	int 					delete_resource(std::string uri, Location location);
+	int 					delete_resource(std::string uri);
     // Other utility functions if needed
 }
 
