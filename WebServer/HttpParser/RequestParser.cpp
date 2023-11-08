@@ -337,9 +337,15 @@ void RequestParser::consume_request(){
                 break;
          }
     }
-	this->_header_length = raw_request.find("\r\n\r\n");
-	this->_content_remaining = this->get_content_length();
-    this->_ParsingCompleted = true;
+	if (raw_request.find("\r\n\r\n") == std::string::npos) {
+		this->_header_length = raw_request.size();
+		this->_ParsingCompleted = false;
+	}
+	else{
+		this->_header_length = raw_request.find("\r\n\r\n");
+		this->_content_remaining = this->get_content_length();
+    	this->_ParsingCompleted = true;
+	}
 }
 
 void RequestParser::print_request() const {

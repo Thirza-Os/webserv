@@ -91,8 +91,10 @@ void ServerManager::start_listen()
                     break;
                 }
                 else {
-                    char buffer[BUFFER_SIZE] = {0};
-                    int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
+                    char buffer[BUFFER_SIZE + 1] = {0};
+					buffer[BUFFER_SIZE] = '\0';
+					int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
+					std::cout << bytesReceived << std::endl;
                     if (bytesReceived < 0)
                     {
                         std::cout << "Failed to read from client socket, connection closed" << std::endl;
@@ -106,7 +108,7 @@ void ServerManager::start_listen()
                         it = this->_pollfds.erase(it);
                         break;
                     }
-                    //if request doesn't yet exist, create it. If it does, add the remaining bytes from the socket to the request body
+                    //if request exists, add the remaining bytes from the socket to the request body create it. If it doesn't create it. 
                     if (this->_requests.find(it->fd) != this->_requests.end()){
                         this->_requests[it->fd].fill_body(buffer, bytesReceived);
                     }
