@@ -12,18 +12,21 @@
 
 // CHECK: Check if everything looks well with the whitespaces trim, or more chars have to be added.
 
-RequestParser::RequestParser(char * request): _request(request), _status_code(200), _ParsingCompleted(false) {
-    consume_request();
-    print_request();                // FOR TESTING
+RequestParser::RequestParser(char * request, int bytesReceived): _request(request), _request_length(bytesReceived), _status_code(200) {
+	this->_request = (char *)malloc(sizeof(char) * bytesReceived);
+	for(int i = 0; i < bytesReceived; i++)
+		this->_request[i] = request[i];
 }
 
-RequestParser::RequestParser(): _request(""), _status_code(200), _ParsingCompleted(false) {}
+
+RequestParser::RequestParser():  _status_code(200) {}
 
 RequestParser::RequestParser(const RequestParser &src) {
     *this = src;
 }
 
-RequestParser::~RequestParser() {}
+RequestParser::~RequestParser() {
+}
 
 void    RequestParser::add_header(std::string key, std::string value) {
     this->_headers[key] = value;
@@ -38,15 +41,11 @@ RequestParser &RequestParser::operator=(const RequestParser &src)
         this->_protocol = src._protocol;
         this->_headers = src._headers;
         this->_body = src._body;
-        this->_ParsingCompleted = src._ParsingCompleted;
         this->_status_code = src._status_code;
 		this->_content_remaining = src._content_remaining;
+		this->_request_length = src._request_length;
     }
     return *this;
-}
-
-bool    RequestParser::parsingCompleted() const {
-    return this->_ParsingCompleted;
 }
 
 std::string RequestParser::get_method() const {
@@ -79,7 +78,6 @@ std::string RequestParser::get_content_type() const {
         return "";
     }
 }
-
 
 size_t RequestParser::get_content_length() const {
     if (_headers.count("Content-Length") > 0) {
@@ -183,7 +181,7 @@ bool    RequestParser::validate_content(std::string line){
     	return(0);
 	}
 	
-	if (line.find("Content-Disposition:") != std::string::npos || line.find("Content-Type:") != std::string::npos)
+	if (line.find("Content-Type:") != std::string::npos)
 	{
 		size_t colon_pos = line.find(':');
 
@@ -208,41 +206,26 @@ void RequestParser::set_content_disposition(const char *request)
 	{
 		if (line.find("Content-Disposition:") != std::string::npos)
 		{
+			
 			size_t colon_pos = line.find(':');
 
 			if (colon_pos != std::string::npos)
 			{
 				std::string header_name = line.substr(0, colon_pos);
 				std::string header_value = line.substr(colon_pos + 1);
-
 				this->_headers.insert(std::make_pair(header_name, header_value));
 			}
 		}
 	}
 }
 
-void RequestParser::fill_body(const char *_request, int bytesReceived)
+void RequestParser::fill_body()
 {
+	const char * temp_body = strstr(this->_request, "\r\n\r\n");
+	set_content_disposition(temp_body);
 
-	const char * temp_body;
-	//if its the first read of the request, skip to the body part 
-	if (_body.size() == 0)
-	{
-		temp_body = strstr(_request, "\r\n\r\n");
-		this->_content_remaining += 4;//adding this up because the seperators are included in bytesreceived
-	}else
-		temp_body = _request;
-	
-	set_content_disposition(_request);
-
-	//copy amount of bytes read into the body
-	size_t length = bytesReceived;
-	for(size_t i = 0; i < length; i++)
-	{
+	for(size_t i = 0; i < get_content_length(); i++)
 		_body.push_back(temp_body[i]);
-	}
-	this->_content_remaining -= bytesReceived;
-
 }
 
 void	RequestParser::unchunk_body()
@@ -285,7 +268,33 @@ void	RequestParser::unchunk_body()
 
 }
 
-//TO DO: body parsen van deze functie los maken zodat hij multiparts ook via curl kan doen.
+void RequestParser::append_request(const char *buffer, int bytesReceived)
+{
+	int i = 0;
+
+	char *new_request = (char *)malloc(sizeof(char) * this->_request_length + bytesReceived);
+	for (; i < this->_request_length; i++)
+		new_request[i] = this->_request[i];
+
+	for(int j = 0; j < bytesReceived; j++){
+		new_request[i] = buffer[j];
+		i++;
+	}
+	this->_request_length += bytesReceived;
+	free(this->_request);
+	this->_request = new_request;
+
+	//check if all the headers are in the raw request
+	std::string check_if_end_of_headers(this->_request);
+	if (check_if_end_of_headers.find("\r\n\r\n") != std::string::npos)
+	{
+		consume_request();
+		// if its a post request it means there could still be more bytes coming, else content remaining is 0 at this point
+		if (this->_method == "POST")
+			this->_content_remaining = this->get_content_length() - (this->_request_length - check_if_end_of_headers.find("\r\n\r\n") - 4);
+	}
+}
+
 void RequestParser::consume_request(){
 
     std::string                 raw_request = this->_request;
@@ -337,15 +346,7 @@ void RequestParser::consume_request(){
                 break;
          }
     }
-	if (raw_request.find("\r\n\r\n") == std::string::npos) {
-		this->_header_length = raw_request.size();
-		this->_ParsingCompleted = false;
-	}
-	else{
-		this->_header_length = raw_request.find("\r\n\r\n");
-		this->_content_remaining = this->get_content_length();
-    	this->_ParsingCompleted = true;
-	}
+	this->_content_remaining = this->get_content_length();
 }
 
 void RequestParser::print_request() const {

@@ -8,7 +8,9 @@
 class RequestParser
 {
 private:
-    const char*                         _request;
+    char*                        		 _request;
+
+	int									_request_length;
 
     std::string                         _method;
     std::string                         _uri;
@@ -23,10 +25,7 @@ private:
 	int									_content_remaining;
 	size_t								_header_length;
 
-    bool                                _ParsingCompleted;
-
     void        add_header(std::string key, std::string value);
-    void        consume_request();
     void        parse_error(const std::string &str, int code);
     void        tokenize(const std::string& str, std::vector<std::string>& tokens, char delimiter);
     void        validate_request_line();
@@ -34,18 +33,21 @@ private:
     void        validate_header(std::string line);
     bool        validate_content(std::string line);
 	void 		set_content_disposition(const char *request);
-    void        print_request() const;
+
 
 public:
-    RequestParser(char * request);
+    RequestParser(char * request, int bytesReceived);
     RequestParser();
     RequestParser(const RequestParser &src);
     ~RequestParser();
     RequestParser &operator=(const RequestParser &src);
 
-	void 		fill_body(const char* temp_body, int bytesReceived);
+	void		append_request(const char *buffer, int bytesReceived);
+	void        consume_request();
+	void        print_request() const;
+
+	void 		fill_body();
 	void		unchunk_body();
-    bool        parsingCompleted() const;
 	std::string get_content_disposition() const;
     std::string get_method() const;
     std::string get_uri() const;
@@ -54,6 +56,7 @@ public:
     std::string get_content_type() const;
     size_t      get_content_length() const;
 	int 		get_header_length() const;
+	bool		get_parsing_completed() const;
 	int	        get_content_remaining() const;
     int         get_status_code() const;
 
