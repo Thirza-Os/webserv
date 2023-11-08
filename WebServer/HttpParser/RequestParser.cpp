@@ -12,10 +12,9 @@
 
 // CHECK: Check if everything looks well with the whitespaces trim, or more chars have to be added.
 
-RequestParser::RequestParser(char * request, int bytesReceived): _request(request), _request_length(bytesReceived), _status_code(200) {
-	this->_request = (char *)malloc(sizeof(char) * bytesReceived);
-	for(int i = 0; i < bytesReceived; i++)
-		this->_request[i] = request[i];
+RequestParser::RequestParser(char * request, int bytesReceived): _request_length(0), _status_code(200) {
+	this->_request = (char*)malloc(sizeof(char));
+	append_request(request, bytesReceived);
 }
 
 
@@ -221,6 +220,8 @@ void RequestParser::set_content_disposition(const char *request)
 
 void RequestParser::fill_body()
 {
+	if (this->_method != "POST")
+		return;
 	const char * temp_body = strstr(this->_request, "\r\n\r\n");
 	set_content_disposition(temp_body);
 
@@ -281,7 +282,9 @@ void RequestParser::append_request(const char *buffer, int bytesReceived)
 		i++;
 	}
 	this->_request_length += bytesReceived;
+
 	free(this->_request);
+
 	this->_request = new_request;
 
 	//check if all the headers are in the raw request
@@ -290,9 +293,10 @@ void RequestParser::append_request(const char *buffer, int bytesReceived)
 	{
 		consume_request();
 		// if its a post request it means there could still be more bytes coming, else content remaining is 0 at this point
-		if (this->_method == "POST")
-			this->_content_remaining = this->get_content_length() - (this->_request_length - check_if_end_of_headers.find("\r\n\r\n") - 4);
+		this->_content_remaining = this->get_content_length() - (this->_request_length - check_if_end_of_headers.find("\r\n\r\n") - 4);
 	}
+	else
+		this->_content_remaining = 1;
 }
 
 void RequestParser::consume_request(){

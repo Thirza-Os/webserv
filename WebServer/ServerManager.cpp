@@ -118,8 +118,9 @@ void ServerManager::start_listen()
                     }
                     // if entire request is read, set socket to pollout
                     if (this->_requests[it->fd].get_content_remaining() == 0) { //to do: checken voor chunked requests?
-						this->_requests[it->fd].fill_body();//if its a post request, fill body vector
-						//this->_requests[it->fd].print_request();  //FOR TESTING
+
+						this->_requests[it->fd].fill_body();//if its a post request, fill body
+						this->_requests[it->fd].print_request();  //FOR TESTING
 						std::cout << "------ Received Request from client ------" << std::endl << std::endl;
                         it->events = POLLOUT;
                     }
