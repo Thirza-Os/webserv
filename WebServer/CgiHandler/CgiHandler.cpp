@@ -60,7 +60,6 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
 
     this->_environment["CONTENT_TYPE"] = httprequest.get_content_type();
 
-
     std::cout << "Tis type" << httprequest.get_content_type() << std::endl << std::endl;
 }
 
@@ -75,16 +74,19 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
             nullptr
         };
 
-
         // for post requests: set buffer
-        std::vector<char> bodyVector = httprequest.get_body();
-        bodyVector.push_back('\0');
-        if (!bodyVector.empty()){
-            postBuffer = new char[bodyVector.size() + 1];
-            std::copy(bodyVector.begin() + 4, bodyVector.end(), postBuffer);
-            postBuffer[bodyVector.size()] = '\0';
-            this->_environment["CONTENT_LENGTH"] = std::to_string(bodyVector.size() - 4);
-        }
+		if (httprequest.get_method() == "POST")
+		{
+			std::vector<char> bodyVector = httprequest.get_body();
+			bodyVector.push_back('\0');
+			if (!bodyVector.empty()){
+				postBuffer = new char[bodyVector.size() + 1];
+				std::copy(bodyVector.begin() + 4, bodyVector.end(), postBuffer);
+				postBuffer[bodyVector.size()] = '\0';
+				this->_environment["CONTENT_LENGTH"] = std::to_string(bodyVector.size() - 4);
+			}
+		}
+
         // build pipes
         if (pipe2(pipe_in, O_NONBLOCK) < 0)
             perror("pipe in failed");
@@ -106,17 +108,18 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
             }
             this->_childEnvp.push_back(nullptr);
 
-
-                close(pipe_in[1]);
+				close(pipe_in[1]);
                 close(pipe_out[0]);
 
             	dup2(pipe_in[0], STDIN_FILENO);
                 dup2(pipe_out[1], STDOUT_FILENO);
 
+
                 close(pipe_in[0]);
-                close(pipe_out[1]);
+				close(pipe_out[1]);
 
                 // execve to execute the cgi program
+
                 if (execve(this->_runLoc, argv,
                     &this->_childEnvp[0]) == -1){
                         perror("execve failed");
@@ -124,23 +127,28 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
                 }
                 for (size_t i = 0; i < this->_childEnvp.size(); ++i)
                     delete[] this->_childEnvp[i];
+
         } else {
             std::cout << "\"" << postBuffer << "\"" << std::endl;
             if (postBuffer != nullptr) {
                 write(pipe_in[1], postBuffer, strlen(postBuffer));
                 close(pipe_in[1]);
             }
+			close(pipe_in[1]);
 
-            int status;
+           	int status;
             // for POST requests: should probably close this again, since this is the parent
-            close(pipe_in[0]);
-            close(pipe_out[1]);
-            waitpid(childPid, &status, 0);
+            // close(pipe_in[0]);
+            // close(pipe_out[1]);
+			close(pipe_in[0]);
+			close(pipe_out[1]);
+
+			waitpid(childPid, &status, 0);
 
         if (postBuffer != nullptr)
             delete[] postBuffer;
         }
-    
+
     }   catch (const CgiException& e) {
             // HANDLE EXCEPTION: LOGGING?
             if (postBuffer != nullptr) 
@@ -150,6 +158,7 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
             std::cerr << "Error: " << e.what() << std::endl;
             exit(1);
     }
+
 
 }
 

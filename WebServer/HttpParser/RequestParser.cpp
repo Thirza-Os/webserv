@@ -374,6 +374,7 @@ void RequestParser::print_request() const {
 	// }
 	//std::cout << std::endl;
 	
+
 	std::cout << "Header length: " << _header_length << std::endl;
     std::cout << "Content length: " << this->get_content_length() << std::endl;
     std::cout << "Content type: " << this->get_content_type() << std::endl;
