@@ -52,11 +52,11 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
     this->_environment["SCRIPT_FILENAME"] = loc.root + loc.path + "/" + firstValue + firstKey;
     this->_environment["REQUEST_METHOD"] = httprequest.get_method();
     this->_environment["REQUEST_URI"] = httprequest.get_uri();
-    this->_environment["PATH"] = loc.root + loc.path + "/" + firstValue; // Replace with the actual path
+    this->_environment["PATH"] = loc.root + loc.path + "/" + firstValue;
 
     // for post requests
 
-//    this->_environment["CONTENT_LENGTH"] = std::to_string(contentLength);
+    // this->_environment["CONTENT_LENGTH"] = std::to_string(contentLength);
 
     this->_environment["CONTENT_TYPE"] = httprequest.get_content_type();
 
