@@ -276,7 +276,7 @@ void	ResponseBuilder::build_response() {
     }
     if (this->_request.get_method() == "POST"){
         if (location_matched) {
-            if (!this->_matched_location.methods[1]) {
+            if (!this->_matched_location.methods[POST_METHOD]) {
                 this->_status_code = 405;
             }
         }
@@ -294,7 +294,7 @@ void	ResponseBuilder::build_response() {
     }
     else if (this->_request.get_method() == "GET") {
         if (location_matched) {
-            if (!this->_matched_location.methods[0]) {
+            if (!this->_matched_location.methods[GET_METHOD]) {
                 this->_status_code = 405;
             }
         }
@@ -339,7 +339,7 @@ void	ResponseBuilder::build_response() {
     }
     else if (this->_request.get_method() == "DELETE") {
         if (location_matched) {
-            if (!this->_matched_location.methods[2]) {
+            if (!this->_matched_location.methods[DELETE_METHOD]) {
                 this->_status_code = 405;
             }
         }
@@ -353,7 +353,6 @@ void	ResponseBuilder::build_response() {
     else {
         this->_status_code = 501; //method not implemented
     }
-    //might need some changing, if POST and DELETE responses should be more than just a header?
     if (this->_status_code != 200) {
         htmlFile.close();
         uri = "error.html";
@@ -367,8 +366,6 @@ void	ResponseBuilder::build_response() {
         this->_response = this->_header;
         return ;
     }
-	
-	//if (status code = 201) -> return successful upload?
     std::stringstream buffer;
     buffer << htmlFile.rdbuf();
 	htmlFile.close();

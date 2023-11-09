@@ -7,13 +7,20 @@
 #include <csignal>
 
 int main(int argc, char **argv){
-    if (argc != 2) {
-        std::cout << "Please provide a config file" << std::endl;
+    if (argc > 2) {
+        std::cout << "Provide one config file or none for the default configuration" << std::endl;
         return (0);
+    }
+    std::string configPath;
+    if (argc == 2) {
+        configPath = argv[1];
+    }
+    if (configPath.empty()) {
+        configPath = "WebServer/ConfigParser/DefaultConfig/default.conf";
     }
     signal(SIGPIPE, SIG_IGN);
     try{
-        ConfigParser parsed(argv[1]);
+        ConfigParser parsed(configPath);
         parsed.read_and_parse_config();
         std::vector<ServerConfig> servers = parsed.get_serverconfig();
         ServerManager manager(servers);

@@ -46,7 +46,6 @@ public:
     void                                process_index(std::string &line, ServerConfig &server);
     void                                process_location(std::string line, std::stringstream& sb, ServerConfig &server);
     void                                process_cgi(std::string &line, Location &loc);
-
     void                                process_line(std::string &line, ServerConfig &server);
 };
 

@@ -52,7 +52,7 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
     this->_environment["SCRIPT_FILENAME"] = loc.root + loc.path + "/" + firstValue + firstKey;
     this->_environment["REQUEST_METHOD"] = httprequest.get_method();
     this->_environment["REQUEST_URI"] = httprequest.get_uri();
-    this->_environment["PATH"] = loc.root + loc.path + "/" + firstValue; // Replace with the actual path
+    this->_environment["PATH"] = loc.root + loc.path + "/" + firstValue;
 
     if (httprequest.get_method() == "POST") {
         this->_environment["CONTENT_TYPE"] = httprequest.get_content_type();
@@ -150,7 +150,7 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
 
     }   catch (const CgiException& e) {
             // HANDLE EXCEPTION: LOGGING?
-            if (postBuffer != nullptr) 
+            if (postBuffer != nullptr)
                 delete[] postBuffer;
             for (size_t i = 0; i < this->_childEnvp.size(); ++i)
                 delete[] this->_childEnvp[i];

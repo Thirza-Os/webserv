@@ -67,10 +67,6 @@ void ServerConfig::set_cgiExtensions(const std::string ext, const std::string pr
     _cgiExtensions[ext] = program;
 }
 
-// void ServerConfig::setSocketAddr(const struct sockaddr_in& socketAddr) {
-//     _socketAddr = socketAddr;
-// }
-
 int ServerConfig::get_port() const {
     return (this->_port);
 }
@@ -102,7 +98,3 @@ std::vector<std::string>    ServerConfig::get_index() const {
 std::vector<Location>   ServerConfig::get_locations() const {
     return (this->_locations);
 }
-
-// std::map<std::string, std::string>   ServerConfig::get_cgiExtensions() const {
-//     return (this->_cgiExtensions);
-// }

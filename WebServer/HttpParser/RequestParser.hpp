@@ -9,7 +9,6 @@ class RequestParser
 {
 private:
     char*                        		 _request;
-
 	int									_request_length;
 
     std::string                         _method;
@@ -17,11 +16,9 @@ private:
     std::string                         _protocol;
 
     std::map<std::string, std::string>  _headers;
-
     std::vector<char>                   _body;
 
     int                                 _status_code;
-
 	int									_content_remaining;
 	size_t								_header_length;
 
@@ -68,12 +65,5 @@ enum ParseState {
     HeadersParsing,
     BodyParsing
 };
-
-// enum httpMethod
-// {
-//     GET,            // Read only: The HTTP GET request method is used to request a resource from the server. 
-//     POST,           // Send data to server, create new resource: create new data entry
-//     DELETE
-// };
 
 #endif
