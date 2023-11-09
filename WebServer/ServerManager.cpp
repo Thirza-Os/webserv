@@ -151,7 +151,6 @@ void ServerManager::start_listen()
         }
         check_timeout();
     }
-
 }
 
 void ServerManager::accept_connection(int incoming)

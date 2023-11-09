@@ -8,14 +8,6 @@
 #include <fstream>
 #include <sstream>
 
-// TODO : handle missing {}
-// MAYBE TODO: split lines on ; ??
-// CHECK when to throw an exception and when to log?
-// perhaps add multiple error_page in one line?
-// Add regular expressions for location blocks?? ~ ^/images/ 
-// Problem if location is in the name of the url?
-
-
 ConfigParser::ConfigParser(std::string path) {
 
     const char* charPath = path.c_str();

@@ -356,7 +356,6 @@ void	ResponseBuilder::build_response() {
     else {
         this->_status_code = 501; //method not implemented
     }
-    //might need some changing, if POST and DELETE responses should be more than just a header?
     if (this->_status_code != 200) {
         htmlFile.close();
         uri = "error.html";
@@ -370,8 +369,6 @@ void	ResponseBuilder::build_response() {
         this->_response = this->_header;
         return ;
     }
-	
-	//if (status code = 201) -> return successful upload?
     std::stringstream buffer;
     buffer << htmlFile.rdbuf();
 	htmlFile.close();

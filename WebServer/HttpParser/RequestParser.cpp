@@ -10,13 +10,10 @@
 #include <cstdio>
 #include <string.h>
 
-// CHECK: Check if everything looks well with the whitespaces trim, or more chars have to be added.
-
 RequestParser::RequestParser(char * request, int bytesReceived): _request_length(0), _status_code(200) {
 	this->_request = (char*)malloc(sizeof(char));
 	append_request(request, bytesReceived);
 }
-
 
 RequestParser::RequestParser():  _status_code(200) {}
 
@@ -122,9 +119,6 @@ void    RequestParser::tokenize(const std::string& str, std::vector<std::string>
 void    RequestParser::validate_request_line(){
     if (this->_method != "GET" && this->_method != "POST" && this->_method != "DELETE")
         parse_error("Method Not Allowed", 405);
-    // not sure what to check here
-    // else if ()
-    //         parse_error("Bad Request", 400);
     else if (this->_protocol != "HTTP/1.1")
             parse_error("HTTP Version Not Supported", 505);
 
@@ -306,14 +300,12 @@ void RequestParser::consume_request(){
     std::istringstream          iss(raw_request);
     std::string                 line;
     std::vector<std::string>    words;
-    //size_t                      colon_pos;
 
     ParseState                  state = RequestLineParsing;
 
 
     if (raw_request.empty())
         parse_error("Bad Request", 400);
-    //char first_char = line[0];
 
     while (std::getline(iss, line)) {
         parsed_request.push_back(line);
@@ -363,16 +355,6 @@ void RequestParser::print_request() const {
     for (const auto& header : _headers) {
         std::cout << "  " << header.first << ": " << header.second << std::endl;
     }
-	// std::cout << "Body: " << std::endl;
-	// std::vector<char> body = get_body();
-	// std::vector<char>::iterator it = body.begin();
-
-	// for (size_t i = 0; i < this->get_content_length(); i++)
-	// {
-    // 	std::cout << *it;
-	// 	it++;
-	// }
-	//std::cout << std::endl;
 	
 	std::cout << "Header length: " << _header_length << std::endl;
     std::cout << "Content length: " << this->get_content_length() << std::endl;
