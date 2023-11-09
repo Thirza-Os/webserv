@@ -85,11 +85,11 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
 				postBuffer[bodyVector.size()] = '\0';
 				this->_environment["CONTENT_LENGTH"] = std::to_string(bodyVector.size() - 4);
 			}
+            if (pipe2(pipe_in, O_NONBLOCK) < 0)
+                perror("pipe in failed");
 		}
 
         // build pipes
-        if (pipe2(pipe_in, O_NONBLOCK) < 0)
-            perror("pipe in failed");
         if (pipe2(pipe_out, O_NONBLOCK) < 0)
             perror("pipe out failed");
         // start fork to process in a child
@@ -108,14 +108,16 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
             }
             this->_childEnvp.push_back(nullptr);
 
-				close(pipe_in[1]);
+                if (httprequest.get_method() == "POST")
+				    close(pipe_in[1]);
                 close(pipe_out[0]);
 
-            	dup2(pipe_in[0], STDIN_FILENO);
+                if (httprequest.get_method() == "POST")
+            	    dup2(pipe_in[0], STDIN_FILENO);
                 dup2(pipe_out[1], STDOUT_FILENO);
 
-
-                close(pipe_in[0]);
+                if (httprequest.get_method() == "POST")
+                    close(pipe_in[0]);
 				close(pipe_out[1]);
 
                 // execve to execute the cgi program
@@ -129,18 +131,17 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
                     delete[] this->_childEnvp[i];
 
         } else {
-            std::cout << "\"" << postBuffer << "\"" << std::endl;
-            if (postBuffer != nullptr) {
-                write(pipe_in[1], postBuffer, strlen(postBuffer));
+            if (httprequest.get_method() == "POST") {
+                std::cout << "\"" << postBuffer << "\"" << std::endl;
+                close(pipe_in[0]);
+                if (postBuffer != nullptr) {
+                    write(pipe_in[1], postBuffer, strlen(postBuffer));
+                    close(pipe_in[1]);
+                }
                 close(pipe_in[1]);
             }
-			close(pipe_in[1]);
 
            	int status;
-            // for POST requests: should probably close this again, since this is the parent
-            // close(pipe_in[0]);
-            // close(pipe_out[1]);
-			close(pipe_in[0]);
 			close(pipe_out[1]);
 
 			waitpid(childPid, &status, 0);

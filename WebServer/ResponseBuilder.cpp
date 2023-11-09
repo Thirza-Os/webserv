@@ -204,9 +204,6 @@ std::string ResponseBuilder::process_uri() {
             CgiHandler cgi(this->_matched_location, this->_request);
             //the output of the cgi script can be read from pipe_out[0]
             this->_cgiPipeFd = cgi.pipe_out[0];
-            close(cgi.pipe_out[1]);
-            close(cgi.pipe_in[1]);
-            close(cgi.pipe_in[0]);
             return ("CGI_MATCHED");
         }
     }
