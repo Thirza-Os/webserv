@@ -7,14 +7,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <cstring>
+#include <unistd.h>
 #include "../Utilities/Utilities.hpp"
 
 CgiHandler::CgiHandler(Location const &loc, RequestParser const &httprequest) {
-    std::cout << "constructor started for CGI handler " << std::endl;
     this->_runLoc = "/usr/bin/php";                                       // Set this to correct location of your php runner
     initialize_environment(loc, httprequest);
-    execute_script(httprequest);
     print_env();
+    execute_script(httprequest);
 }
 
 CgiHandler::~CgiHandler() {
@@ -54,13 +54,9 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
     this->_environment["REQUEST_URI"] = httprequest.get_uri();
     this->_environment["PATH"] = loc.root + loc.path + "/" + firstValue; // Replace with the actual path
 
-    // for post requests
-
-//    this->_environment["CONTENT_LENGTH"] = std::to_string(contentLength);
-
-    this->_environment["CONTENT_TYPE"] = httprequest.get_content_type();
-
-    std::cout << "Tis type" << httprequest.get_content_type() << std::endl << std::endl;
+    if (httprequest.get_method() == "POST") {
+        this->_environment["CONTENT_TYPE"] = httprequest.get_content_type();
+    }
 }
 
 void    CgiHandler::execute_script(RequestParser const &httprequest) {
@@ -85,13 +81,12 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
 				postBuffer[bodyVector.size()] = '\0';
 				this->_environment["CONTENT_LENGTH"] = std::to_string(bodyVector.size() - 4);
 			}
-            if (pipe2(pipe_in, O_NONBLOCK) < 0)
-                perror("pipe in failed");
 		}
-
         // build pipes
         if (pipe2(pipe_out, O_NONBLOCK) < 0)
             perror("pipe out failed");
+        if (pipe2(pipe_in, O_NONBLOCK) < 0)
+            perror("pipe in failed");
         // start fork to process in a child
         pid_t childPid = fork();
         if (childPid == -1)
@@ -108,16 +103,13 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
             }
             this->_childEnvp.push_back(nullptr);
 
-                if (httprequest.get_method() == "POST")
-				    close(pipe_in[1]);
+				close(pipe_in[1]);
                 close(pipe_out[0]);
 
-                if (httprequest.get_method() == "POST")
-            	    dup2(pipe_in[0], STDIN_FILENO);
+            	dup2(pipe_in[0], STDIN_FILENO);
                 dup2(pipe_out[1], STDOUT_FILENO);
 
-                if (httprequest.get_method() == "POST")
-                    close(pipe_in[0]);
+                close(pipe_in[0]);
 				close(pipe_out[1]);
 
                 // execve to execute the cgi program
@@ -129,8 +121,10 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
                 }
                 for (size_t i = 0; i < this->_childEnvp.size(); ++i)
                     delete[] this->_childEnvp[i];
+                exit(1);
 
         } else {
+            //parent
             if (httprequest.get_method() == "POST") {
                 std::cout << "\"" << postBuffer << "\"" << std::endl;
                 close(pipe_in[0]);
@@ -140,14 +134,18 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
                 }
                 close(pipe_in[1]);
             }
+            else {
+                close(pipe_in[1]);
+                close(pipe_in[0]);
+            }
 
            	int status;
 			close(pipe_out[1]);
-
 			waitpid(childPid, &status, 0);
 
-        if (postBuffer != nullptr)
-            delete[] postBuffer;
+            if (postBuffer != nullptr) {
+                delete[] postBuffer;
+            }
         }
 
     }   catch (const CgiException& e) {
@@ -159,7 +157,6 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
             std::cerr << "Error: " << e.what() << std::endl;
             exit(1);
     }
-
 
 }
 
