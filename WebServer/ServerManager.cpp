@@ -91,9 +91,8 @@ void ServerManager::start_listen()
                     break;
                 }
                 else {
-                    char buffer[BUFFER_SIZE + 1] = {0};
-					buffer[BUFFER_SIZE] = '\0';
-					int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
+                    char buffer[BUFFER_SIZE] = {0};
+                    int bytesReceived = read(it->fd, buffer, BUFFER_SIZE);
                     if (bytesReceived < 0)
                     {
                         std::cout << "Failed to read from client socket, connection closed" << std::endl;
@@ -107,21 +106,19 @@ void ServerManager::start_listen()
                         it = this->_pollfds.erase(it);
                         break;
                     }
-                    //if a request is already made for this socket but not yet finished receiving, 
-					//append the the bytes that just came in onto the request
+                    //if request doesn't yet exist, create it. If it does, add the remaining bytes from the socket to the request body
                     if (this->_requests.find(it->fd) != this->_requests.end()){
-						this->_requests[it->fd].append_request(buffer, bytesReceived);
+                        this->_requests[it->fd].fill_body(buffer, bytesReceived);
                     }
                     else {
-                        RequestParser request(buffer, bytesReceived);
+                        RequestParser request(buffer);
+						//idee : content remaining gelijk zetten aan de laatst gelezen chunk
+                        request.fill_body(buffer, bytesReceived - request.get_header_length());
                         this->_requests.insert({it->fd, request});
                     }
-                    // if entire request is read, set socket to pollout
-                    if (this->_requests[it->fd].get_content_remaining() == 0) { //to do: checken voor chunked requests?
-
-						this->_requests[it->fd].fill_body();//if its a post request, fill body
-						this->_requests[it->fd].print_request();  //FOR TESTING
-						std::cout << "------ Received Request from client ------" << std::endl << std::endl;
+                    // if all bytes are read, POLLOUT the socket
+                    if (this->_requests[it->fd].get_content_remaining() <= 0) { //to do: checken voor chunked requests?
+                        std::cout << "------ Received Request from client ------" << std::endl << std::endl;
                         it->events = POLLOUT;
                     }
                     if (this->_timeOutIndex.count(it->fd)) {
@@ -151,6 +148,7 @@ void ServerManager::start_listen()
         }
         check_timeout();
     }
+
 }
 
 void ServerManager::accept_connection(int incoming)
