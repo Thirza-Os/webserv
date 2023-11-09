@@ -279,7 +279,7 @@ void	ResponseBuilder::build_response() {
     }
     if (this->_request.get_method() == "POST"){
         if (location_matched) {
-            if (!this->_matched_location.methods[1]) {
+            if (!this->_matched_location.methods[POST_METHOD]) {
                 this->_status_code = 405;
             }
         }
@@ -297,7 +297,7 @@ void	ResponseBuilder::build_response() {
     }
     else if (this->_request.get_method() == "GET") {
         if (location_matched) {
-            if (!this->_matched_location.methods[0]) {
+            if (!this->_matched_location.methods[GET_METHOD]) {
                 this->_status_code = 405;
             }
         }
@@ -342,7 +342,7 @@ void	ResponseBuilder::build_response() {
     }
     else if (this->_request.get_method() == "DELETE") {
         if (location_matched) {
-            if (!this->_matched_location.methods[2]) {
+            if (!this->_matched_location.methods[DELETE_METHOD]) {
                 this->_status_code = 405;
             }
         }

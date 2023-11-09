@@ -11,7 +11,10 @@ int main(int argc, char **argv){
         std::cout << "Provide one config file or none for the default configuration" << std::endl;
         return (0);
     }
-    std::string configPath = argv[1];
+    std::string configPath;
+    if (argc == 2) {
+        configPath = argv[1];
+    }
     if (configPath.empty()) {
         configPath = "WebServer/ConfigParser/DefaultConfig/default.conf";
     }

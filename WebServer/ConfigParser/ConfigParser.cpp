@@ -105,13 +105,13 @@ std::bitset<3>  ConfigParser::process_methods(std::string &line)
     std::bitset<3> methods;
 
     if (line.find("GET") != std::string::npos) {
-    methods.set(0, true); // Set the first bit for GET
+    methods.set(GET_METHOD, true); // Set the first bit for GET
     }
     if (line.find("POST") != std::string::npos) {
-       methods.set(1, true); // Set the second bit for POST
+       methods.set(POST_METHOD, true); // Set the second bit for POST
     }
     if (line.find("DELETE") != std::string::npos) {
-        methods.set(2, true); // Set the third bit for DELETE
+        methods.set(DELETE_METHOD, true); // Set the third bit for DELETE
     }
     return (methods);
 }

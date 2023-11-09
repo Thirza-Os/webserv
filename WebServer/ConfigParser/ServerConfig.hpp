@@ -9,6 +9,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#define GET_METHOD 0
+#define POST_METHOD 1
+#define DELETE_METHOD 2
+
 struct Location {
     std::string                         path;
     std::string                         root;
@@ -33,8 +37,6 @@ private:
     std::vector<std::string>            _index;
     std::map<std::string, std::string>  _cgiExtensions;
 
-    //struct          sockaddr_in  _socketAddr;
-
 public:
     ServerConfig();
     ~ServerConfig();
@@ -52,7 +54,6 @@ public:
     void set_index(std::vector<std::string> &index);
     void set_location(const Location& location);
     void set_cgiExtensions(const std::string ext, const std::string program);
-    //void setSocketAddress(const struct sockaddr_in& socketAddr);
 
     int                                     get_port() const;
     in_addr_t                               get_host() const;
@@ -65,13 +66,3 @@ public:
 };
 
 #endif
-
-// if (_methods[0]) {
-//     // GET method is supported
-// }
-// if (_methods[1]) {
-//     // POST method is supported
-// }
-// if (_methods[2]) {
-//     // DELETE method is supported
-// }

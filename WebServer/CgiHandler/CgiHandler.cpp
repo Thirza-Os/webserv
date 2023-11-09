@@ -143,7 +143,7 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
     
     }   catch (const CgiException& e) {
             // HANDLE EXCEPTION: LOGGING?
-            if (postBuffer != nullptr) 
+            if (postBuffer != nullptr)
                 delete[] postBuffer;
             for (size_t i = 0; i < this->_childEnvp.size(); ++i)
                 delete[] this->_childEnvp[i];
