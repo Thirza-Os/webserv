@@ -229,6 +229,8 @@ void RequestParser::fill_body(const char *_request, int bytesReceived)
 	if (_body.size() == 0)
 	{
 		temp_body = strstr(_request, "\r\n\r\n");
+		if (temp_body == NULL)
+			return;
 		this->_content_remaining += 4;//adding this up because the seperators are included in bytesreceived
 	}else
 		temp_body = _request;
