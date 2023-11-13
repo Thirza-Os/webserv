@@ -139,9 +139,9 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
                 close(pipe_in[0]);
             }
 
-           	int status;
+           	// int status;
 			close(pipe_out[1]);
-			waitpid(childPid, &status, 0);
+			// waitpid(childPid, &status, 0);
 
             if (postBuffer != nullptr) {
                 delete[] postBuffer;
