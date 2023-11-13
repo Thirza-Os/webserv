@@ -1,0 +1,27 @@
+CONTENT_TYPE=
+GATEWAY_INTERFACE=CGI/1.1
+PATH=WebServer/www/penguinserv/cgiRoute/coolCgi
+PATH_INFO=WebServer/www/penguinserv/cgiRoute/coolCgi
+REDIRECT_STATUS=200
+REQUEST_METHOD=GET
+REQUEST_URI=/cgiRoute
+SCRIPT_FILENAME=WebServer/www/penguinserv/cgiRoute/coolCgi.php
+SCRIPT_NAME=coolCgi.php
+SERVER_PORT=8081
+SERVER_PROTOCOL=HTTP/1.1
+SERVER_SOFTWARE=cool_server1.0
+
+
+CONTENT_LENGTH=7
+CONTENT_TYPE= application/x-www-form-urlencoded
+GATEWAY_INTERFACE=CGI/1.1
+PATH=WebServer/www/penguinserv/cgiRoute/coolCgi
+PATH_INFO=WebServer/www/penguinserv/cgiRoute/coolCgi
+REDIRECT_STATUS=200
+REQUEST_METHOD=POST
+REQUEST_URI=/cgiRoute/postCgi.php
+SCRIPT_FILENAME=WebServer/www/penguinserv/cgiRoute/coolCgi.php
+SCRIPT_NAME=coolCgi.php
+SERVER_PORT=8081
+SERVER_PROTOCOL=HTTP/1.1
+SERVER_SOFTWARE=cool_server1.0

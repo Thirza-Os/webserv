@@ -149,8 +149,8 @@ void        ResponseBuilder::build_header(std::string uri) {
         case 413:
             ss << " Payload Too Large\n";
             break;
-		case 422:
-			ss << " Unprocessable Entity\n";
+		case 415:
+			ss << " Unsupported Media Type\n";
 			break;
         case 500:
             ss << " Internal Server Error\n";
