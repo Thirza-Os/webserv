@@ -38,6 +38,7 @@ private:
 
     void            start_listen();
     void            accept_connection(int incoming);
+    void            close_connection(int client_socket);
 
     int             send_response(int socket_fd);
     void            check_timeout(void);

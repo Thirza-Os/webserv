@@ -346,7 +346,8 @@ void RequestParser::consume_request(){
 }
 
 void RequestParser::print_request() const {
-    std::cout << "Request: " << _request << std::endl;
+    //std::cout << "Request: " << _request << std::endl;
+    std::cout << "--Incoming request--" << std::endl;
     std::cout << "Method: " << _method << std::endl;
     std::cout << "URI: " << _uri << std::endl;
     std::cout << "Protocol: " << _protocol << std::endl;
