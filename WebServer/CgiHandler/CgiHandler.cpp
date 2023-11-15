@@ -61,14 +61,10 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
     }
 }
 
-pid_t childPid = -1;
-
 void cgi_time_out(int)
 {
 	std::cout << "Killed child process" << std::endl;
-	close(1);
 	exit(0);
-    //kill(childPid,SIGTERM);
 }
 
 void    CgiHandler::execute_script(RequestParser const &httprequest) {
@@ -100,10 +96,8 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
         if (pipe2(pipe_in, O_NONBLOCK) < 0)
             perror("pipe in failed");
 
-		//signal(SIGALRM,(void (*)(int))kill_child);
-
         // start fork to process in a child
-        childPid = fork();
+        pid_t childPid = fork();
         if (childPid == -1)
             throw CgiException("Fork error");
 
