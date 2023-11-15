@@ -89,6 +89,9 @@ void ServerManager::start_listen()
                     }
                     //find the pollfd of cgiIndex.at(it->fd) and set events to POLLOUT
                     if (bytesReceived == 0) {
+                        if (this->_cgiResponseIndex.at(this->_cgiIndex.at(it->fd)).empty()) {
+                            this->_cgiResponseIndex.at(this->_cgiIndex.at(it->fd)) = "Error";
+                        }
                         for (std::vector<struct pollfd>::iterator iter = this->_pollfds.begin(); iter < this->_pollfds.end(); iter++) {
                             if (iter->fd == this->_cgiIndex.at(it->fd)) {
                                 iter->events = POLLOUT;
