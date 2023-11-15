@@ -117,9 +117,11 @@ void ServerManager::start_listen()
                         this->_requests.insert({it->fd, request});
                     }
                     // if all bytes are read, POLLOUT the socket
-                    if (this->_requests[it->fd].get_content_remaining() <= 0) { //to do: checken voor chunked requests?
-                        std::cout << "------ Received Request from client ------" << std::endl << std::endl;
-                        it->events = POLLOUT;
+                    if (this->_requests.count(it->fd)) {
+                        if (this->_requests[it->fd].get_content_remaining() <= 0) { //to do: checken voor chunked requests?
+                            std::cout << "------ Received Request from client ------" << std::endl << std::endl;
+                            it->events = POLLOUT;
+                        }
                     }
                     if (this->_timeOutIndex.count(it->fd)) {
                         this->_timeOutIndex.at(it->fd) = utility::getCurrentTimeinSec();
@@ -188,25 +190,32 @@ int ServerManager::send_response(int socket_fd)
         this->_responses.insert({socket_fd, this->_cgiResponseIndex.at(socket_fd)});
     }
     else if (this->_requests.count(socket_fd)) {
-        ResponseBuilder response(this->_requests.at(socket_fd), this->_requestServerIndex.at(socket_fd).get_config());
-        if (response.get_cgiPipeFd()) {
-            //we need to read from the pipe and send that instead
-            struct pollfd cgi_fd;
-            cgi_fd.fd = response.get_cgiPipeFd();
-            cgi_fd.events = POLLIN;
-            this->_pollfds.push_back(cgi_fd);
-            //map the socket_fd to send the read output to the cgi_fd
-            this->_cgiIndex.insert({cgi_fd.fd, socket_fd});
-            this->_requests.erase(socket_fd);
-            for (std::vector<struct pollfd>::iterator it = this->_pollfds.begin(); it != this->_pollfds.end() ;it++) {
-                if (it->fd == socket_fd) {
-                    it->events = 0;
+        if (this->_requestServerIndex.count(socket_fd)) {
+            ResponseBuilder response(this->_requests.at(socket_fd), this->_requestServerIndex.at(socket_fd).get_config());
+            if (response.get_cgiPipeFd()) {
+                //we need to read from the pipe and send that instead
+                struct pollfd cgi_fd;
+                cgi_fd.fd = response.get_cgiPipeFd();
+                cgi_fd.events = POLLIN;
+                this->_pollfds.push_back(cgi_fd);
+                //map the socket_fd to send the read output to the cgi_fd
+                this->_cgiIndex.insert({cgi_fd.fd, socket_fd});
+                this->_requests.erase(socket_fd);
+                for (std::vector<struct pollfd>::iterator it = this->_pollfds.begin(); it != this->_pollfds.end() ;it++) {
+                    if (it->fd == socket_fd) {
+                        it->events = 0;
+                    }
                 }
+                return (0);
             }
-            return (0);
+            this->_responses.insert({socket_fd, response.get_response()});
+            std::cout << response.get_header() << std::endl;
         }
-        this->_responses.insert({socket_fd, response.get_response()});
-        std::cout << response.get_header() << std::endl;
+    }
+    if (!this->_responses.count(socket_fd)) {
+        std::cout << "Error getting response, closing connection" << std::endl;
+        close_connection(socket_fd);
+        return (1);
     }
     bytesSent = write(socket_fd, this->_responses.at(socket_fd).c_str(), this->_responses.at(socket_fd).size());
     if (bytesSent <= 0) {
