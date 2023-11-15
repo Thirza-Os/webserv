@@ -320,6 +320,7 @@ void RequestParser::consume_request(){
                 validate_request_line();
             } else {
                 parse_error("Invalid Request Format", 400);
+				return ;
             }
 
             state = HeadersParsing;
@@ -354,6 +355,8 @@ void RequestParser::print_request() const {
     for (const auto& header : _headers) {
         std::cout << "  " << header.first << ": " << header.second << std::endl;
     }
+
+	// ONLY FOR WHEN POST METHOD
 	// std::cout << "Body: " << std::endl;
 	// std::vector<char> body = get_body();
 	// std::vector<char>::iterator it = body.begin();
