@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include "../Utilities/Utilities.hpp"
 
+
+
 CgiHandler::CgiHandler(Location const &loc, RequestParser const &httprequest) {
     this->_runLoc = "/usr/bin/php";                                       // Set this to correct location of your php runner
     initialize_environment(loc, httprequest);
@@ -59,8 +61,14 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
     }
 }
 
+void cgi_time_out(int)
+{
+	std::cout << "Killed child process" << std::endl;
+	exit(0);
+}
+
 void    CgiHandler::execute_script(RequestParser const &httprequest) {
-        char *postBuffer = nullptr;
+    char 	*postBuffer = nullptr;
 
     try {
         // Build the argv
@@ -87,6 +95,7 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
             perror("pipe out failed");
         if (pipe2(pipe_in, O_NONBLOCK) < 0)
             perror("pipe in failed");
+
         // start fork to process in a child
         pid_t childPid = fork();
         if (childPid == -1)
@@ -113,7 +122,8 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
 				close(pipe_out[1]);
 
                 // execve to execute the cgi program
-
+				signal(SIGALRM, cgi_time_out);
+				alarm(3);
                 if (execve(this->_runLoc, argv,
                     &this->_childEnvp[0]) == -1){
                         perror("execve failed");
@@ -125,6 +135,7 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
 
         } else {
             //parent
+
             if (httprequest.get_method() == "POST") {
                 std::cout << "\"" << postBuffer << "\"" << std::endl;
                 close(pipe_in[0]);
@@ -139,9 +150,7 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
                 close(pipe_in[0]);
             }
 
-           	int status;
 			close(pipe_out[1]);
-			waitpid(childPid, &status, 0);
 
             if (postBuffer != nullptr) {
                 delete[] postBuffer;
