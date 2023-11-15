@@ -52,7 +52,6 @@ void ServerManager::start_listen()
         std::cout << "====== Waiting for a new event ======" << std::endl << std::endl;
         if (poll(&this->_pollfds[0], this->_pollfds.size(), 10000) == -1) {
             std::cout << "Error returned from poll()" << std::endl;
-			std::cout << "errno: " << errno << "--- EINTR: " << EINTR << std::endl;
         }
         for (std::vector<struct pollfd>::iterator it = this->_pollfds.begin(); it < this->_pollfds.end(); it++) {
             if (it->revents & POLLIN + POLLHUP) {
