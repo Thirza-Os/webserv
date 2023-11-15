@@ -229,6 +229,8 @@ void RequestParser::fill_body(const char *_request, int bytesReceived)
 	if (_body.size() == 0)
 	{
 		temp_body = strstr(_request, "\r\n\r\n");
+		if (temp_body == NULL)
+			return;
 		this->_content_remaining += 4;//adding this up because the seperators are included in bytesreceived
 	}else
 		temp_body = _request;
@@ -318,6 +320,7 @@ void RequestParser::consume_request(){
                 validate_request_line();
             } else {
                 parse_error("Invalid Request Format", 400);
+				return ;
             }
 
             state = HeadersParsing;
@@ -353,6 +356,8 @@ void RequestParser::print_request() const {
     for (const auto& header : _headers) {
         std::cout << "  " << header.first << ": " << header.second << std::endl;
     }
+
+	// ONLY FOR WHEN POST METHOD
 	// std::cout << "Body: " << std::endl;
 	// std::vector<char> body = get_body();
 	// std::vector<char>::iterator it = body.begin();

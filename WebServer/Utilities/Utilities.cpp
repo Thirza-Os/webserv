@@ -130,7 +130,7 @@ namespace utility {
 
 		//skip the first few lines because they are content-type, disposition and boundary.
 		//only do this if 
-		if (!post_request->get_content_disposition().empty())
+		if (!post_request->get_content_disposition().empty() && post_request->get_content_type() != "multipart/form-data")
 		{
 			while (it != body.end())
 			{
@@ -155,7 +155,7 @@ namespace utility {
 					}
 				}
 			} else {
-				return (422);
+				return (415);
 			}
 			boundary = getContentInfo(post_request->get_content_type(), "boundary=");
 			if (!boundary.empty())
@@ -165,7 +165,7 @@ namespace utility {
 			}
 		}
 		else {// means not enough info is given
-			return (422);
+			return (415);
 		}
 		std::ofstream newfile(uri + filename, std::ios::out | std::ios::binary);
 		//write all bytes to file except final boundary

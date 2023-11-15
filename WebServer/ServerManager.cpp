@@ -113,6 +113,7 @@ void ServerManager::start_listen()
                     else {
                         RequestParser request(buffer);
 						//idee : content remaining gelijk zetten aan de laatst gelezen chunk
+						
                         request.fill_body(buffer, bytesReceived - request.get_header_length());
                         this->_requests.insert({it->fd, request});
                     }
