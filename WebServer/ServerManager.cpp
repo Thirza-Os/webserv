@@ -52,6 +52,7 @@ void ServerManager::start_listen()
         std::cout << "====== Waiting for a new event ======" << std::endl << std::endl;
         if (poll(&this->_pollfds[0], this->_pollfds.size(), 10000) == -1) {
             std::cout << "Error returned from poll()" << std::endl;
+			std::cout << "errno: " << errno << "--- EINTR: " << EINTR << std::endl;
         }
         for (std::vector<struct pollfd>::iterator it = this->_pollfds.begin(); it < this->_pollfds.end(); it++) {
             if (it->revents & POLLIN + POLLHUP) {
@@ -66,7 +67,17 @@ void ServerManager::start_listen()
                     if (bytesReceived < 0)
                     {
                         std::cout << "Failed to read bytes from pipe connection" << std::endl;
-                        break;
+						this->_cgiResponseIndex.insert({this->_cgiIndex.at(it->fd), "Error"});
+                        for (std::vector<struct pollfd>::iterator iter = this->_pollfds.begin(); iter < this->_pollfds.end(); iter++) {
+                            if (iter->fd == this->_cgiIndex.at(it->fd)) {
+                                iter->events = POLLOUT;
+                            }
+                        }
+                        //close the pipe end
+                        close(it->fd);
+                        it = this->_pollfds.erase(it);
+                        this->_cgiIndex.erase(it->fd);
+						break;
                     }
                     //add bytes read to string and add it to cgi response index
                     std::string cgiResponse = buffer;

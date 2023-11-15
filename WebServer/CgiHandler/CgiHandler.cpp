@@ -63,14 +63,16 @@ void    CgiHandler::initialize_environment(Location const &loc, RequestParser co
 
 pid_t childPid = -1;
 
-void kill_child(int)
+void cgi_time_out(int)
 {
 	std::cout << "Killed child process" << std::endl;
-    kill(childPid,SIGTERM);
+	close(1);
+	exit(0);
+    //kill(childPid,SIGTERM);
 }
 
 void    CgiHandler::execute_script(RequestParser const &httprequest) {
-        char 	*postBuffer = nullptr;
+    char 	*postBuffer = nullptr;
 
     try {
         // Build the argv
@@ -98,7 +100,7 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
         if (pipe2(pipe_in, O_NONBLOCK) < 0)
             perror("pipe in failed");
 
-		signal(SIGALRM,(void (*)(int))kill_child);
+		//signal(SIGALRM,(void (*)(int))kill_child);
 
         // start fork to process in a child
         childPid = fork();
@@ -126,7 +128,8 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
 				close(pipe_out[1]);
 
                 // execve to execute the cgi program
-
+				signal(SIGALRM, cgi_time_out);
+				alarm(3);
                 if (execve(this->_runLoc, argv,
                     &this->_childEnvp[0]) == -1){
                         perror("execve failed");
@@ -152,12 +155,8 @@ void    CgiHandler::execute_script(RequestParser const &httprequest) {
                 close(pipe_in[1]);
                 close(pipe_in[0]);
             }
-			alarm(3);
-           	wait(NULL);
-			//int status;
-			close(pipe_out[1]);
-			//waitpid(childPid, &status, 0);
 
+			close(pipe_out[1]);
 
             if (postBuffer != nullptr) {
                 delete[] postBuffer;
