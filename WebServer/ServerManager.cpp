@@ -66,8 +66,16 @@ void ServerManager::start_listen()
                     if (bytesReceived < 0)
                     {
                         std::cout << "Failed to read bytes from pipe connection" << std::endl;
-                        //may need to close pipe here as well?
-                        //perhaps send a 500 internal server error somehow?
+                        this->_cgiResponseIndex.insert({this->_cgiIndex.at(it->fd), "cgi error"});
+                        for (std::vector<struct pollfd>::iterator iter = this->_pollfds.begin(); iter < this->_pollfds.end(); iter++) {
+                            if (iter->fd == this->_cgiIndex.at(it->fd)) {
+                                iter->events = POLLOUT;
+                            }
+                        }
+                        //close the pipe end
+                        close(it->fd);
+                        it = this->_pollfds.erase(it);
+                        this->_cgiIndex.erase(it->fd);
                         break;
                     }
                     //add bytes read to string and add it to cgi response index
