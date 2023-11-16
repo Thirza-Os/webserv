@@ -18,6 +18,7 @@ int main(int argc, char **argv){
     if (configPath.empty()) {
         configPath = "WebServer/ConfigParser/DefaultConfig/default.conf";
     }
+    signal(SIGCHLD, SIG_IGN);
     signal(SIGPIPE, SIG_IGN);
     try{
         ConfigParser parsed(configPath);
