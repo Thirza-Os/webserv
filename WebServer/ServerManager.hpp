@@ -42,6 +42,7 @@ private:
 
     int             send_response(int socket_fd);
     void            check_timeout(void);
+    std::string     build_cgi_error(int pipe_fd);
 };
 
 #endif

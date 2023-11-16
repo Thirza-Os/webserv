@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <unistd.h>
 #include <algorithm>
 
@@ -66,7 +67,7 @@ void ServerManager::start_listen()
                     if (bytesReceived < 0)
                     {
                         std::cout << "Failed to read bytes from pipe connection" << std::endl;
-						this->_cgiResponseIndex.insert({this->_cgiIndex.at(it->fd), "Error"});
+						this->_cgiResponseIndex.insert({this->_cgiIndex.at(it->fd), build_cgi_error(it->fd)});
                         for (std::vector<struct pollfd>::iterator iter = this->_pollfds.begin(); iter < this->_pollfds.end(); iter++) {
                             if (iter->fd == this->_cgiIndex.at(it->fd)) {
                                 iter->events = POLLOUT;
@@ -89,7 +90,7 @@ void ServerManager::start_listen()
                     //find the pollfd of cgiIndex.at(it->fd) and set events to POLLOUT
                     if (bytesReceived == 0) {
                         if (this->_cgiResponseIndex.at(this->_cgiIndex.at(it->fd)).empty()) {
-                            this->_cgiResponseIndex.at(this->_cgiIndex.at(it->fd)) = "Error";
+                            this->_cgiResponseIndex.at(this->_cgiIndex.at(it->fd)) = build_cgi_error(it->fd);
                         }
                         for (std::vector<struct pollfd>::iterator iter = this->_pollfds.begin(); iter < this->_pollfds.end(); iter++) {
                             if (iter->fd == this->_cgiIndex.at(it->fd)) {
@@ -259,6 +260,48 @@ int ServerManager::send_response(int socket_fd)
     }
     std::cout << "Keeping connection alive" << std::endl;
     return (0);
+}
+
+std::string ServerManager::build_cgi_error(int pipe_fd)
+{
+    //original error thing we had: this->_cgiResponseIndex.insert({this->_cgiIndex.at(it->fd), "Error"});
+    //get the client socket id from cgi index
+    int client_socket = -1;
+    if (this->_cgiIndex.count(pipe_fd)) {
+        client_socket = this->_cgiIndex.at(pipe_fd);
+    }
+    //find the serverconfig
+    ServerConfig serverconfig;
+    if (this->_requestServerIndex.count(client_socket)) {
+        serverconfig = this->_requestServerIndex.at(client_socket).get_config();
+    }
+    //open the server config specified or default error page for error code 500
+    std::ifstream errorPageFile;
+    if (serverconfig.get_errorpages().count(500)) {
+        errorPageFile.open(serverconfig.get_errorpages().at(500));
+    }
+    else {
+        errorPageFile.open("WebServer/ConfigParser/DefaultErrorPages/500InternalServer.html");
+    }
+    //if that can't be opened, have body empty
+    std::string error_body;
+    if (!errorPageFile.good()) {
+        errorPageFile.close();
+    }
+    else {
+        std::stringstream buffer;
+        buffer << errorPageFile.rdbuf();
+        error_body = buffer.str();
+        errorPageFile.close();
+    }
+    //build the header, status code 500, html, etc
+    std::string header = "HTTP/1.1 500 Internal Server Error\nContent-Type: text/html\nContent-Length: ";
+    std::cout << error_body.length() << std::endl;
+    header.append(std::to_string(error_body.length()));
+    header += "\n\n";
+    //add header to body, set that to cgi response on the client socket id
+    std::cout << header + error_body << std::endl;
+    return (header + error_body);
 }
 
 void ServerManager::close_connection(int client_socket)
